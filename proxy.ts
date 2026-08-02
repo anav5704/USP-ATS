@@ -7,14 +7,17 @@ export async function proxy(request: NextRequest) {
   });
 
   if (!session) {
-    const startUrl = new URL("/api/auth/start", request.nextUrl.origin);
-    startUrl.searchParams.set("callbackUrl", request.nextUrl.href);
-    return NextResponse.redirect(startUrl);
+    const signInUrl = new URL("/sign-in", request.nextUrl.origin);
+    signInUrl.searchParams.set(
+      "returnTo",
+      request.nextUrl.pathname + request.nextUrl.search
+    );
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|sign-in|_next/static|_next/image|favicon.ico).*)"],
 };
