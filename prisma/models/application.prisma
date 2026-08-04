@@ -1,0 +1,47 @@
+model Application {
+  id          String            @id @default(cuid())
+  jobId       String
+  job         JobPosting        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User              @relation(fields: [studentId], references: [id])
+  coverLetter String
+  status      ApplicationStatus @default(APPLIED)
+  score       ScoreResult?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([jobId, studentId])
+  @@index([studentId])
+  @@index([status])
+  @@map("application")
+}
+
+model ScoreResult {
+  applicationId       String      @id
+  application         Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  matchScore          Int?
+  eligible            Boolean?
+  qualificationFit    String?
+  motivationFit       String?
+  missingRequirements String[]
+  status              ScoreStatus @default(PENDING)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([matchScore])
+  @@map("score_result")
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+enum ScoreStatus {
+  PENDING
+  COMPLETE
+  FAILED
+}

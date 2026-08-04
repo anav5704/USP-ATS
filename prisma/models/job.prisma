@@ -1,0 +1,26 @@
+model JobPosting {
+  id           String        @id @default(cuid())
+  title        String
+  department   String
+  jobType      String
+  campus       String[]
+  gpaMin       Decimal?      @db.Decimal(3, 2)
+  degree       String?
+  skills       String?
+  hours        Int?
+  deadline     DateTime
+  status       PostingStatus @default(ACTIVE)
+  createdById  String
+  createdBy    User          @relation(fields: [createdById], references: [id])
+  applications Application[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([status, createdAt])
+  @@map("job_posting")
+}
+
+enum PostingStatus {
+  ACTIVE
+  ARCHIVED
+}
