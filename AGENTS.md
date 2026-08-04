@@ -175,6 +175,30 @@
 ### 4.8 Commits
 - Use conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, etc.) matching the existing history
 
+### 4.9 Database & Prisma
+- Edit `prisma/schema.prisma` freely as a feature requires
+- After editing the schema, sync the shared dev database with `pnpm prisma db push`
+- Migration files are not used — never run `prisma migrate`; no `prisma/migrations` folder is committed
+- `prisma generate` runs automatically via the `postinstall` script; run `pnpm prisma generate` manually if the client is stale
+- Destructive recovery is allowed: if schema/DB sync gets stuck, you may nuke the shared dev DB with `pnpm prisma migrate reset` — but you must notify the team afterwards (e.g. team channel or PR comment), since it wipes shared data
+
+### 4.10 Git Branching
+- All work happens on a feature branch branched from `dev`, never directly on `dev` or `main`
+- Name branches by intent: `feat/<scope>`, `fix/<scope>`, `chore/<scope>` (e.g. `feat/job-search`)
+- Keep branches small and scoped to a single feature; merge back via PR into `dev`
+
+### 4.11 AI Coding Agents
+- Agents may autonomously create branches and run `pnpm install` (including on new branches) as needed
+- Agents must leave the workspace in a working state and pass the checks in 4.13 before finishing
+
+### 4.12 Package Manager
+- Use pnpm exclusively: `pnpm install` to install, `pnpm add <pkg>` to add dependencies
+- Never mix package managers or commit alternate lockfiles
+
+### 4.13 Verification Before Commit
+- Run `pnpm lint` and `pnpm typecheck` before committing or opening a PR
+- Run `pnpm build` when a change touches routing or build configuration
+
 ---
 
 *Draft v1 — adjust as implementation reveals edge cases.*
