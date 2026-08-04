@@ -51,7 +51,7 @@
 - No notification system — status visible only when the student checks
 
 **5. AI Scoring / Recommendation**
-- Triggered automatically on application submission (async, via Inngest)
+- Triggered automatically on application submission (async, via trigger.dev)
 - Inputs: job requirements, applicant's structured profile (skills, education, GPA, projects), cover letter text
 - Personal projects are considered a positive signal in scoring (exact weighting tunable during prompt design)
 - Output: match score, eligibility flag, qualification fit reasoning, motivation fit reasoning, missing requirements
@@ -89,7 +89,7 @@
 | Auth | better-auth + Entra ID (Microsoft/Azure AD provider) |
 | Forms & Validation | React Hook Form + Zod |
 | Data fetching/mutations | TanStack Query (client-side, primary) |
-| Async processing | Inngest |
+| Async processing | trigger.dev |
 | AI | Gemini API (free tier) via Vercel AI SDK (`generateObject` + Zod schema) |
 | Deployment | Vercel |
 | File/object storage | None required |
