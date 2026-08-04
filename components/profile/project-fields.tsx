@@ -23,7 +23,7 @@ export function ProjectFields() {
     <RepeaterSection
       icon={FolderGit2Icon}
       title="Personal projects"
-      description="Optional — add projects that showcase your skills."
+      description="Optional: add projects that showcase your skills."
       addLabel="Add project"
       onAdd={() => append({ name: "", description: "", link: "" })}
     >

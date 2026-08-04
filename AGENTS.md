@@ -199,6 +199,9 @@
 - Run `pnpm lint` and `pnpm typecheck` before committing or opening a PR
 - Run `pnpm build` when a change touches routing or build configuration
 
+### 4.14 Writing Style
+- Do not use em dashes (—); use hyphens, commas, or semicolons instead
+
 ---
 
 *Draft v1 — adjust as implementation reveals edge cases.*
