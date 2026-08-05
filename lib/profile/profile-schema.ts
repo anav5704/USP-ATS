@@ -34,8 +34,8 @@ export const projectInputSchema = z.object({
 export const profileInputSchema = z.object({
   gpa: z
     .number({ error: "Enter your GPA" })
-    .min(0, "GPA cannot be negative")
-    .max(4.5, "GPA is out of 4.5"),
+    .min(0, "GPA must be between 0 and 4.5")
+    .max(4.5, "GPA must be between 0 and 4.5"),
   skills: z
     .string()
     .trim()

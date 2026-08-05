@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import type { ProfileModel } from "@/lib/profile/to-profile-input";
 import { AuthProvider } from "@/components/auth-provider";
 import { RequireAuth } from "@/lib/require-auth";
 import { AppShell } from "@/components/app-shell";
@@ -13,20 +14,42 @@ export default async function AppLayout({
     headers: await headers(),
   });
 
+  let profile: ProfileModel | null = null;
   if (session && session.user.role !== "admin") {
-    const profile = await prisma.profile.findUnique({
+    const result = await prisma.profile.findUnique({
       where: { userId: session.user.id },
-      select: { id: true },
+      include: {
+        degrees: true,
+        education: true,
+        projects: true,
+      },
     });
-    if (!profile) {
+    if (!result) {
       redirect("/onboarding");
     }
+    profile = {
+      gpa: result.gpa?.toString() ?? null,
+      skills: result.skills,
+      degrees: result.degrees.map((degree) => ({
+        name: degree.name,
+        institution: degree.institution,
+      })),
+      education: result.education.map((entry) => ({
+        institution: entry.institution,
+        program: entry.program,
+      })),
+      projects: result.projects.map((project) => ({
+        name: project.name,
+        description: project.description,
+        link: project.link,
+      })),
+    };
   }
 
   return (
     <AuthProvider session={session}>
       <RequireAuth>
-        <AppShell>{children}</AppShell>
+        <AppShell profile={profile}>{children}</AppShell>
       </RequireAuth>
     </AuthProvider>
   );

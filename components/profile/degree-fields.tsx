@@ -35,7 +35,7 @@ export function DegreeFields() {
           canRemove={fields.length > 1}
           onRemove={() => remove(index)}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-4">
             <FormField
               id={`degrees.${index}.name`}
               label="Degree name"

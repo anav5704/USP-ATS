@@ -23,6 +23,7 @@ export function RepeaterItem({
         </p>
         {canRemove ? (
           <Button.Root
+            type="button"
             isIconOnly
             size="sm"
             variant="ghost"

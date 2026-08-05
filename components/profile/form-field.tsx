@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FieldError, Label } from "@heroui/react";
+import { Label } from "@heroui/react";
 
 export function FormField({
   label,
@@ -26,7 +26,11 @@ export function FormField({
       {hint && !error ? (
         <p className="text-xs text-zinc-500 dark:text-zinc-400">{hint}</p>
       ) : null}
-      {error ? <FieldError>{error}</FieldError> : null}
+      {error ? (
+        <p className="field-error" data-visible aria-live="polite">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

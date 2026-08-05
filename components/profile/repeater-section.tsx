@@ -35,6 +35,7 @@ export function RepeaterSection({
           </div>
         </div>
         <Button.Root
+          type="button"
           size="sm"
           variant="ghost"
           onPress={onAdd}

@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ProfileForm } from "@/components/profile/profile-form";
+import { ProfileWizard } from "@/components/profile/profile-wizard";
 
 export default async function OnboardingPage() {
   const session = await auth.api.getSession({
@@ -39,7 +39,14 @@ export default async function OnboardingPage() {
             postings. You can update it any time.
           </p>
         </div>
-        <ProfileForm mode="create" />
+        <ProfileWizard
+          mode="create"
+          variant="page"
+          accountInfo={{
+            name: session.user.name?.trim() || "User",
+            email: session.user.email ?? "",
+          }}
+        />
       </main>
     </div>
   );

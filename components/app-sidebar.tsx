@@ -1,17 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, Button, Separator } from "@heroui/react";
+import { Avatar, Dropdown, Separator } from "@heroui/react";
 import {
   BriefcaseIcon,
   ClipboardListIcon,
   LogOutIcon,
+  MoreVerticalIcon,
   PlusCircleIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import type { ProfileModel } from "@/lib/profile/to-profile-input";
 import { useAuth } from "@/lib/use-auth";
+import { ProfileModal } from "@/components/profile/profile-modal";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
 
@@ -34,12 +38,6 @@ const studentNav: NavItem[] = [
     label: "My Applications",
     icon: ClipboardListIcon,
     isActive: (p) => p.startsWith("/applications"),
-  },
-  {
-    href: "/profile",
-    label: "Profile",
-    icon: UserRoundIcon,
-    isActive: (p) => p.startsWith("/profile"),
   },
 ];
 
@@ -67,13 +65,23 @@ function getInitials(name: string) {
     .join("");
 }
 
-export function AppSidebar() {
+export function AppSidebar({
+  profile,
+}: {
+  profile: ProfileModel | null;
+}) {
   const { data: session } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [profileOpen, setProfileOpen] = useState(false);
   const user = session?.user;
   const role = user?.role;
   const nav = role === "admin" ? adminNav : studentNav;
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push("/sign-in");
+  };
 
   return (
     <aside className="sticky top-0 flex h-svh w-72 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
@@ -122,20 +130,41 @@ export function AppSidebar() {
             {role ?? "No role"}
           </p>
         </div>
-        <Button.Root
-          isIconOnly
-          size="sm"
-          variant="ghost"
-          aria-label="Sign out"
-          className="text-zinc-500 dark:text-zinc-400"
-          onPress={async () => {
-            await authClient.signOut();
-            router.push("/sign-in");
-          }}
-        >
-          <LogOutIcon className="size-4" />
-        </Button.Root>
+        <Dropdown.Root>
+          <Dropdown.Trigger
+            aria-label="Account menu"
+            className="rounded-xl p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          >
+            <MoreVerticalIcon className="size-4" />
+          </Dropdown.Trigger>
+          <Dropdown.Popover placement="bottom end">
+            <Dropdown.Menu>
+              <Dropdown.Item
+                textValue="Profile"
+                onAction={() => setProfileOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <UserRoundIcon className="size-4" />
+                Profile
+              </Dropdown.Item>
+              <Dropdown.Item
+                textValue="Sign out"
+                onAction={handleSignOut}
+                className="flex items-center gap-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
+              >
+                <LogOutIcon className="size-4" />
+                Sign out
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown.Popover>
+        </Dropdown.Root>
       </div>
+      <ProfileModal
+        user={user ?? {}}
+        profile={profile}
+        isOpen={profileOpen}
+        onOpenChange={setProfileOpen}
+      />
     </aside>
   );
 }

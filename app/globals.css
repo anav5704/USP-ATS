@@ -9,6 +9,13 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
+  --field-border-width: 1px;
+  --field-border: oklch(0.7 0.012 260);
+}
+
+:root[data-theme="dark"] {
+  --field-border-width: 1px;
+  --field-border: oklch(0.45 0.015 260);
 }
 
 @theme inline {
