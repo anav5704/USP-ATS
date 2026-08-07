@@ -1,21 +1,10 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
-@custom-variant dark (&:is([data-theme="dark"] *));
-
-:root[data-theme="dark"] {
-  color-scheme: dark;
-}
-
-:root[data-theme="light"] {
+:root {
   color-scheme: light;
   --field-border-width: 1px;
   --field-border: oklch(0.7 0.012 260);
-}
-
-:root[data-theme="dark"] {
-  --field-border-width: 1px;
-  --field-border: oklch(0.45 0.015 260);
 }
 
 @theme inline {

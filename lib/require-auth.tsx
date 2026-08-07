@@ -17,8 +17,8 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
 
   if (isPending || !session) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Checking session...</p>
+      <div className="flex flex-1 items-center justify-center bg-zinc-100">
+        <p className="text-sm text-zinc-500">Checking session...</p>
       </div>
     );
   }

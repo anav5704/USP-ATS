@@ -27,7 +27,7 @@ function SignInForm() {
 
   if (isPending) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
+      <div className="flex flex-1 items-center justify-center bg-zinc-100">
         <Spinner.Root size="lg" className="text-white" />
       </div>
     );
@@ -35,7 +35,7 @@ function SignInForm() {
 
   if (session) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
+      <div className="flex flex-1 items-center justify-center bg-zinc-100">
         <Spinner.Root size="lg" className="text-white" />
       </div>
     );
@@ -43,18 +43,18 @@ function SignInForm() {
 
   if (error) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
-        <main className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm dark:bg-zinc-900">
-          <h1 className="text-xl font-semibold tracking-tight text-black dark:text-zinc-50">
+      <div className="flex flex-1 items-center justify-center bg-zinc-100">
+        <main className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
+          <h1 className="text-xl font-semibold tracking-tight text-black">
             Sign in failed
           </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <p className="mt-2 text-sm text-zinc-600">
             We couldn&apos;t complete the sign-in with your Microsoft account. Please try again.
           </p>
           <button
             type="button"
             onClick={() => signInWithMicrosoft(returnTo)}
-            className="mt-6 w-full rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            className="mt-6 w-full rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
           >
             Try again
           </button>
@@ -64,7 +64,7 @@ function SignInForm() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
+    <div className="flex flex-1 items-center justify-center bg-zinc-100">
       <Spinner.Root size="lg" className="text-white" />
     </div>
   );
@@ -74,7 +74,7 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-950">
+        <div className="flex flex-1 items-center justify-center bg-zinc-100">
           <Spinner.Root size="lg" className="text-white" />
         </div>
       }

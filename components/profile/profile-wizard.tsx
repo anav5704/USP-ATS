@@ -107,13 +107,13 @@ export function ProfileWizard({
         variant="ghost"
         isDisabled={currentIndex === 0 || isPending}
         onPress={goBack}
-        className="text-zinc-600 dark:text-zinc-300"
+        className="text-zinc-600"
       >
         <ArrowLeftIcon className="size-4" />
         Back
       </Button.Root>
       <div className="flex items-center gap-4">
-        <span className="text-xs font-medium tabular-nums text-zinc-500 dark:text-zinc-400">
+        <span className="text-xs font-medium tabular-nums text-zinc-500">
           Step {currentIndex + 1} of {PROFILE_STEPS.length}
         </span>
         {isLastStep ? (
@@ -121,7 +121,7 @@ export function ProfileWizard({
             type="button"
             isDisabled={isPending}
             onPress={() => void form.handleSubmit(handleSave)()}
-            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-4 animate-spin" />
@@ -137,7 +137,7 @@ export function ProfileWizard({
             type="button"
             isDisabled={isPending}
             onPress={advance}
-            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
           >
             Next
             <ChevronRightIcon className="size-4" />
@@ -175,7 +175,7 @@ export function ProfileWizard({
               <div className="min-w-0">{content}</div>
             </Modal.Body>
             <Modal.Footer>
-              <div className="flex w-full items-center justify-between gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+              <div className="flex w-full items-center justify-between gap-3 border-t border-zinc-200 pt-4">
                 {footer}
               </div>
             </Modal.Footer>
@@ -183,7 +183,7 @@ export function ProfileWizard({
         ) : (
           <>
             <div className="min-w-0">{content}</div>
-            <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            <div className="border-t border-zinc-200 pt-4">
               {footer}
             </div>
           </>

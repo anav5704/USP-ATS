@@ -84,7 +84,7 @@ export function ProfileModal({
                     type="button"
                     variant="ghost"
                     onPress={() => onOpenChange(false)}
-                    className="text-zinc-600 dark:text-zinc-300"
+                    className="text-zinc-600"
                   >
                     Close
                   </Button.Root>

@@ -28,17 +28,17 @@ export function ProfileStepper({
   const percent = Math.round((completedRequired / requiredSteps.length) * 100);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+    <section className="rounded-2xl border border-zinc-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          <h2 className="text-sm font-semibold text-zinc-900">
             Profile progress
           </h2>
-          <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="mt-0.5 text-xs text-zinc-500">
             Complete each step to finish your profile.
           </p>
         </div>
-        <span className="text-sm font-medium tabular-nums text-zinc-700 dark:text-zinc-300">
+        <span className="text-sm font-medium tabular-nums text-zinc-700">
           {percent}%
         </span>
       </div>
@@ -58,8 +58,8 @@ export function ProfileStepper({
                   aria-hidden="true"
                   className={`absolute h-0.5 w-full ${
                     connectorDone
-                      ? "bg-emerald-400 dark:bg-emerald-500"
-                      : "bg-zinc-200 dark:bg-zinc-800"
+                      ? "bg-emerald-400"
+                      : "bg-zinc-200"
                   }`}
                   style={{ left: "-50%", top: "15px" }}
                 />
@@ -74,10 +74,10 @@ export function ProfileStepper({
                   onClick={() => isClickable && onStepClick?.(index)}
                   className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-default ${
                     isComplete
-                      ? "border-emerald-500 bg-emerald-500 text-white dark:border-emerald-500 dark:bg-emerald-500"
+                      ? "border-emerald-500 bg-emerald-500 text-white"
                       : isCurrent
-                        ? "border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900"
-                        : "border-zinc-200 bg-zinc-100 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-500"
+                        ? "border-zinc-900 bg-zinc-900 text-white"
+                        : "border-zinc-200 bg-zinc-100 text-zinc-400"
                   }`}
                 >
                   {isComplete ? (
@@ -89,10 +89,10 @@ export function ProfileStepper({
                 <span
                   className={`max-w-full truncate px-0.5 text-center text-[11px] font-medium ${
                     isCurrent
-                      ? "text-zinc-900 dark:text-zinc-50"
+                      ? "text-zinc-900"
                       : isComplete
-                        ? "text-zinc-600 dark:text-zinc-300"
-                        : "text-zinc-400 dark:text-zinc-500"
+                        ? "text-zinc-600"
+                        : "text-zinc-400"
                   }`}
                 >
                   {step.shortLabel}

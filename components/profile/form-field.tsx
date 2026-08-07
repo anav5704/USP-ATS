@@ -18,13 +18,13 @@ export function FormField({
     <div className="space-y-1.5">
       <Label
         htmlFor={id}
-        className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
+        className="text-sm font-medium text-zinc-900"
       >
         {label}
       </Label>
       {children}
       {hint && !error ? (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400">{hint}</p>
+        <p className="text-xs text-zinc-500">{hint}</p>
       ) : null}
       {error ? (
         <p className="field-error" data-visible aria-live="polite">

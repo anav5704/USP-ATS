@@ -25,16 +25,16 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10 dark:bg-zinc-950">
+    <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10">
       <main className="w-full max-w-2xl">
         <div className="mb-6 text-center">
-          <span className="text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <span className="text-base font-semibold tracking-tight text-zinc-900">
             USP-ATS
           </span>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900">
             Create your profile
           </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500 dark:text-zinc-400">
+          <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
             You need a complete profile before you can browse and apply to job
             postings. You can update it any time.
           </p>
