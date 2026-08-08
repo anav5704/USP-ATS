@@ -43,10 +43,11 @@ const studentNav: NavItem[] = [
 
 const adminNav: NavItem[] = [
   {
-    href: "/",
+    href: "/admin/jobs",
     label: "Job Postings",
     icon: BriefcaseIcon,
-    isActive: (p) => p === "/" || (p.startsWith("/admin/jobs") && p !== "/admin/jobs/new"),
+    isActive: (p) =>
+      p.startsWith("/admin/jobs") && p !== "/admin/jobs/new",
   },
   {
     href: "/admin/jobs/new",

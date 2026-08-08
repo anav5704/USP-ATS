@@ -1,0 +1,16 @@
+export const USP_CAMPUSES = [
+  "Cook Islands",
+  "Emalus",
+  "Kiribati",
+  "Labasa",
+  "Laucala",
+  "Lautoka",
+  "Marshall Islands",
+  "Nauru",
+  "Niue",
+  "Samoa",
+  "Solomon Islands",
+  "Tokelau",
+  "Tonga",
+  "Tuvalu",
+] as const;
