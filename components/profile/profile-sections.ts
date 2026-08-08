@@ -8,10 +8,10 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 
-export type StepId = "academic" | "degrees" | "education" | "projects";
+export type SectionId = "academic" | "degrees" | "education" | "projects";
 
-export type ProfileStep = {
-  id: StepId;
+export type ProfileSection = {
+  id: SectionId;
   label: string;
   shortLabel: string;
   description: string;
@@ -20,7 +20,7 @@ export type ProfileStep = {
   fields: FieldPath<ProfileInput>[];
 };
 
-export const PROFILE_STEPS: ProfileStep[] = [
+export const PROFILE_SECTIONS: ProfileSection[] = [
   {
     id: "academic",
     label: "Academic details",
@@ -59,12 +59,12 @@ export const PROFILE_STEPS: ProfileStep[] = [
   },
 ];
 
-export function isStepComplete(
-  step: ProfileStep,
+export function isSectionComplete(
+  section: ProfileSection,
   values: ProfileInput,
   errors: FieldErrors<ProfileInput>
 ): boolean {
-  switch (step.id) {
+  switch (section.id) {
     case "academic": {
       const gpaOk =
         typeof values.gpa === "number" &&

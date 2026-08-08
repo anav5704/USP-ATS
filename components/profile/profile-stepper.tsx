@@ -3,7 +3,7 @@
 import { useFormContext } from "react-hook-form";
 import { CheckIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
-import { PROFILE_STEPS, isStepComplete } from "@/components/profile/profile-steps";
+import { PROFILE_SECTIONS, isSectionComplete } from "@/components/profile/profile-sections";
 
 export function ProfileStepper({
   currentIndex,
@@ -17,15 +17,19 @@ export function ProfileStepper({
   const { watch, formState } = useFormContext<ProfileInput>();
   const values = watch();
 
-  const complete = PROFILE_STEPS.map((step) =>
-    isStepComplete(step, values, formState.errors)
+  const complete = PROFILE_SECTIONS.map((section) =>
+    isSectionComplete(section, values, formState.errors)
   );
 
-  const requiredSteps = PROFILE_STEPS.filter((step) => !step.optional);
-  const completedRequired = PROFILE_STEPS.filter(
-    (step) => !step.optional && complete[PROFILE_STEPS.indexOf(step)]
+  const requiredSections = PROFILE_SECTIONS.filter((section) => !section.optional);
+  const completedRequired = PROFILE_SECTIONS.filter(
+    (section) =>
+      !section.optional &&
+      complete[PROFILE_SECTIONS.indexOf(section)]
   ).length;
-  const percent = Math.round((completedRequired / requiredSteps.length) * 100);
+  const percent = Math.round(
+    (completedRequired / requiredSections.length) * 100
+  );
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
@@ -44,7 +48,7 @@ export function ProfileStepper({
       </div>
 
       <ol className="flex items-start gap-0">
-        {PROFILE_STEPS.map((step, index) => {
+        {PROFILE_SECTIONS.map((section, index) => {
           const isComplete = complete[index];
           const isCurrent = index === currentIndex;
           const isVisited = index <= maxVisitedIndex;
@@ -52,7 +56,7 @@ export function ProfileStepper({
           const connectorDone = index <= currentIndex;
 
           return (
-            <li key={step.id} className="relative min-w-0 flex-1">
+            <li key={section.id} className="relative min-w-0 flex-1">
               {index > 0 ? (
                 <span
                   aria-hidden="true"
@@ -70,7 +74,7 @@ export function ProfileStepper({
                   type="button"
                   disabled={!isClickable}
                   aria-current={isCurrent ? "step" : undefined}
-                  aria-label={`${step.label}${isComplete ? " (complete)" : ""}`}
+                  aria-label={`${section.label}${isComplete ? " (complete)" : ""}`}
                   onClick={() => isClickable && onStepClick?.(index)}
                   className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-default ${
                     isComplete
@@ -95,7 +99,7 @@ export function ProfileStepper({
                         : "text-zinc-400"
                   }`}
                 >
-                  {step.shortLabel}
+                  {section.shortLabel}
                 </span>
               </div>
             </li>
