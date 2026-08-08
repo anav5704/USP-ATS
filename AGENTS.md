@@ -51,7 +51,7 @@
 - No notification system — status visible only when the student checks
 
 **5. AI Scoring / Recommendation**
-- Triggered automatically on application submission (async, via Inngest)
+- Triggered automatically on application submission (async, via trigger.dev)
 - Inputs: job requirements, applicant's structured profile (skills, education, GPA, projects), cover letter text
 - Personal projects are considered a positive signal in scoring (exact weighting tunable during prompt design)
 - Output: match score, eligibility flag, qualification fit reasoning, motivation fit reasoning, missing requirements
@@ -89,7 +89,7 @@
 | Auth | better-auth + Entra ID (Microsoft/Azure AD provider) |
 | Forms & Validation | React Hook Form + Zod |
 | Data fetching/mutations | TanStack Query (client-side, primary) |
-| Async processing | Inngest |
+| Async processing | trigger.dev |
 | AI | Gemini API (free tier) via Vercel AI SDK (`generateObject` + Zod schema) |
 | Deployment | Vercel |
 | File/object storage | None required |
@@ -148,56 +148,71 @@
 - Prefer small, focused components with a single responsibility
 - Server Components by default; add `"use client"` only where interactivity requires it
 
-### 4.3 Data Fetching & State
+### 4.3 Modals & Forms
+- All create/edit/delete flows use forms inside modals (per NFR3); full-page forms only where the flow requires it (e.g. onboarding)
+- Shared UI primitives live in `components/ui/`: `form-modal.tsx` (generic modal shell), `confirm-modal.tsx` (destructive/confirm actions), `form-field.tsx` (label + hint/error wrapper)
+- `FormModal` owns the shell: header contains only the title and close trigger, plus an optional `closeDisabled` prop. The caller's form renders `Modal.Body` and `Modal.Footer` itself so the submit button stays inside the `<form>` element
+- `ConfirmModal` is used for deletes, withdrawals, and status changes: icon + title + message in the body, cancel/confirm buttons in the footer, `isPending` disables both buttons
+- Per-feature form components (e.g. profile) share small field subcomponents (academic, degree, education, project fields) that consume React Hook Form via `FormProvider`/`useFormContext`; a form is a composition of those fields plus a navigation pattern (stepper, tabs, or plain sections)
+- Section metadata shared by navigation patterns lives in a single config file (e.g. `profile-sections.ts`: id, label, icon, fields, optional) consumed by both stepper and tabs
+- Server actions return `{ success: true } | { success: false; error }`; forms await `mutateAsync` and gate post-save actions (close modal, navigate) on `result.success`
+- Save flow: the submit button shows a spinner and stays disabled while `isPending`; the modal stays open until the DB write confirms, then closes on success; the close trigger is disabled during save by lifting `isPending` up via an `onPendingChange` callback into `FormModal.closeDisabled`
+- Modal forms receive data via `initialData` mapped to RHF `defaultValues`; remount the form when the data changes (e.g. `key={JSON.stringify(profile)}`) so reopening the modal shows fresh values
+- Form state persists while navigating within the form (tabs, steps); closing without saving discards changes (no dirty warning)
+
+### 4.4 Data Fetching & State
 - All server data is fetched via TanStack Query hooks; no ad-hoc `fetch` calls scattered through components
 - Centralize query keys (e.g. a query-key factory) instead of inline string literals
 - Mutations run through TanStack Query and invalidate/update the relevant cached queries
 - TanStack Query owns server state; ephemeral UI state stays in local component state
 
-### 4.4 Types & Validation
+### 4.5 Types & Validation
 - Zod schemas are the single source of truth for data shapes; derive TypeScript types with `z.infer`
 - Validate at the API/action boundary (route handlers and server actions)
 - Forms use React Hook Form + Zod for validation (per SRS)
 
-### 4.5 Naming & File Conventions
+### 4.6 Naming & File Conventions
 - kebab-case file names; PascalCase for components; `use*` prefix for hooks
 - Use the `@/*` path alias for imports
 - Co-locate related hooks/utils with their feature
 
-### 4.6 Server/Client Boundary
+### 4.7 Server/Client Boundary
 - Never import server-only code (e.g. `lib/auth.ts`, Prisma) into client files; use `import type` when only types are needed
 - `proxy.ts` (middleware) is the coarse route gate; client-side guards (`RequireAuth`) handle UX; route/action checks are the enforcement layer (NFR5)
 
-### 4.7 Errors & Empty States
+### 4.8 Errors & Empty States
 - Blocked/invalid actions are communicated via modal dialogs with an icon and message (NFR3)
 - All empty states display an icon and message (NFR4)
 
-### 4.8 Commits
+### 4.9 Commits
 - Use conventional commits (`feat:`, `fix:`, `chore:`, `refactor:`, etc.) matching the existing history
 
-### 4.9 Database & Prisma
+### 4.10 Database & Prisma
 - Edit `prisma/schema.prisma` freely as a feature requires
 - After editing the schema, sync the shared dev database with `pnpm prisma db push`
 - Migration files are not used — never run `prisma migrate`; no `prisma/migrations` folder is committed
 - `prisma generate` runs automatically via the `postinstall` script; run `pnpm prisma generate` manually if the client is stale
 - Destructive recovery is allowed: if schema/DB sync gets stuck, you may nuke the shared dev DB with `pnpm prisma migrate reset` — but you must notify the team afterwards (e.g. team channel or PR comment), since it wipes shared data
 
-### 4.10 Git Branching
+### 4.11 Git Branching
 - All work happens on a feature branch branched from `dev`, never directly on `dev` or `main`
 - Name branches by intent: `feat/<scope>`, `fix/<scope>`, `chore/<scope>` (e.g. `feat/job-search`)
 - Keep branches small and scoped to a single feature; merge back via PR into `dev`
 
-### 4.11 AI Coding Agents
+### 4.12 AI Coding Agents
 - Agents may autonomously create branches and run `pnpm install` (including on new branches) as needed
-- Agents must leave the workspace in a working state and pass the checks in 4.13 before finishing
+- Agents must leave the workspace in a working state and pass the checks in 4.14 before finishing
 
-### 4.12 Package Manager
+### 4.13 Package Manager
 - Use pnpm exclusively: `pnpm install` to install, `pnpm add <pkg>` to add dependencies
 - Never mix package managers or commit alternate lockfiles
 
-### 4.13 Verification Before Commit
+### 4.14 Verification Before Commit
 - Run `pnpm lint` and `pnpm typecheck` before committing or opening a PR
 - Run `pnpm build` when a change touches routing or build configuration
+
+### 4.15 Writing Style
+- Do not use em dashes (—); use hyphens, commas, or semicolons instead
 
 ---
 
