@@ -4,7 +4,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { Input, TextArea } from "@heroui/react";
 import { FolderGit2Icon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
-import { FormField } from "@/components/profile/form-field";
+import { FormField } from "@/components/ui/form-field";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 
@@ -32,7 +32,6 @@ export function ProjectFields() {
           key={field.id}
           title="Project"
           index={index}
-          canRemove={fields.length > 1}
           onRemove={() => remove(index)}
         >
           <div className="space-y-4">

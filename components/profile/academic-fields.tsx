@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 import { Input, TextArea } from "@heroui/react";
 import { BookOpenIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
-import { FormField } from "@/components/profile/form-field";
+import { FormField } from "@/components/ui/form-field";
 
 export function AcademicFields() {
   const {

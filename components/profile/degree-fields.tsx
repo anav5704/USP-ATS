@@ -4,7 +4,7 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { Input } from "@heroui/react";
 import { GraduationCapIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
-import { FormField } from "@/components/profile/form-field";
+import { FormField } from "@/components/ui/form-field";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 
