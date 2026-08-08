@@ -36,5 +36,6 @@ export function useProfileSave(mode: "create" | "update") {
   return {
     isPending: mutation.isPending,
     save: mutation.mutate,
+    saveAsync: mutation.mutateAsync,
   };
 }
