@@ -5,13 +5,13 @@ import { Trash2Icon } from "lucide-react";
 export function RepeaterItem({
   title,
   index,
-  canRemove,
+  canRemove = true,
   onRemove,
   children,
 }: {
   title: string;
   index: number;
-  canRemove: boolean;
+  canRemove?: boolean;
   onRemove: () => void;
   children: ReactNode;
 }) {
