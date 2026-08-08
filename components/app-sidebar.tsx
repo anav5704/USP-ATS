@@ -85,12 +85,6 @@ export function AppSidebar({
 
   return (
     <aside className="sticky top-0 flex h-svh w-72 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50">
-      <div className="flex h-16 items-center px-6">
-        <span className="text-base font-semibold tracking-tight text-zinc-900">
-          USP-ATS
-        </span>
-      </div>
-      <Separator.Root className="bg-zinc-200" />
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {nav.map(({ href, label, icon: Icon, isActive }) => {
           const active = isActive(pathname);
@@ -137,16 +131,18 @@ export function AppSidebar({
           >
             <MoreVerticalIcon className="size-4" />
           </Dropdown.Trigger>
-          <Dropdown.Popover placement="bottom end">
+          <Dropdown.Popover placement="right bottom">
             <Dropdown.Menu>
-              <Dropdown.Item
-                textValue="Profile"
-                onAction={() => setProfileOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <UserRoundIcon className="size-4" />
-                Profile
-              </Dropdown.Item>
+              {role !== "admin" ? (
+                <Dropdown.Item
+                  textValue="Profile"
+                  onAction={() => setProfileOpen(true)}
+                  className="flex items-center gap-2"
+                >
+                  <UserRoundIcon className="size-4" />
+                  Profile
+                </Dropdown.Item>
+              ) : null}
               <Dropdown.Item
                 textValue="Sign out"
                 onAction={handleSignOut}
