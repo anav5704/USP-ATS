@@ -1,14 +1,17 @@
 "use client";
 
-import { useFormContext } from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
 import { Input, TextArea } from "@heroui/react";
 import { BookOpenIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
+import { USP_DEGREES } from "@/lib/usp-degrees";
 
 export function AcademicFields() {
   const {
     register,
+    control,
     formState: { errors },
   } = useFormContext<ProfileInput>();
 
@@ -23,11 +26,30 @@ export function AcademicFields() {
             Academic details
           </h2>
           <p className="mt-0.5 text-xs text-zinc-500">
-            Your average GPA is measured out of 4.5.
+            Select your degrees and enter your average GPA out of 4.5.
           </p>
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <FormField
+        label="Degrees"
+        error={errors.degrees?.message}
+        hint="Select every degree you are pursuing or have completed."
+      >
+        <Controller
+          name="degrees"
+          control={control}
+          render={({ field }) => (
+            <MultiAutocomplete
+              value={field.value}
+              options={USP_DEGREES}
+              placeholder="Select one or more degrees"
+              searchPlaceholder="Search degrees"
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </FormField>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField id="gpa" label="Average GPA (out of 4.5)" error={errors.gpa?.message}>
           <Input.Root
             id="gpa"

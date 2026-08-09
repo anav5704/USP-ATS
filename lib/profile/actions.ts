@@ -26,12 +26,7 @@ function firstError(error: ZodError) {
 type BuildDataResult = {
   gpa: number;
   skills: string;
-  degrees:
-    | { create: Prisma.DegreeCreateWithoutProfileInput[] }
-    | {
-        deleteMany: Prisma.DegreeScalarWhereInput;
-        create: Prisma.DegreeCreateWithoutProfileInput[];
-      };
+  degrees: string[];
   education:
     | { create: Prisma.EducationCreateWithoutProfileInput[] }
     | {
@@ -47,10 +42,6 @@ type BuildDataResult = {
 };
 
 function buildData(input: ProfileInput, replace: boolean): BuildDataResult {
-  const degrees = input.degrees.map((degree) => ({
-    name: degree.name,
-    institution: toNullable(degree.institution),
-  }));
   const education = input.education.map((entry) => ({
     institution: entry.institution,
     program: toNullable(entry.program),
@@ -64,9 +55,7 @@ function buildData(input: ProfileInput, replace: boolean): BuildDataResult {
   return {
     gpa: input.gpa,
     skills: input.skills,
-    degrees: replace
-      ? { deleteMany: {}, create: degrees }
-      : { create: degrees },
+    degrees: input.degrees,
     education: replace
       ? { deleteMany: {}, create: education }
       : { create: education },

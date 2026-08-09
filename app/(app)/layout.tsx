@@ -19,7 +19,6 @@ export default async function AppLayout({
     const result = await prisma.profile.findUnique({
       where: { userId: session.user.id },
       include: {
-        degrees: true,
         education: true,
         projects: true,
       },
@@ -30,10 +29,7 @@ export default async function AppLayout({
     profile = {
       gpa: result.gpa?.toString() ?? null,
       skills: result.skills,
-      degrees: result.degrees.map((degree) => ({
-        name: degree.name,
-        institution: degree.institution,
-      })),
+      degrees: result.degrees,
       education: result.education.map((entry) => ({
         institution: entry.institution,
         program: entry.program,

@@ -1,5 +1,5 @@
 import { Autocomplete } from "@heroui/react";
-import { JobAutocompleteContent } from "@/components/jobs/job-autocomplete-content";
+import { AutocompleteContent } from "@/components/ui/autocomplete-content";
 
 export function JobSingleAutocomplete({
   value,
@@ -23,7 +23,7 @@ export function JobSingleAutocomplete({
       aria-label={placeholder}
       fullWidth
     >
-      <JobAutocompleteContent
+      <AutocompleteContent
         options={options}
         searchPlaceholder={searchPlaceholder}
       />

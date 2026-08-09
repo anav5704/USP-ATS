@@ -2,13 +2,12 @@ import type { FieldErrors, FieldPath } from "react-hook-form";
 import {
   BookOpenIcon,
   FolderGit2Icon,
-  GraduationCapIcon,
   SchoolIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 
-export type SectionId = "academic" | "degrees" | "education" | "projects";
+export type SectionId = "academic" | "education" | "projects";
 
 export type ProfileSection = {
   id: SectionId;
@@ -25,19 +24,10 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your average GPA out of 4.5 and technical skills.",
+    description: "Your degrees, average GPA out of 4.5 and technical skills.",
     icon: BookOpenIcon,
     optional: false,
-    fields: ["gpa", "skills"],
-  },
-  {
-    id: "degrees",
-    label: "Degrees",
-    shortLabel: "Degrees",
-    description: "Add at least one degree you have earned.",
-    icon: GraduationCapIcon,
-    optional: false,
-    fields: ["degrees"],
+    fields: ["degrees", "gpa", "skills"],
   },
   {
     id: "education",
@@ -71,14 +61,16 @@ export function isSectionComplete(
         !Number.isNaN(values.gpa) &&
         values.gpa >= 0 &&
         values.gpa <= 4.5;
-      return gpaOk && values.skills.trim().length > 0 && !errors.gpa && !errors.skills;
-    }
-    case "degrees":
       return (
         values.degrees.length > 0 &&
-        values.degrees.every((degree) => degree.name.trim().length > 0) &&
-        !errors.degrees
+        values.degrees.every((degree) => degree.trim().length > 0) &&
+        !errors.degrees &&
+        gpaOk &&
+        values.skills.trim().length > 0 &&
+        !errors.gpa &&
+        !errors.skills
       );
+    }
     case "education":
       return (
         values.education.length > 0 &&

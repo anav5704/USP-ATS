@@ -1,14 +1,5 @@
 import { z } from "zod";
 
-export const degreeInputSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Degree name is required")
-    .max(200, "Degree name is too long"),
-  institution: z.string().trim().max(200, "Institution name is too long"),
-});
-
 export const educationInputSchema = z.object({
   institution: z
     .string()
@@ -42,7 +33,7 @@ export const profileInputSchema = z.object({
     .min(1, "Technical skills are required")
     .max(5000, "Skills are too long"),
   degrees: z
-    .array(degreeInputSchema)
+    .array(z.string().trim().min(1, "Degree name is required"))
     .min(1, "Add at least one degree")
     .max(20, "Too many degrees"),
   education: z
@@ -55,6 +46,5 @@ export const profileInputSchema = z.object({
 });
 
 export type ProfileInput = z.infer<typeof profileInputSchema>;
-export type DegreeInput = z.infer<typeof degreeInputSchema>;
 export type EducationInput = z.infer<typeof educationInputSchema>;
 export type ProjectInput = z.infer<typeof projectInputSchema>;

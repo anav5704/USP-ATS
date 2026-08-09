@@ -44,7 +44,9 @@ export const jobInputSchema = z.object({
     .min(0, "Minimum GPA must be between 0 and 4.5")
     .max(4.5, "Minimum GPA must be between 0 and 4.5")
     .nullable(),
-  degree: optionalRequirement(500, "Degree requirement is too long"),
+  degree: z
+    .array(z.string().trim().min(1, "Degree name is required"))
+    .max(20, "Too many degrees"),
   skills: optionalRequirement(5000, "Skills requirement is too long"),
   hours: z
     .number({ error: "Enter the weekly hours" })
