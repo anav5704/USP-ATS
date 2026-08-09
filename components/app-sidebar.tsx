@@ -9,7 +9,6 @@ import {
   ClipboardListIcon,
   LogOutIcon,
   MoreVerticalIcon,
-  PlusCircleIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -46,13 +45,7 @@ const adminNav: NavItem[] = [
     href: "/",
     label: "Job Postings",
     icon: BriefcaseIcon,
-    isActive: (p) => p === "/" || (p.startsWith("/admin/jobs") && p !== "/admin/jobs/new"),
-  },
-  {
-    href: "/admin/jobs/new",
-    label: "Post New Job",
-    icon: PlusCircleIcon,
-    isActive: (p) => p === "/admin/jobs/new",
+    isActive: (p) => p === "/" || p.startsWith("/admin/jobs/"),
   },
 ];
 
