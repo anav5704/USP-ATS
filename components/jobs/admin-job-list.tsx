@@ -14,18 +14,27 @@ import {
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useRemoveJob } from "@/components/jobs/use-remove-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { CreateJobModal } from "@/components/jobs/create-job-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
+import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
   day: "numeric",
   month: "short",
   year: "numeric",
+  timeZone: JOB_DATE_TIME_ZONE,
+});
+
+const payFormatter = new Intl.NumberFormat("en-FJ", {
+  style: "currency",
+  currency: "FJD",
 });
 
 export function AdminJobList() {
   const { data: jobs, isPending, isError, refetch } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const confirmRemoval = async () => {
     if (!selectedJob) return;
@@ -34,8 +43,8 @@ export function AdminJobList() {
   };
 
   return (
-    <div className="p-6 lg:p-10">
-      <div className="mx-auto max-w-6xl">
+    <div className="p-4 lg:p-6">
+      <div className="mx-auto max-w-none">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
@@ -45,12 +54,13 @@ export function AdminJobList() {
               View and manage job opportunities available through USP.
             </p>
           </div>
-          <Link href="/admin/jobs/new">
-            <Button.Root className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700">
-              <PlusIcon className="size-4" />
-              Post new job
-            </Button.Root>
-          </Link>
+          <Button.Root
+            onPress={() => setCreateOpen(true)}
+            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+          >
+            <PlusIcon className="size-4" />
+            Create new job
+          </Button.Root>
         </div>
 
         {isPending ? (
@@ -86,10 +96,13 @@ export function AdminJobList() {
                   <Table.Column isRowHeader>Job</Table.Column>
                   <Table.Column>Type</Table.Column>
                   <Table.Column>Campus</Table.Column>
+                  <Table.Column>Hourly pay</Table.Column>
                   <Table.Column>Deadline</Table.Column>
                   <Table.Column>Status</Table.Column>
                   <Table.Column>Applications</Table.Column>
-                  <Table.Column>Actions</Table.Column>
+                  <Table.Column className="sticky right-0 z-10">
+                    Actions
+                  </Table.Column>
                 </Table.Header>
                 <Table.Body items={jobs}>
                   {(job) => (
@@ -98,10 +111,14 @@ export function AdminJobList() {
                         <div>
                           <p className="font-medium text-zinc-900">{job.title}</p>
                           <p className="text-xs text-zinc-500">{job.department}</p>
+                          <p className="mt-1 max-w-xs truncate text-xs text-zinc-400">
+                            {job.description}
+                          </p>
                         </div>
                       </Table.Cell>
                       <Table.Cell>{job.jobType}</Table.Cell>
                       <Table.Cell>{job.campus.join(", ")}</Table.Cell>
+                      <Table.Cell>{payFormatter.format(job.hourlyPay)}</Table.Cell>
                       <Table.Cell>
                         {dateFormatter.format(new Date(job.deadline))}
                       </Table.Cell>
@@ -117,7 +134,7 @@ export function AdminJobList() {
                         </span>
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
-                      <Table.Cell>
+                      <Table.Cell className="sticky right-0 z-10 bg-white">
                         <div className="flex items-center gap-1">
                           <Link href={`/admin/jobs/${job.id}/edit`}>
                             <Button.Root
@@ -181,6 +198,9 @@ export function AdminJobList() {
         isPending={isRemoving}
         onConfirm={confirmRemoval}
       />
+      {createOpen ? (
+        <CreateJobModal isOpen onOpenChange={setCreateOpen} />
+      ) : null}
     </div>
   );
 }

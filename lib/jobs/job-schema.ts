@@ -1,8 +1,23 @@
 import { z } from "zod";
-import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import {
+  JOB_TYPES,
+  USP_CAMPUSES,
+  USP_DEPARTMENTS,
+} from "@/lib/jobs/job-constants";
 
 const optionalRequirement = (maximum: number, message: string) =>
   z.string().trim().max(maximum, message);
+
+function isCalendarDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
 
 export const jobInputSchema = z.object({
   title: z
@@ -10,16 +25,17 @@ export const jobInputSchema = z.object({
     .trim()
     .min(1, "Job title is required")
     .max(200, "Job title is too long"),
-  department: z
+  description: z
     .string()
     .trim()
-    .min(1, "Department is required")
-    .max(200, "Department is too long"),
-  jobType: z
-    .string()
-    .trim()
-    .min(1, "Job type is required")
-    .max(100, "Job type is too long"),
+    .min(1, "Job description is required")
+    .max(10000, "Job description is too long"),
+  department: z.enum(USP_DEPARTMENTS, {
+    error: "Select a department",
+  }),
+  jobType: z.enum(JOB_TYPES, {
+    error: "Select a job type",
+  }),
   campus: z
     .array(z.enum(USP_CAMPUSES))
     .min(1, "Select at least one campus"),
@@ -35,14 +51,14 @@ export const jobInputSchema = z.object({
     .int("Weekly hours must be a whole number")
     .min(1, "Weekly hours must be at least 1")
     .max(168, "Weekly hours cannot exceed 168"),
+  hourlyPay: z
+    .number({ error: "Enter the hourly pay" })
+    .positive("Hourly pay must be greater than 0")
+    .max(1000000, "Hourly pay is too large"),
   deadline: z
     .string()
     .min(1, "Deadline is required")
-    .refine((value) => !Number.isNaN(Date.parse(value)), "Enter a valid deadline")
-    .refine(
-      (value) => Number.isNaN(Date.parse(value)) || new Date(value) > new Date(),
-      "Deadline must be in the future"
-    ),
+    .refine(isCalendarDate, "Enter a valid deadline"),
 });
 
 export type JobInput = z.infer<typeof jobInputSchema>;
@@ -50,6 +66,7 @@ export type JobInput = z.infer<typeof jobInputSchema>;
 export type AdminJobListItem = {
   id: string;
   title: string;
+  description: string;
   department: string;
   jobType: string;
   campus: string[];
@@ -57,6 +74,7 @@ export type AdminJobListItem = {
   status: "ACTIVE" | "ARCHIVED";
   applicationCount: number;
   createdAt: string;
+  hourlyPay: number;
 };
 
 export type AdminJobDetail = JobInput & {

@@ -5,6 +5,11 @@ import { ZodError } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
+  deadlineAtEndOfFijiDay,
+  toFijiDate,
+  todayInFiji,
+} from "@/lib/jobs/job-dates";
+import {
   jobInputSchema,
   type AdminJobDetail,
   type AdminJobListItem,
@@ -60,11 +65,13 @@ export async function getAdminJobPostings(): Promise<JobListResult> {
       select: {
         id: true,
         title: true,
+        description: true,
         department: true,
         jobType: true,
         campus: true,
         deadline: true,
         status: true,
+        hourlyPay: true,
         createdAt: true,
         _count: { select: { applications: true } },
       },
@@ -75,11 +82,13 @@ export async function getAdminJobPostings(): Promise<JobListResult> {
       jobs: postings.map((posting) => ({
         id: posting.id,
         title: posting.title,
+        description: posting.description,
         department: posting.department,
         jobType: posting.jobType,
         campus: posting.campus,
         deadline: posting.deadline.toISOString(),
         status: posting.status,
+        hourlyPay: Number(posting.hourlyPay),
         applicationCount: posting._count.applications,
         createdAt: posting.createdAt.toISOString(),
       })),
@@ -101,6 +110,7 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
       select: {
         id: true,
         title: true,
+        description: true,
         department: true,
         jobType: true,
         campus: true,
@@ -108,6 +118,7 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
         degree: true,
         skills: true,
         hours: true,
+        hourlyPay: true,
         deadline: true,
       },
     });
@@ -121,14 +132,16 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
       job: {
         id: posting.id,
         title: posting.title,
-        department: posting.department,
-        jobType: posting.jobType,
+        description: posting.description,
+        department: posting.department as AdminJobDetail["department"],
+        jobType: posting.jobType as AdminJobDetail["jobType"],
         campus: posting.campus as AdminJobDetail["campus"],
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
         degree: posting.degree ?? "",
         skills: posting.skills ?? "",
         hours: posting.hours ?? (undefined as unknown as number),
-        deadline: posting.deadline.toISOString(),
+        hourlyPay: Number(posting.hourlyPay),
+        deadline: toFijiDate(posting.deadline),
       },
     };
   } catch {
@@ -144,11 +157,15 @@ export async function createJobPosting(raw: unknown): Promise<JobActionResult> {
 
   const admin = await getAdmin();
   if (!admin.success) return admin;
+  if (parsed.data.deadline < todayInFiji()) {
+    return { success: false, error: "Deadline cannot be in the past" };
+  }
 
   try {
     await prisma.jobPosting.create({
       data: {
         title: parsed.data.title,
+        description: parsed.data.description,
         department: parsed.data.department,
         jobType: parsed.data.jobType,
         campus: parsed.data.campus,
@@ -156,7 +173,8 @@ export async function createJobPosting(raw: unknown): Promise<JobActionResult> {
         degree: toNullable(parsed.data.degree),
         skills: toNullable(parsed.data.skills),
         hours: parsed.data.hours,
-        deadline: new Date(parsed.data.deadline),
+        hourlyPay: parsed.data.hourlyPay,
+        deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
         status: PostingStatus.ACTIVE,
         createdById: admin.userId,
       },
@@ -180,12 +198,16 @@ export async function updateJobPosting(
   const admin = await getAdmin();
   if (!admin.success) return admin;
   if (!id) return { success: false, error: "Job posting not found" };
+  if (parsed.data.deadline < todayInFiji()) {
+    return { success: false, error: "Deadline cannot be in the past" };
+  }
 
   try {
     const result = await prisma.jobPosting.updateMany({
       where: { id },
       data: {
         title: parsed.data.title,
+        description: parsed.data.description,
         department: parsed.data.department,
         jobType: parsed.data.jobType,
         campus: parsed.data.campus,
@@ -193,7 +215,8 @@ export async function updateJobPosting(
         degree: toNullable(parsed.data.degree),
         skills: toNullable(parsed.data.skills),
         hours: parsed.data.hours,
-        deadline: new Date(parsed.data.deadline),
+        hourlyPay: parsed.data.hourlyPay,
+        deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
       },
     });
 

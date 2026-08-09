@@ -1,24 +1,33 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Checkbox, Input, Modal, TextArea } from "@heroui/react";
-import { CheckIcon, LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { Button, Input, Modal, TextArea } from "@heroui/react";
+import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
-import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import {
+  JOB_TYPES,
+  USP_CAMPUSES,
+  USP_DEPARTMENTS,
+} from "@/lib/jobs/job-constants";
 import { jobInputSchema, type JobInput } from "@/lib/jobs/job-schema";
 import { useSaveJob } from "@/components/jobs/use-save-job";
+import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
+import { JobMultipleAutocomplete } from "@/components/jobs/job-multiple-autocomplete";
+import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
 
 const EMPTY_JOB: JobInput = {
   title: "",
-  department: "",
-  jobType: "",
+  description: "",
+  department: undefined as unknown as JobInput["department"],
+  jobType: undefined as unknown as JobInput["jobType"],
   campus: [],
   gpaMin: null,
   degree: "",
   skills: "",
   hours: undefined as unknown as number,
+  hourlyPay: undefined as unknown as number,
   deadline: "",
 };
 
@@ -39,25 +48,15 @@ export function JobForm({
     register,
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<JobInput>({
     resolver: zodResolver(jobInputSchema),
     defaultValues: initialData ?? EMPTY_JOB,
   });
   const { isPending, saveAsync } = useSaveJob(mode, jobId);
-  const selectedCampuses = useWatch({ control, name: "campus" });
-
   useEffect(() => {
     onPendingChange?.(isPending);
   }, [isPending, onPendingChange]);
-
-  const toggleCampus = (campus: (typeof USP_CAMPUSES)[number], selected: boolean) => {
-    const next = selected
-      ? [...selectedCampuses, campus]
-      : selectedCampuses.filter((item) => item !== campus);
-    setValue("campus", next, { shouldDirty: true, shouldValidate: true });
-  };
 
   const submit = handleSubmit(async (values) => {
     const result = await saveAsync(values);
@@ -72,12 +71,81 @@ export function JobForm({
             <FormField id="title" label="Job title" error={errors.title?.message}>
               <Input.Root id="title" fullWidth placeholder="e.g. Student Research Assistant" {...register("title")} />
             </FormField>
-            <FormField id="department" label="Department" error={errors.department?.message}>
-              <Input.Root id="department" fullWidth placeholder="e.g. School of Computing" {...register("department")} />
+            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message}>
+              <Input.Root
+                id="hourlyPay"
+                type="number"
+                min={0.01}
+                step="0.01"
+                fullWidth
+                placeholder="e.g. 12.50"
+                {...register("hourlyPay", {
+                  setValueAs: (value) => value === "" ? undefined : Number(value),
+                })}
+              />
             </FormField>
-            <FormField id="jobType" label="Job type" error={errors.jobType?.message}>
-              <Input.Root id="jobType" fullWidth placeholder="e.g. Part-time" {...register("jobType")} />
+          </div>
+
+          <FormField id="description" label="Job description" error={errors.description?.message} hint="Describe the role, expected work, and key duties or responsibilities.">
+            <TextArea.Root
+              id="description"
+              rows={4}
+              fullWidth
+              placeholder="Describe what the successful applicant will do"
+              {...register("description")}
+            />
+          </FormField>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="Department" error={errors.department?.message}>
+              <Controller
+                name="department"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value ?? ""}
+                    options={USP_DEPARTMENTS}
+                    placeholder="Select a department"
+                    searchPlaceholder="Search departments"
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </FormField>
+            <FormField label="Job type" error={errors.jobType?.message}>
+              <Controller
+                name="jobType"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value ?? ""}
+                    options={JOB_TYPES}
+                    placeholder="Select a job type"
+                    searchPlaceholder="Search job types"
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Campus" error={errors.campus?.message} hint="Select every campus where this role is available.">
+            <Controller
+              name="campus"
+              control={control}
+              render={({ field }) => (
+                <JobMultipleAutocomplete
+                  value={field.value}
+                  options={USP_CAMPUSES}
+                  placeholder="Select one or more campuses"
+                  searchPlaceholder="Search campuses"
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </FormField>
+
+          <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="hours" label="Hours per week" error={errors.hours?.message}>
               <Input.Root
                 id="hours"
@@ -91,32 +159,6 @@ export function JobForm({
                 })}
               />
             </FormField>
-          </div>
-
-          <FormField label="Campus" error={errors.campus?.message} hint="Select every campus where this role is available.">
-            <div className="grid gap-2 rounded-xl border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2">
-              {USP_CAMPUSES.map((campus) => (
-                <Checkbox.Root
-                  key={campus}
-                  isSelected={selectedCampuses.includes(campus)}
-                  onChange={(selected) => toggleCampus(campus, selected)}
-                >
-                  <Checkbox.Content>
-                    <Checkbox.Control>
-                      <Checkbox.Indicator>
-                        {({ isSelected }) =>
-                          isSelected ? <CheckIcon className="size-3" /> : null
-                        }
-                      </Checkbox.Indicator>
-                    </Checkbox.Control>
-                    {campus}
-                  </Checkbox.Content>
-                </Checkbox.Root>
-              ))}
-            </div>
-          </FormField>
-
-          <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
               <Input.Root
                 id="gpaMin"
@@ -131,10 +173,19 @@ export function JobForm({
                 })}
               />
             </FormField>
-            <FormField id="deadline" label="Application deadline" error={errors.deadline?.message}>
-              <Input.Root id="deadline" type="datetime-local" fullWidth {...register("deadline")} />
-            </FormField>
           </div>
+
+          <Controller
+            name="deadline"
+            control={control}
+            render={({ field }) => (
+              <JobDeadlineField
+                value={field.value}
+                error={errors.deadline?.message}
+                onChange={field.onChange}
+              />
+            )}
+          />
 
           <FormField id="degree" label="Degree requirement (optional)" error={errors.degree?.message}>
             <Input.Root id="degree" fullWidth placeholder="e.g. Enrolled in a computing degree" {...register("degree")} />

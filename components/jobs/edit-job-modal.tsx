@@ -9,12 +9,6 @@ import { JobForm } from "@/components/jobs/job-form";
 import { useAdminJob } from "@/components/jobs/use-admin-jobs";
 import type { JobInput } from "@/lib/jobs/job-schema";
 
-function toLocalDeadline(isoDeadline: string) {
-  const date = new Date(isoDeadline);
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-}
-
 export function EditJobModal({ jobId }: { jobId: string }) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(true);
@@ -23,12 +17,13 @@ export function EditJobModal({ jobId }: { jobId: string }) {
 
   const close = () => {
     setIsOpen(false);
-    router.push("/admin/jobs");
+    router.push("/");
   };
 
   const initialData: JobInput | undefined = job
     ? {
         title: job.title,
+        description: job.description,
         department: job.department,
         jobType: job.jobType,
         campus: job.campus,
@@ -36,7 +31,8 @@ export function EditJobModal({ jobId }: { jobId: string }) {
         degree: job.degree,
         skills: job.skills,
         hours: job.hours,
-        deadline: toLocalDeadline(job.deadline),
+        hourlyPay: job.hourlyPay,
+        deadline: job.deadline,
       }
     : undefined;
 

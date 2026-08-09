@@ -1,6 +1,7 @@
 model JobPosting {
   id           String        @id @default(cuid())
   title        String
+  description  String        @default("")
   department   String
   jobType      String
   campus       String[]
@@ -8,6 +9,7 @@ model JobPosting {
   degree       String?
   skills       String?
   hours        Int?
+  hourlyPay    Decimal       @default(0) @db.Decimal(10, 2)
   deadline     DateTime
   status       PostingStatus @default(ACTIVE)
   createdById  String
