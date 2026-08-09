@@ -14,14 +14,12 @@ import {
   type SectionId,
 } from "@/components/profile/profile-sections";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { DegreeFields } from "@/components/profile/degree-fields";
 import { EducationFields } from "@/components/profile/education-fields";
 import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const SECTION_COMPONENTS: Record<SectionId, () => React.ReactElement> = {
   academic: AcademicFields,
-  degrees: DegreeFields,
   education: EducationFields,
   projects: ProjectFields,
 };

@@ -4,25 +4,13 @@ model Profile {
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills    String?
   gpa       Decimal?    @db.Decimal(3, 2)
-  degrees   Degree[]
+  degrees   String[]
   education Education[]
   projects  Project[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
   @@map("profile")
-}
-
-model Degree {
-  id          String   @id @default(cuid())
-  profileId   String
-  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name        String
-  institution String?
-  createdAt   DateTime @default(now())
-
-  @@index([profileId])
-  @@map("degree")
 }
 
 model Education {

@@ -1,11 +1,8 @@
-import {
-  Autocomplete,
-  ListBox,
-  SearchField,
-  useFilter,
-} from "@heroui/react";
+"use client";
 
-export function JobAutocompleteContent({
+import { Autocomplete, ListBox, SearchField, useFilter } from "@heroui/react";
+
+export function AutocompleteContent({
   options,
   searchPlaceholder,
 }: {

@@ -1,5 +1,4 @@
-import { Autocomplete } from "@heroui/react";
-import { JobAutocompleteContent } from "@/components/jobs/job-autocomplete-content";
+import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 
 export function JobMultipleAutocomplete({
   value,
@@ -15,18 +14,12 @@ export function JobMultipleAutocomplete({
   onChange: (value: string[]) => void;
 }) {
   return (
-    <Autocomplete<object, "multiple">
-      selectionMode="multiple"
+    <MultiAutocomplete
       value={value}
-      onChange={(next) => onChange(next.map(String))}
+      options={options}
       placeholder={placeholder}
-      aria-label={placeholder}
-      fullWidth
-    >
-      <JobAutocompleteContent
-        options={options}
-        searchPlaceholder={searchPlaceholder}
-      />
-    </Autocomplete>
+      searchPlaceholder={searchPlaceholder}
+      onChange={onChange}
+    />
   );
 }

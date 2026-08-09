@@ -17,7 +17,6 @@ import {
 import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
 import { ProfileStepper } from "@/components/profile/profile-stepper";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { DegreeFields } from "@/components/profile/degree-fields";
 import { EducationFields } from "@/components/profile/education-fields";
 import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
@@ -25,14 +24,13 @@ import { useProfileSave } from "@/components/profile/use-profile-save";
 const EMPTY_PROFILE: ProfileInput = {
   gpa: undefined as unknown as number,
   skills: "",
-  degrees: [{ name: "", institution: "" }],
+  degrees: [],
   education: [{ institution: "", program: "" }],
   projects: [],
 };
 
 const SECTION_COMPONENTS = [
   AcademicFields,
-  DegreeFields,
   EducationFields,
   ProjectFields,
 ];

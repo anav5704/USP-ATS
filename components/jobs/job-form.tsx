@@ -15,6 +15,7 @@ import { jobInputSchema, type JobInput } from "@/lib/jobs/job-schema";
 import { useSaveJob } from "@/components/jobs/use-save-job";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { JobMultipleAutocomplete } from "@/components/jobs/job-multiple-autocomplete";
+import { USP_DEGREES } from "@/lib/usp-degrees";
 import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
 
 const EMPTY_JOB: JobInput = {
@@ -24,7 +25,7 @@ const EMPTY_JOB: JobInput = {
   jobType: undefined as unknown as JobInput["jobType"],
   campus: [],
   gpaMin: null,
-  degree: "",
+  degree: [],
   skills: "",
   hours: undefined as unknown as number,
   hourlyPay: undefined as unknown as number,
@@ -187,8 +188,20 @@ export function JobForm({
             )}
           />
 
-          <FormField id="degree" label="Degree requirement (optional)" error={errors.degree?.message}>
-            <Input.Root id="degree" fullWidth placeholder="e.g. Enrolled in a computing degree" {...register("degree")} />
+          <FormField label="Degree requirement (optional)" error={errors.degree?.message} hint="Select the degrees relevant to this role.">
+            <Controller
+              name="degree"
+              control={control}
+              render={({ field }) => (
+                <JobMultipleAutocomplete
+                  value={field.value}
+                  options={USP_DEGREES}
+                  placeholder="Select one or more degrees"
+                  searchPlaceholder="Search degrees"
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </FormField>
 
           <FormField id="skills" label="Skills requirement (optional)" error={errors.skills?.message}>
