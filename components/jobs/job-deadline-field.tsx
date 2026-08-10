@@ -24,7 +24,7 @@ export function JobDeadlineField({
 
   return (
     <FormField label="Application deadline" error={error}>
-      <div className="sm:pl-8">
+      <div className="sm:pl-2">
         <DatePicker
           aria-label="Application deadline"
           value={parseValue(value)}
