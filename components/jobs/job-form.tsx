@@ -208,7 +208,7 @@ export function JobForm({
               render={({ field }) => (
                 <JobMultipleAutocomplete
                   value={field.value}
-                  options={USP_DEGREES}
+                  optionGroups={USP_DEGREES}
                   placeholder="Select one or more degrees"
                   searchPlaceholder="Search degrees"
                   onChange={field.onChange}
