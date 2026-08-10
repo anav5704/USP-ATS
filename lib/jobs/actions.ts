@@ -137,7 +137,7 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
         jobType: posting.jobType as AdminJobDetail["jobType"],
         campus: posting.campus as AdminJobDetail["campus"],
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
-        degree: posting.degree,
+        degree: posting.degree ?? [],
         skills: posting.skills ?? "",
         hours: posting.hours ?? (undefined as unknown as number),
         hourlyPay: Number(posting.hourlyPay),
