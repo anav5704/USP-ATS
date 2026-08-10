@@ -55,7 +55,7 @@ export const jobInputSchema = z.object({
     .max(168, "Weekly hours cannot exceed 168"),
   hourlyPay: z
     .number({ error: "Enter the hourly pay" })
-    .positive("Hourly pay must be greater than 0")
+    .min(0, "Hourly pay must be at least 0")
     .max(1000000, "Hourly pay is too large"),
   deadline: z
     .string()

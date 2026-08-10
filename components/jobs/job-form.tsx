@@ -72,17 +72,19 @@ export function JobForm({
             <FormField id="title" label="Job title" error={errors.title?.message}>
               <Input.Root id="title" fullWidth placeholder="e.g. Student Research Assistant" {...register("title")} />
             </FormField>
-            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message}>
-              <Input.Root
-                id="hourlyPay"
-                type="number"
-                min={0.01}
-                step="0.01"
-                fullWidth
-                placeholder="e.g. 12.50"
-                {...register("hourlyPay", {
-                  setValueAs: (value) => value === "" ? undefined : Number(value),
-                })}
+            <FormField label="Job type" error={errors.jobType?.message}>
+              <Controller
+                name="jobType"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value ?? ""}
+                    options={JOB_TYPES}
+                    placeholder="Select a job type"
+                    searchPlaceholder="Search job types"
+                    onChange={field.onChange}
+                  />
+                )}
               />
             </FormField>
           </div>
@@ -113,19 +115,18 @@ export function JobForm({
                 )}
               />
             </FormField>
-            <FormField label="Job type" error={errors.jobType?.message}>
-              <Controller
-                name="jobType"
-                control={control}
-                render={({ field }) => (
-                  <JobSingleAutocomplete
-                    value={field.value ?? ""}
-                    options={JOB_TYPES}
-                    placeholder="Select a job type"
-                    searchPlaceholder="Search job types"
-                    onChange={field.onChange}
-                  />
-                )}
+            <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
+              <Input.Root
+                id="gpaMin"
+                type="number"
+                min={0}
+                max={4.5}
+                step="0.01"
+                fullWidth
+                placeholder="e.g. 3.0"
+                {...register("gpaMin", {
+                  setValueAs: (value) => value === "" ? null : Number(value),
+                })}
               />
             </FormField>
           </div>
@@ -160,17 +161,16 @@ export function JobForm({
                 })}
               />
             </FormField>
-            <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
+            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message} hint="Enter 0 for volunteer or unpaid roles.">
               <Input.Root
-                id="gpaMin"
+                id="hourlyPay"
                 type="number"
                 min={0}
-                max={4.5}
                 step="0.01"
                 fullWidth
-                placeholder="e.g. 3.0"
-                {...register("gpaMin", {
-                  setValueAs: (value) => value === "" ? null : Number(value),
+                placeholder="e.g. 12.50"
+                {...register("hourlyPay", {
+                  setValueAs: (value) => value === "" ? undefined : Number(value),
                 })}
               />
             </FormField>
