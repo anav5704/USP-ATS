@@ -1,12 +1,15 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import { Input, TextArea } from "@heroui/react";
+import { Input } from "@heroui/react";
 import { BookOpenIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
+import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
 export function AcademicFields() {
   const {
@@ -41,7 +44,7 @@ export function AcademicFields() {
           render={({ field }) => (
             <MultiAutocomplete
               value={field.value}
-              options={USP_DEGREES}
+              optionGroups={USP_DEGREES}
               placeholder="Select one or more degrees"
               searchPlaceholder="Search degrees"
               onChange={field.onChange}
@@ -49,6 +52,27 @@ export function AcademicFields() {
           )}
         />
       </FormField>
+      <div className="mt-4">
+        <FormField
+          label="Campus"
+          error={errors.campuses?.message}
+          hint="Select every campus you are currently attending."
+        >
+          <Controller
+            name="campuses"
+            control={control}
+            render={({ field }) => (
+              <MultiAutocomplete
+                value={field.value}
+                options={USP_CAMPUSES}
+                placeholder="Select one or more campuses"
+                searchPlaceholder="Search campuses"
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </FormField>
+      </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField id="gpa" label="Average GPA (out of 4.5)" error={errors.gpa?.message}>
           <Input.Root
@@ -69,17 +93,24 @@ export function AcademicFields() {
       </div>
       <div className="mt-4">
         <FormField
-          id="skills"
-          label="Technical skills"
+          label="Skills"
           error={errors.skills?.message}
-          hint="List the technologies, tools and other skills you have."
+          hint="Select up to 10 skills that apply to you."
         >
-          <TextArea.Root
-            id="skills"
-            rows={3}
-            fullWidth
-            placeholder="e.g. Python, JavaScript, Excel, Public speaking"
-            {...register("skills")}
+          <Controller
+            name="skills"
+            control={control}
+            render={({ field }) => (
+              <SkillAutocomplete
+                value={field.value}
+                groups={SKILL_GROUPS}
+                placeholder="Select up to 10 skills"
+                searchPlaceholder="Search skills"
+                emptyMessage="No skills found"
+                maxItems={10}
+                onChange={field.onChange}
+              />
+            )}
           />
         </FormField>
       </div>

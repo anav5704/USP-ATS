@@ -28,14 +28,17 @@ export const profileInputSchema = z.object({
     .min(0, "GPA must be between 0 and 4.5")
     .max(4.5, "GPA must be between 0 and 4.5"),
   skills: z
-    .string()
-    .trim()
-    .min(1, "Technical skills are required")
-    .max(5000, "Skills are too long"),
+    .array(z.string().trim().min(1, "Skill name is required"))
+    .min(1, "Select at least one skill")
+    .max(10, "You can select up to 10 skills"),
   degrees: z
     .array(z.string().trim().min(1, "Degree name is required"))
     .min(1, "Add at least one degree")
     .max(20, "Too many degrees"),
+  campuses: z
+    .array(z.string().trim().min(1, "Campus name is required"))
+    .min(1, "Select at least one campus")
+    .max(20, "Too many campuses"),
   education: z
     .array(educationInputSchema)
     .min(1, "Add at least one education entry")

@@ -23,8 +23,9 @@ import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const EMPTY_PROFILE: ProfileInput = {
   gpa: undefined as unknown as number,
-  skills: "",
+  skills: [],
   degrees: [],
+  campuses: [],
   education: [{ institution: "", program: "" }],
   projects: [],
 };

@@ -7,6 +7,7 @@ import { Button, Input, Modal, TextArea } from "@heroui/react";
 import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
 import {
+  JOB_TITLES,
   JOB_TYPES,
   USP_CAMPUSES,
   USP_DEPARTMENTS,
@@ -16,7 +17,9 @@ import { useSaveJob } from "@/components/jobs/use-save-job";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { JobMultipleAutocomplete } from "@/components/jobs/job-multiple-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
+import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 
 const EMPTY_JOB: JobInput = {
   title: "",
@@ -26,7 +29,7 @@ const EMPTY_JOB: JobInput = {
   campus: [],
   gpaMin: null,
   degree: [],
-  skills: "",
+  skills: [],
   hours: undefined as unknown as number,
   hourlyPay: undefined as unknown as number,
   deadline: "",
@@ -69,20 +72,34 @@ export function JobForm({
       <Modal.Body>
         <div className="space-y-5 py-1">
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="title" label="Job title" error={errors.title?.message}>
-              <Input.Root id="title" fullWidth placeholder="e.g. Student Research Assistant" {...register("title")} />
+            <FormField label="Job title" error={errors.title?.message}>
+              <Controller
+                name="title"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value}
+                    options={JOB_TITLES}
+                    placeholder="Select a job title"
+                    searchPlaceholder="Search job titles"
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </FormField>
-            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message}>
-              <Input.Root
-                id="hourlyPay"
-                type="number"
-                min={0.01}
-                step="0.01"
-                fullWidth
-                placeholder="e.g. 12.50"
-                {...register("hourlyPay", {
-                  setValueAs: (value) => value === "" ? undefined : Number(value),
-                })}
+            <FormField label="Job type" error={errors.jobType?.message}>
+              <Controller
+                name="jobType"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value ?? ""}
+                    options={JOB_TYPES}
+                    placeholder="Select a job type"
+                    searchPlaceholder="Search job types"
+                    onChange={field.onChange}
+                  />
+                )}
               />
             </FormField>
           </div>
@@ -113,19 +130,18 @@ export function JobForm({
                 )}
               />
             </FormField>
-            <FormField label="Job type" error={errors.jobType?.message}>
-              <Controller
-                name="jobType"
-                control={control}
-                render={({ field }) => (
-                  <JobSingleAutocomplete
-                    value={field.value ?? ""}
-                    options={JOB_TYPES}
-                    placeholder="Select a job type"
-                    searchPlaceholder="Search job types"
-                    onChange={field.onChange}
-                  />
-                )}
+            <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
+              <Input.Root
+                id="gpaMin"
+                type="number"
+                min={0}
+                max={4.5}
+                step="0.01"
+                fullWidth
+                placeholder="e.g. 3.0"
+                {...register("gpaMin", {
+                  setValueAs: (value) => value === "" ? null : Number(value),
+                })}
               />
             </FormField>
           </div>
@@ -160,17 +176,16 @@ export function JobForm({
                 })}
               />
             </FormField>
-            <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
+            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message} hint="Enter 0 for volunteer or unpaid roles.">
               <Input.Root
-                id="gpaMin"
+                id="hourlyPay"
                 type="number"
                 min={0}
-                max={4.5}
                 step="0.01"
                 fullWidth
-                placeholder="e.g. 3.0"
-                {...register("gpaMin", {
-                  setValueAs: (value) => value === "" ? null : Number(value),
+                placeholder="e.g. 12.50"
+                {...register("hourlyPay", {
+                  setValueAs: (value) => value === "" ? undefined : Number(value),
                 })}
               />
             </FormField>
@@ -195,7 +210,7 @@ export function JobForm({
               render={({ field }) => (
                 <JobMultipleAutocomplete
                   value={field.value}
-                  options={USP_DEGREES}
+                  optionGroups={USP_DEGREES}
                   placeholder="Select one or more degrees"
                   searchPlaceholder="Search degrees"
                   onChange={field.onChange}
@@ -204,8 +219,22 @@ export function JobForm({
             />
           </FormField>
 
-          <FormField id="skills" label="Skills requirement (optional)" error={errors.skills?.message}>
-            <TextArea.Root id="skills" rows={3} fullWidth placeholder="Describe the skills needed for this role" {...register("skills")} />
+          <FormField label="Skills requirement (optional)" error={errors.skills?.message} hint="Select up to 10 skills required for this role.">
+            <Controller
+              name="skills"
+              control={control}
+              render={({ field }) => (
+                <SkillAutocomplete
+                  value={field.value}
+                  groups={SKILL_GROUPS}
+                  placeholder="Select up to 10 skills"
+                  searchPlaceholder="Search skills"
+                  emptyMessage="No skills found"
+                  maxItems={10}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </FormField>
         </div>
       </Modal.Body>

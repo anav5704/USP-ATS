@@ -1,13 +1,31 @@
 "use client";
 
-import { Autocomplete, ListBox, SearchField, useFilter } from "@heroui/react";
+import { Fragment } from "react";
+import {
+  Autocomplete,
+  EmptyState,
+  Header,
+  ListBox,
+  SearchField,
+  Separator,
+  useFilter,
+} from "@heroui/react";
+
+export type OptionGroup = {
+  label: string;
+  options: readonly string[];
+};
 
 export function AutocompleteContent({
   options,
+  optionGroups,
   searchPlaceholder,
+  emptyMessage,
 }: {
-  options: readonly string[];
+  options?: readonly string[];
+  optionGroups?: readonly OptionGroup[];
   searchPlaceholder: string;
+  emptyMessage?: string;
 }) {
   const { contains } = useFilter({ sensitivity: "base" });
 
@@ -27,13 +45,32 @@ export function AutocompleteContent({
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
-          <ListBox>
-            {options.map((option) => (
-              <ListBox.Item key={option} id={option} textValue={option}>
-                {option}
-                <ListBox.ItemIndicator />
-              </ListBox.Item>
-            ))}
+          <ListBox
+            renderEmptyState={
+              emptyMessage ? () => <EmptyState>{emptyMessage}</EmptyState> : undefined
+            }
+          >
+            {optionGroups
+              ? optionGroups.map((group) => (
+                  <Fragment key={group.label}>
+                    <ListBox.Section>
+                      <Header>{group.label}</Header>
+                      {group.options.map((option) => (
+                        <ListBox.Item key={option} id={option} textValue={option}>
+                          {option}
+                          <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                      ))}
+                    </ListBox.Section>
+                    <Separator />
+                  </Fragment>
+                ))
+              : options?.map((option) => (
+                  <ListBox.Item key={option} id={option} textValue={option}>
+                    {option}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                ))}
           </ListBox>
         </Autocomplete.Filter>
       </Autocomplete.Popover>

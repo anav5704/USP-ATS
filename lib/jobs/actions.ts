@@ -51,10 +51,6 @@ function firstError(error: ZodError) {
   return error.issues[0]?.message ?? "Invalid job posting data";
 }
 
-function toNullable(value: string) {
-  return value.trim() === "" ? null : value.trim();
-}
-
 export async function getAdminJobPostings(): Promise<JobListResult> {
   const admin = await getAdmin();
   if (!admin.success) return admin;
@@ -137,8 +133,8 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
         jobType: posting.jobType as AdminJobDetail["jobType"],
         campus: posting.campus as AdminJobDetail["campus"],
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
-        degree: posting.degree,
-        skills: posting.skills ?? "",
+        degree: posting.degree ?? [],
+        skills: posting.skills ?? [],
         hours: posting.hours ?? (undefined as unknown as number),
         hourlyPay: Number(posting.hourlyPay),
         deadline: toFijiDate(posting.deadline),
@@ -171,7 +167,7 @@ export async function createJobPosting(raw: unknown): Promise<JobActionResult> {
         campus: parsed.data.campus,
         gpaMin: parsed.data.gpaMin,
         degree: parsed.data.degree,
-        skills: toNullable(parsed.data.skills),
+        skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
@@ -213,7 +209,7 @@ export async function updateJobPosting(
         campus: parsed.data.campus,
         gpaMin: parsed.data.gpaMin,
         degree: parsed.data.degree,
-        skills: toNullable(parsed.data.skills),
+        skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),

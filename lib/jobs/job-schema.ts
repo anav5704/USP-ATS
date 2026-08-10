@@ -5,9 +5,6 @@ import {
   USP_DEPARTMENTS,
 } from "@/lib/jobs/job-constants";
 
-const optionalRequirement = (maximum: number, message: string) =>
-  z.string().trim().max(maximum, message);
-
 function isCalendarDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const [year, month, day] = value.split("-").map(Number);
@@ -47,7 +44,9 @@ export const jobInputSchema = z.object({
   degree: z
     .array(z.string().trim().min(1, "Degree name is required"))
     .max(20, "Too many degrees"),
-  skills: optionalRequirement(5000, "Skills requirement is too long"),
+  skills: z
+    .array(z.string().trim().min(1, "Skill name is required"))
+    .max(10, "You can select up to 10 skills"),
   hours: z
     .number({ error: "Enter the weekly hours" })
     .int("Weekly hours must be a whole number")
@@ -55,7 +54,7 @@ export const jobInputSchema = z.object({
     .max(168, "Weekly hours cannot exceed 168"),
   hourlyPay: z
     .number({ error: "Enter the hourly pay" })
-    .positive("Hourly pay must be greater than 0")
+    .min(0, "Hourly pay must be at least 0")
     .max(1000000, "Hourly pay is too large"),
   deadline: z
     .string()
