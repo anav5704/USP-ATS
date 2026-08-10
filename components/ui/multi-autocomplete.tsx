@@ -1,17 +1,22 @@
 "use client";
 
 import { Autocomplete } from "@heroui/react";
-import { AutocompleteContent } from "@/components/ui/autocomplete-content";
+import {
+  AutocompleteContent,
+  type OptionGroup,
+} from "@/components/ui/autocomplete-content";
 
 export function MultiAutocomplete({
   value,
   options,
+  optionGroups,
   placeholder,
   searchPlaceholder,
   onChange,
 }: {
   value: string[];
-  options: readonly string[];
+  options?: readonly string[];
+  optionGroups?: readonly OptionGroup[];
   placeholder: string;
   searchPlaceholder: string;
   onChange: (value: string[]) => void;
@@ -27,6 +32,7 @@ export function MultiAutocomplete({
     >
       <AutocompleteContent
         options={options}
+        optionGroups={optionGroups}
         searchPlaceholder={searchPlaceholder}
       />
     </Autocomplete>
