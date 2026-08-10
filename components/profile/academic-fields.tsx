@@ -8,6 +8,7 @@ import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { TagAutocomplete } from "@/components/ui/tag-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
 export function AcademicFields() {
@@ -51,6 +52,27 @@ export function AcademicFields() {
           )}
         />
       </FormField>
+      <div className="mt-4">
+        <FormField
+          label="Campus"
+          error={errors.campuses?.message}
+          hint="Select every campus you are currently attending."
+        >
+          <Controller
+            name="campuses"
+            control={control}
+            render={({ field }) => (
+              <MultiAutocomplete
+                value={field.value}
+                options={USP_CAMPUSES}
+                placeholder="Select one or more campuses"
+                searchPlaceholder="Search campuses"
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </FormField>
+      </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField id="gpa" label="Average GPA (out of 4.5)" error={errors.gpa?.message}>
           <Input.Root

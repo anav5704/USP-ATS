@@ -25,6 +25,7 @@ const EMPTY_PROFILE: ProfileInput = {
   gpa: undefined as unknown as number,
   skills: [],
   degrees: [],
+  campuses: [],
   education: [{ institution: "", program: "" }],
   projects: [],
 };

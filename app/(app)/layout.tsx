@@ -30,6 +30,7 @@ export default async function AppLayout({
       gpa: result.gpa?.toString() ?? null,
       skills: result.skills,
       degrees: result.degrees,
+      campuses: result.campuses,
       education: result.education.map((entry) => ({
         institution: entry.institution,
         program: entry.program,

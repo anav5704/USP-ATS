@@ -5,6 +5,7 @@ model Profile {
   skills    String[]
   gpa       Decimal?    @db.Decimal(3, 2)
   degrees   String[]
+  campuses  String[]    @default([])
   education Education[]
   projects  Project[]
   createdAt DateTime    @default(now())
