@@ -17,7 +17,9 @@ import { useSaveJob } from "@/components/jobs/use-save-job";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { JobMultipleAutocomplete } from "@/components/jobs/job-multiple-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
+import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 
 const EMPTY_JOB: JobInput = {
   title: "",
@@ -27,7 +29,7 @@ const EMPTY_JOB: JobInput = {
   campus: [],
   gpaMin: null,
   degree: [],
-  skills: "",
+  skills: [],
   hours: undefined as unknown as number,
   hourlyPay: undefined as unknown as number,
   deadline: "",
@@ -217,8 +219,22 @@ export function JobForm({
             />
           </FormField>
 
-          <FormField id="skills" label="Skills requirement (optional)" error={errors.skills?.message}>
-            <TextArea.Root id="skills" rows={3} fullWidth placeholder="Describe the skills needed for this role" {...register("skills")} />
+          <FormField label="Skills requirement (optional)" error={errors.skills?.message} hint="Select up to 10 skills required for this role.">
+            <Controller
+              name="skills"
+              control={control}
+              render={({ field }) => (
+                <SkillAutocomplete
+                  value={field.value}
+                  groups={SKILL_GROUPS}
+                  placeholder="Select up to 10 skills"
+                  searchPlaceholder="Search skills"
+                  emptyMessage="No skills found"
+                  maxItems={10}
+                  onChange={field.onChange}
+                />
+              )}
+            />
           </FormField>
         </div>
       </Modal.Body>
