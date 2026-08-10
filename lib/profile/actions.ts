@@ -27,6 +27,7 @@ type BuildDataResult = {
   gpa: number;
   skills: string[];
   degrees: string[];
+  campuses: string[];
   education:
     | { create: Prisma.EducationCreateWithoutProfileInput[] }
     | {
@@ -56,6 +57,7 @@ function buildData(input: ProfileInput, replace: boolean): BuildDataResult {
     gpa: input.gpa,
     skills: input.skills,
     degrees: input.degrees,
+    campuses: input.campuses,
     education: replace
       ? { deleteMany: {}, create: education }
       : { create: education },

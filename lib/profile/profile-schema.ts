@@ -35,6 +35,10 @@ export const profileInputSchema = z.object({
     .array(z.string().trim().min(1, "Degree name is required"))
     .min(1, "Add at least one degree")
     .max(20, "Too many degrees"),
+  campuses: z
+    .array(z.string().trim().min(1, "Campus name is required"))
+    .min(1, "Select at least one campus")
+    .max(20, "Too many campuses"),
   education: z
     .array(educationInputSchema)
     .min(1, "Add at least one education entry")

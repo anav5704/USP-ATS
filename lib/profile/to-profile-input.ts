@@ -4,6 +4,7 @@ export type ProfileModel = {
   gpa: string | number | null;
   skills: string[] | null;
   degrees: string[];
+  campuses: string[];
   education: { institution: string; program: string | null }[];
   projects: { name: string; description: string | null; link: string | null }[];
 };
@@ -13,6 +14,7 @@ export function toProfileInput(profile: ProfileModel): ProfileInput {
     gpa: profile.gpa == null ? (undefined as unknown as number) : Number(profile.gpa),
     skills: profile.skills ?? [],
     degrees: profile.degrees,
+    campuses: profile.campuses,
     education: profile.education.map((entry) => ({
       institution: entry.institution,
       program: entry.program ?? "",

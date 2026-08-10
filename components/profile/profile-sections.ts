@@ -24,10 +24,10 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your degrees, average GPA out of 4.5 and technical skills.",
+    description: "Your degrees, campus, average GPA out of 4.5 and technical skills.",
     icon: BookOpenIcon,
     optional: false,
-    fields: ["degrees", "gpa", "skills"],
+    fields: ["degrees", "campuses", "gpa", "skills"],
   },
   {
     id: "education",
@@ -65,6 +65,9 @@ export function isSectionComplete(
         values.degrees.length > 0 &&
         values.degrees.every((degree) => degree.trim().length > 0) &&
         !errors.degrees &&
+        values.campuses.length > 0 &&
+        values.campuses.every((campus) => campus.trim().length > 0) &&
+        !errors.campuses &&
         gpaOk &&
         values.skills.length > 0 &&
         !errors.gpa &&
