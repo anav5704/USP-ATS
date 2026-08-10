@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Button, Spinner, Table } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import { Button, Dropdown, Spinner, Table } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
   ArchiveIcon,
   CircleAlertIcon,
+  MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
   Trash2Icon,
@@ -31,6 +32,7 @@ const payFormatter = new Intl.NumberFormat("en-FJ", {
 });
 
 export function AdminJobList() {
+  const router = useRouter();
   const { data: jobs, isPending, isError, refetch } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
@@ -135,35 +137,48 @@ export function AdminJobList() {
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
                       <Table.Cell className="sticky right-0 z-10 bg-white">
-                        <div className="flex items-center gap-1">
-                          <Link href={`/admin/jobs/${job.id}/edit`}>
-                            <Button.Root
-                              size="sm"
-                              variant="ghost"
-                              aria-label={`Edit ${job.title}`}
-                              className="text-zinc-600"
-                            >
-                              <PencilIcon className="size-4" />
-                              Edit
-                            </Button.Root>
-                          </Link>
-                          {job.status === "ACTIVE" ? (
-                            <Button.Root
-                              size="sm"
-                              variant="ghost"
-                              aria-label={`Remove ${job.title}`}
-                              onPress={() => setSelectedJob(job)}
-                              className="text-rose-600 hover:bg-rose-50"
-                            >
-                              {job.applicationCount === 0 ? (
-                                <Trash2Icon className="size-4" />
-                              ) : (
-                                <ArchiveIcon className="size-4" />
-                              )}
-                              {job.applicationCount === 0 ? "Delete" : "Archive"}
-                            </Button.Root>
-                          ) : null}
-                        </div>
+                        <Dropdown.Root>
+                          <Dropdown.Trigger
+                            aria-label={`Actions for ${job.title}`}
+                            className="rounded-xl p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100"
+                          >
+                            <MoreVerticalIcon className="size-4" />
+                          </Dropdown.Trigger>
+                          <Dropdown.Popover placement="right">
+                            <Dropdown.Menu>
+                              <Dropdown.Item
+                                textValue="Edit"
+                                onAction={() =>
+                                  router.push(`/admin/jobs/${job.id}/edit`)
+                                }
+                                className="flex items-center gap-2"
+                              >
+                                <PencilIcon className="size-4" />
+                                Edit
+                              </Dropdown.Item>
+                              {job.status === "ACTIVE" ? (
+                                <Dropdown.Item
+                                  textValue={
+                                    job.applicationCount === 0
+                                      ? "Delete"
+                                      : "Archive"
+                                  }
+                                  onAction={() => setSelectedJob(job)}
+                                  className="flex items-center gap-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                                >
+                                  {job.applicationCount === 0 ? (
+                                    <Trash2Icon className="size-4" />
+                                  ) : (
+                                    <ArchiveIcon className="size-4" />
+                                  )}
+                                  {job.applicationCount === 0
+                                    ? "Delete"
+                                    : "Archive"}
+                                </Dropdown.Item>
+                              ) : null}
+                            </Dropdown.Menu>
+                          </Dropdown.Popover>
+                        </Dropdown.Root>
                       </Table.Cell>
                     </Table.Row>
                   )}
