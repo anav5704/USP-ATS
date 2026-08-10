@@ -7,6 +7,7 @@ import { Button, Input, Modal, TextArea } from "@heroui/react";
 import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
 import {
+  JOB_TITLES,
   JOB_TYPES,
   USP_CAMPUSES,
   USP_DEPARTMENTS,
@@ -69,8 +70,20 @@ export function JobForm({
       <Modal.Body>
         <div className="space-y-5 py-1">
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField id="title" label="Job title" error={errors.title?.message}>
-              <Input.Root id="title" fullWidth placeholder="e.g. Student Research Assistant" {...register("title")} />
+            <FormField label="Job title" error={errors.title?.message}>
+              <Controller
+                name="title"
+                control={control}
+                render={({ field }) => (
+                  <JobSingleAutocomplete
+                    value={field.value}
+                    options={JOB_TITLES}
+                    placeholder="Select a job title"
+                    searchPlaceholder="Search job titles"
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </FormField>
             <FormField label="Job type" error={errors.jobType?.message}>
               <Controller
