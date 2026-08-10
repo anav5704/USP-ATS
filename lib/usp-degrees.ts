@@ -7,7 +7,9 @@ export const USP_DEGREES = [
   {
     label: "Foundation & Certificate Level",
     options: [
-      "Foundation Studies (Science/Arts/Commerce pathway) — Pacific TAFE / College of Foundation Studies",
+      "Foundation Studies (Science)",
+      "Foundation Studies (Arts)",
+      "Foundation Studies (Commerce)",
       "Certificate in Computing",
       "Certificate in Information Systems",
       "Certificate in Mathematics",
