@@ -25,7 +25,7 @@ function firstError(error: ZodError) {
 
 type BuildDataResult = {
   gpa: number;
-  skills: string;
+  skills: string[];
   degrees: string[];
   education:
     | { create: Prisma.EducationCreateWithoutProfileInput[] }

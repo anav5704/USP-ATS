@@ -1,12 +1,14 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import { Input, TextArea } from "@heroui/react";
+import { Input } from "@heroui/react";
 import { BookOpenIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
+import { TagAutocomplete } from "@/components/ui/tag-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
 export function AcademicFields() {
   const {
@@ -69,17 +71,24 @@ export function AcademicFields() {
       </div>
       <div className="mt-4">
         <FormField
-          id="skills"
-          label="Technical skills"
+          label="Skills"
           error={errors.skills?.message}
-          hint="List the technologies, tools and other skills you have."
+          hint="Select up to 10 skills that apply to you."
         >
-          <TextArea.Root
-            id="skills"
-            rows={3}
-            fullWidth
-            placeholder="e.g. Python, JavaScript, Excel, Public speaking"
-            {...register("skills")}
+          <Controller
+            name="skills"
+            control={control}
+            render={({ field }) => (
+              <TagAutocomplete
+                value={field.value}
+                groups={SKILL_GROUPS}
+                placeholder="Select up to 10 skills"
+                searchPlaceholder="Search skills"
+                emptyMessage="No skills found"
+                maxItems={10}
+                onChange={field.onChange}
+              />
+            )}
           />
         </FormField>
       </div>
