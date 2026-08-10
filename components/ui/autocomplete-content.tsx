@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import {
   Autocomplete,
+  EmptyState,
   Header,
   ListBox,
   SearchField,
@@ -19,10 +20,12 @@ export function AutocompleteContent({
   options,
   optionGroups,
   searchPlaceholder,
+  emptyMessage,
 }: {
   options?: readonly string[];
   optionGroups?: readonly OptionGroup[];
   searchPlaceholder: string;
+  emptyMessage?: string;
 }) {
   const { contains } = useFilter({ sensitivity: "base" });
 
@@ -42,7 +45,11 @@ export function AutocompleteContent({
               <SearchField.ClearButton />
             </SearchField.Group>
           </SearchField>
-          <ListBox>
+          <ListBox
+            renderEmptyState={
+              emptyMessage ? () => <EmptyState>{emptyMessage}</EmptyState> : undefined
+            }
+          >
             {optionGroups
               ? optionGroups.map((group) => (
                   <Fragment key={group.label}>
