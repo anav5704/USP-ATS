@@ -6,7 +6,7 @@ import { BookOpenIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
-import { TagAutocomplete } from "@/components/ui/tag-autocomplete";
+import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
@@ -101,7 +101,7 @@ export function AcademicFields() {
             name="skills"
             control={control}
             render={({ field }) => (
-              <TagAutocomplete
+              <SkillAutocomplete
                 value={field.value}
                 groups={SKILL_GROUPS}
                 placeholder="Select up to 10 skills"
