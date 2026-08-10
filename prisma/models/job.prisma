@@ -7,7 +7,7 @@ model JobPosting {
   campus       String[]
   gpaMin       Decimal?      @db.Decimal(3, 2)
   degree       String[]
-  skills       String?
+  skills       String[]
   hours        Int?
   hourlyPay    Decimal       @default(0) @db.Decimal(10, 2)
   deadline     DateTime
