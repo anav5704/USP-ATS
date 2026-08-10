@@ -66,7 +66,7 @@ export function isSectionComplete(
         values.degrees.every((degree) => degree.trim().length > 0) &&
         !errors.degrees &&
         gpaOk &&
-        values.skills.trim().length > 0 &&
+        values.skills.length > 0 &&
         !errors.gpa &&
         !errors.skills
       );

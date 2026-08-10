@@ -2,7 +2,7 @@ model Profile {
   id        String      @id @default(cuid())
   userId    String      @unique
   user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills    String?
+  skills    String[]
   gpa       Decimal?    @db.Decimal(3, 2)
   degrees   String[]
   education Education[]
