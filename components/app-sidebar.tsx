@@ -27,10 +27,10 @@ type NavItem = {
 
 const studentNav: NavItem[] = [
   {
-    href: "/",
+    href: "/jobs",
     label: "Job Feed",
     icon: BriefcaseIcon,
-    isActive: (p) => p === "/" || p.startsWith("/jobs"),
+    isActive: (p) => p === "/jobs" || p.startsWith("/jobs/"),
   },
   {
     href: "/applications",
