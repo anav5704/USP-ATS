@@ -4,6 +4,10 @@ export function deadlineAtEndOfFijiDay(date: string) {
   return new Date(`${date}T23:59:59.999+12:00`);
 }
 
+export function startOfFijiDay(date: string) {
+  return new Date(`${date}T00:00:00.000+12:00`);
+}
+
 export function toFijiDate(date: Date) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: FIJI_TIME_ZONE,

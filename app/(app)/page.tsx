@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { AdminJobList } from "@/components/jobs/admin-job-list";
 
@@ -11,5 +12,5 @@ export default async function HomePage() {
     return <AdminJobList />;
   }
 
-  return null;
+  redirect("/jobs");
 }
