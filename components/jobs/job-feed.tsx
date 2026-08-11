@@ -6,14 +6,14 @@ import {
   BriefcaseBusinessIcon,
   CircleAlertIcon,
   SearchXIcon,
+  SlidersHorizontalIcon,
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
 import { JobFeedCard } from "@/components/jobs/job-feed-card";
-import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
-import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
-import { JOB_TYPES, USP_CAMPUSES } from "@/lib/jobs/job-constants";
-
-const GPA_OPTIONS = ["2.0", "2.5", "3.0", "3.5", "4.0"];
+import {
+  JobFeedFilterModal,
+  type JobFeedFilters,
+} from "@/components/jobs/job-feed-filter-modal";
 
 export function JobFeed() {
   const { data: jobs, isPending, isError, refetch } = useJobFeed();
@@ -21,9 +21,24 @@ export function JobFeed() {
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
   const [gpaMin, setGpaMin] = useState("");
+  const [degrees, setDegrees] = useState<string[]>([]);
+  const [skills, setSkills] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const hasFilters =
-    search.trim() !== "" || jobType !== "" || campuses.length > 0 || gpaMin !== "";
+    search.trim() !== "" ||
+    jobType !== "" ||
+    campuses.length > 0 ||
+    gpaMin !== "" ||
+    degrees.length > 0 ||
+    skills.length > 0;
+
+  const activeFilterCount =
+    (jobType !== "" ? 1 : 0) +
+    (campuses.length > 0 ? 1 : 0) +
+    (gpaMin !== "" ? 1 : 0) +
+    (degrees.length > 0 ? 1 : 0) +
+    (skills.length > 0 ? 1 : 0);
 
   const visibleJobs = useMemo(() => {
     if (!jobs) return jobs;
@@ -38,16 +53,45 @@ export function JobFeed() {
       const matchesCampus =
         campuses.length === 0 || job.campus.some((campus) => campuses.includes(campus));
       const matchesGpa = gpaMin === "" || job.gpaMin === null || job.gpaMin <= Number(gpaMin);
+      const matchesDegree =
+        degrees.length === 0 ||
+        job.degree.length === 0 ||
+        job.degree.some((degree) => degrees.includes(degree));
+      const matchesSkills =
+        skills.length === 0 ||
+        job.skills.length === 0 ||
+        job.skills.some((skill) => skills.includes(skill));
 
-      return matchesSearch && matchesType && matchesCampus && matchesGpa;
+      const hasCategoryFilters =
+        jobType !== "" || campuses.length > 0 || gpaMin !== "" || degrees.length > 0 || skills.length > 0;
+
+      const matchesAnyCategory =
+        !hasCategoryFilters ||
+        (jobType !== "" && matchesType) ||
+        (campuses.length > 0 && matchesCampus) ||
+        (gpaMin !== "" && matchesGpa) ||
+        (degrees.length > 0 && matchesDegree) ||
+        (skills.length > 0 && matchesSkills);
+
+      return matchesSearch && matchesAnyCategory;
     });
-  }, [jobs, search, jobType, campuses, gpaMin]);
+  }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
 
   const clearFilters = () => {
     setSearch("");
     setJobType("");
     setCampuses([]);
     setGpaMin("");
+    setDegrees([]);
+    setSkills([]);
+  };
+
+  const applyFilters = (filters: JobFeedFilters) => {
+    setJobType(filters.jobType);
+    setCampuses(filters.campuses);
+    setGpaMin(filters.gpaMin);
+    setDegrees(filters.degrees);
+    setSkills(filters.skills);
   };
 
   return (
@@ -62,8 +106,8 @@ export function JobFeed() {
           </p>
         </div>
 
-        <div className="mb-6 rounded-2xl border border-zinc-200 bg-white p-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
               value={search}
@@ -76,28 +120,19 @@ export function JobFeed() {
                 <SearchField.ClearButton />
               </SearchField.Group>
             </SearchField>
-            <JobSingleAutocomplete
-              value={jobType}
-              options={JOB_TYPES}
-              placeholder="All job types"
-              searchPlaceholder="Search job types"
-              onChange={setJobType}
-            />
-            <MultiAutocomplete
-              value={campuses}
-              options={USP_CAMPUSES}
-              placeholder="All campuses"
-              searchPlaceholder="Search campuses"
-              onChange={setCampuses}
-            />
-            <JobSingleAutocomplete
-              value={gpaMin}
-              options={GPA_OPTIONS}
-              placeholder="Any GPA requirement"
-              searchPlaceholder="Minimum GPA"
-              onChange={setGpaMin}
-            />
           </div>
+          <Button.Root
+            onPress={() => setFiltersOpen(true)}
+            className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+          >
+            <SlidersHorizontalIcon className="size-4" />
+            Filters
+            {activeFilterCount > 0 ? (
+              <span className="flex size-5 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </Button.Root>
         </div>
 
         {isPending ? (
@@ -153,6 +188,13 @@ export function JobFeed() {
           </div>
         )}
       </div>
+      {filtersOpen ? (
+        <JobFeedFilterModal
+          filters={{ jobType, campuses, gpaMin, degrees, skills }}
+          onApply={applyFilters}
+          onOpenChange={setFiltersOpen}
+        />
+      ) : null}
     </div>
   );
 }
