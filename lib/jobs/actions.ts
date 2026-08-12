@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   deadlineAtEndOfFijiDay,
+  startOfFijiDay,
   toFijiDate,
   todayInFiji,
 } from "@/lib/jobs/job-dates";
@@ -13,6 +14,7 @@ import {
   jobInputSchema,
   type AdminJobDetail,
   type AdminJobListItem,
+  type StudentJobListItem,
 } from "@/lib/jobs/job-schema";
 import { PostingStatus, Prisma } from "@/generated/prisma/client";
 
@@ -30,6 +32,10 @@ export type JobListResult =
 
 export type JobDetailResult =
   | { success: true; job: AdminJobDetail }
+  | { success: false; error: string };
+
+export type StudentJobListResult =
+  | { success: true; jobs: StudentJobListItem[] }
   | { success: false; error: string };
 
 async function getAdmin() {
@@ -282,5 +288,69 @@ export async function removeJobPosting(id: string): Promise<RemoveJobResult> {
     return { success: true, outcome };
   } catch {
     return { success: false, error: "Unable to remove the job posting" };
+  }
+}
+
+async function getMember() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    return { success: false as const, error: "You must be signed in" };
+  }
+  if (session.user.role === "admin") {
+    return { success: false as const, error: "Student access is required" };
+  }
+
+  return { success: true as const };
+}
+
+export async function getStudentJobPostings(): Promise<StudentJobListResult> {
+  const member = await getMember();
+  if (!member.success) return member;
+
+  try {
+    const postings = await prisma.jobPosting.findMany({
+      where: {
+        status: PostingStatus.ACTIVE,
+        deadline: { gte: startOfFijiDay(todayInFiji()) },
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        department: true,
+        jobType: true,
+        campus: true,
+        gpaMin: true,
+        degree: true,
+        skills: true,
+        hours: true,
+        hourlyPay: true,
+        deadline: true,
+      },
+    });
+
+    return {
+      success: true,
+      jobs: postings.map((posting) => ({
+        id: posting.id,
+        title: posting.title,
+        description: posting.description,
+        department: posting.department,
+        jobType: posting.jobType,
+        campus: posting.campus,
+        gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
+        degree: posting.degree,
+        skills: posting.skills,
+        hours: posting.hours,
+        hourlyPay: Number(posting.hourlyPay),
+        deadline: posting.deadline.toISOString(),
+      })),
+    };
+  } catch {
+    return { success: false, error: "Unable to load job postings" };
   }
 }

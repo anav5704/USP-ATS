@@ -81,3 +81,18 @@ export type AdminJobListItem = {
 export type AdminJobDetail = JobInput & {
   id: string;
 };
+
+export type StudentJobListItem = {
+  id: string;
+  title: string;
+  description: string;
+  department: string;
+  jobType: string;
+  campus: string[];
+  gpaMin: number | null;
+  degree: string[];
+  skills: string[];
+  hours: number | null;
+  hourlyPay: number;
+  deadline: string;
+};
