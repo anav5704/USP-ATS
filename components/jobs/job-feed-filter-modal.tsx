@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Modal } from "@heroui/react";
+import { Button, Input, Modal } from "@heroui/react";
 import { Trash2Icon } from "lucide-react";
 import { FormModal } from "@/components/ui/form-modal";
 import { FormField } from "@/components/ui/form-field";
@@ -11,8 +11,6 @@ import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { JOB_TYPES, USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
-
-const GPA_OPTIONS = ["2.0", "2.5", "3.0", "3.5", "4.0"];
 
 export type JobFeedFilters = {
   jobType: string;
@@ -82,13 +80,21 @@ export function JobFeedFilterModal({
             />
           </FormField>
 
-          <FormField label="Minimum GPA">
-            <JobSingleAutocomplete
+          <FormField
+            id="gpaMin"
+            label="Minimum GPA"
+            hint="Show jobs whose GPA requirement is at or below this value."
+          >
+            <Input.Root
+              id="gpaMin"
+              type="number"
+              min={0}
+              max={4.5}
+              step="0.1"
+              fullWidth
+              placeholder="e.g. 3.0"
               value={gpaMin}
-              options={GPA_OPTIONS}
-              placeholder="Any GPA requirement"
-              searchPlaceholder="Minimum GPA"
-              onChange={setGpaMin}
+              onChange={(event) => setGpaMin(event.target.value)}
             />
           </FormField>
 
