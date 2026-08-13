@@ -52,7 +52,12 @@ export function JobFeed() {
       const matchesType = jobType === "" || job.jobType === jobType;
       const matchesCampus =
         campuses.length === 0 || job.campus.some((campus) => campuses.includes(campus));
-      const matchesGpa = gpaMin === "" || job.gpaMin === null || job.gpaMin <= Number(gpaMin);
+      const gpaValue = Number(gpaMin);
+      const matchesGpa =
+        gpaMin === "" ||
+        Number.isNaN(gpaValue) ||
+        job.gpaMin === null ||
+        job.gpaMin <= gpaValue;
       const matchesDegree =
         degrees.length === 0 ||
         job.degree.length === 0 ||
@@ -62,18 +67,14 @@ export function JobFeed() {
         job.skills.length === 0 ||
         job.skills.some((skill) => skills.includes(skill));
 
-      const hasCategoryFilters =
-        jobType !== "" || campuses.length > 0 || gpaMin !== "" || degrees.length > 0 || skills.length > 0;
-
-      const matchesAnyCategory =
-        !hasCategoryFilters ||
-        (jobType !== "" && matchesType) ||
-        (campuses.length > 0 && matchesCampus) ||
-        (gpaMin !== "" && matchesGpa) ||
-        (degrees.length > 0 && matchesDegree) ||
-        (skills.length > 0 && matchesSkills);
-
-      return matchesSearch && matchesAnyCategory;
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesCampus &&
+        matchesGpa &&
+        matchesDegree &&
+        matchesSkills
+      );
     });
   }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
 
