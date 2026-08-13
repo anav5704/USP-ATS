@@ -299,8 +299,8 @@ async function getMember() {
   if (!session) {
     return { success: false as const, error: "You must be signed in" };
   }
-  if (session.user.role === "admin") {
-    return { success: false as const, error: "Student access is required" };
+  if (session.user.role !== "member") {
+    return { success: false as const, error: "Member access is required" };
   }
 
   return { success: true as const };

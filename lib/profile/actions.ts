@@ -79,8 +79,8 @@ export async function createProfile(raw: unknown): Promise<ProfileActionResult> 
   if (!session) {
     return { success: false, error: "You must be signed in to create a profile" };
   }
-  if (session.user.role === "admin") {
-    return { success: false, error: "Admins do not have a student profile" };
+  if (session.user.role !== "member") {
+    return { success: false, error: "Member access is required" };
   }
 
   const existing = await prisma.profile.findUnique({
@@ -114,8 +114,8 @@ export async function updateProfile(raw: unknown): Promise<ProfileActionResult> 
   if (!session) {
     return { success: false, error: "You must be signed in to update your profile" };
   }
-  if (session.user.role === "admin") {
-    return { success: false, error: "Admins do not have a student profile" };
+  if (session.user.role !== "member") {
+    return { success: false, error: "Member access is required" };
   }
 
   const existing = await prisma.profile.findUnique({

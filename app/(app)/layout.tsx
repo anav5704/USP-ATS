@@ -14,6 +14,14 @@ export default async function AppLayout({
     headers: await headers(),
   });
 
+  if (
+    session &&
+    session.user.role !== "admin" &&
+    session.user.role !== "member"
+  ) {
+    redirect("/access-denied");
+  }
+
   let profile: ProfileModel | null = null;
   if (session && session.user.role !== "admin") {
     const result = await prisma.profile.findUnique({

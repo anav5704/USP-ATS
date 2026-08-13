@@ -8,7 +8,7 @@ export async function requireMemberPage() {
   });
 
   if (!session) redirect("/sign-in");
-  if (session.user.role === "admin") redirect("/access-denied");
+  if (session.user.role !== "member") redirect("/access-denied");
 
   return session;
 }
