@@ -327,6 +327,7 @@ export async function getStudentJobPostings(): Promise<StudentJobListResult> {
         hours: true,
         hourlyPay: true,
         deadline: true,
+        createdAt: true,
       },
     });
 
@@ -345,6 +346,7 @@ export async function getStudentJobPostings(): Promise<StudentJobListResult> {
         hours: posting.hours,
         hourlyPay: Number(posting.hourlyPay),
         deadline: posting.deadline.toISOString(),
+        createdAt: posting.createdAt.toISOString(),
       })),
     };
   } catch {

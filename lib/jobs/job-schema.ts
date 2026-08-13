@@ -95,4 +95,5 @@ export type StudentJobListItem = {
   hours: number | null;
   hourlyPay: number;
   deadline: string;
+  createdAt: string;
 };
