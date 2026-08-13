@@ -91,10 +91,11 @@ export function AdminJobList() {
     setFilters(EMPTY_ADMIN_FILTERS);
   };
 
-  const confirmRemoval = async () => {
+  const confirmRemoval = () => {
     if (!selectedJob) return;
-    const result = await removeAsync(selectedJob.id);
-    if (result.success) setSelectedJob(null);
+    const jobId = selectedJob.id;
+    setSelectedJob(null);
+    void removeAsync(jobId);
   };
 
   return (

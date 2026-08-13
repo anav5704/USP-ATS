@@ -63,8 +63,12 @@ export function JobForm({
   }, [isPending, onPendingChange]);
 
   const submit = handleSubmit(async (values) => {
-    const result = await saveAsync(values);
-    if (result.success) onSuccess();
+    try {
+      await saveAsync(values);
+      onSuccess();
+    } catch {
+      // error toast is shown by useSaveJob
+    }
   });
 
   return (
