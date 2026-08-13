@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
 import { JobFeedCard } from "@/components/jobs/job-feed-card";
+import { JobDetailModal } from "@/components/jobs/job-detail-modal";
+import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import {
   JobFeedFilterModal,
   type JobFeedFilters,
@@ -17,6 +19,7 @@ import {
 
 export function JobFeed() {
   const { data: jobs, isPending, isError, refetch } = useJobFeed();
+  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
@@ -183,7 +186,11 @@ export function JobFeed() {
             ) : null}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {visibleJobs?.map((job) => (
-                <JobFeedCard key={job.id} job={job} />
+                <JobFeedCard
+                  key={job.id}
+                  job={job}
+                  onPress={() => setSelectedJob(job)}
+                />
               ))}
             </div>
           </div>
@@ -194,6 +201,15 @@ export function JobFeed() {
           filters={{ jobType, campuses, gpaMin, degrees, skills }}
           onApply={applyFilters}
           onOpenChange={setFiltersOpen}
+        />
+      ) : null}
+      {selectedJob ? (
+        <JobDetailModal
+          job={selectedJob}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setSelectedJob(null);
+          }}
         />
       ) : null}
     </div>
