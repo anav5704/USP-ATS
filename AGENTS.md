@@ -6,7 +6,7 @@
 **Problem:** Job openings at USP (student assistant roles, RA/TA positions, work-study, admin vacancies) are scattered across emails and informal channels, making them easy to miss.
 **Solution:** A unified platform where admins post and manage jobs, students build a profile and apply, both track status, and an AI scoring feature assists admins in evaluating fit.
 
-**Roles:** Student, Admin (2 roles only, provisioned via Entra ID — internal users only)
+**Roles:** Member, Admin (2 roles only, provisioned via Entra ID - internal users only)
 
 ---
 
@@ -28,7 +28,7 @@
 **1. User Profile Management**
 - Student creates/updates their profile after first sign-in (onboarding flow)
 - Fields: degree(s) (supports multiple), education history, technical skills (free text), average GPA (single value, out of 4.5), personal projects (repeatable: name, description, link)
-- Profile may be left incomplete initially, but a complete profile (all fields filled) is required before applying to a job
+- Onboarding is a hard gate: first-time members must complete the full profile (all fields validated) before they can use the app (browse the job feed, view profile); the profile remains editable afterwards
 
 **2. Job Posting Management** *(Admin only)*
 - CRUD for job postings
@@ -62,9 +62,9 @@
 **6. Authentication**
 - Entra ID (Azure AD) SSO via better-auth, using a personal tenant provisioned through GitHub Education
 - Only users explicitly assigned to the app (Enterprise Application "Assignment Required" enabled) can sign in
-- Role (student/admin) determined by Entra ID App Role assignment, synced to the app's user record on sign-in
+- Role (member/admin) determined by Entra ID App Role assignment, synced to the app's user record on sign-in; the role value is stored verbatim from the claim (`member` or `admin`)
 - First sign-in with no existing profile → redirected to onboarding
-- Sign-in with no assigned role → access-denied page
+- Sign-in with no assigned role (or any role value other than `member`/`admin`) → access-denied page
 
 ### 2.3 Out of Scope (for this iteration)
 - Notifications (email/in-app)
@@ -96,7 +96,7 @@
 
 ### 3.2 Core Entities
 
-- **User** — id, entraId, email, role (student/admin), createdAt
+- **User** — id, entraId, email, role (member/admin), createdAt
 - **Profile** — userId (FK), degrees[], education[], skills (text), gpa (decimal, /4.5), projects[] (name, description, link)
 - **JobPosting** — id, title, department, jobType (text), campus, requirements (gpaMin, degree, skills text), hours, deadline, status (active/archived), createdBy (admin userId)
 - **Application** — id, jobId (FK), studentId (FK), coverLetter (text), status (enum), createdAt
@@ -112,8 +112,8 @@
 | FR4 | System shall track each application through a defined status pipeline and allow admins to update status |
 | FR5 | System shall compute an AI-generated fit score for each application asynchronously and display it to admins only |
 | FR6 | System shall authenticate users via Entra ID SSO and restrict access to users explicitly assigned to the application |
-| FR7 | System shall assign user roles (student/admin) based on Entra ID App Role claims |
-| FR8 | System shall redirect first-time users without a profile to an onboarding flow |
+| FR7 | System shall assign user roles (member/admin) based on Entra ID App Role claims |
+| FR8 | System shall redirect first-time users without a profile to an onboarding flow (hard gate - these users cannot access any app page until the profile exists) |
 
 ### 3.4 Non-Functional Requirements
 
@@ -195,9 +195,10 @@
 - Destructive recovery is allowed: if schema/DB sync gets stuck, you may nuke the shared dev DB with `pnpm prisma migrate reset` — but you must notify the team afterwards (e.g. team channel or PR comment), since it wipes shared data
 
 ### 4.11 Git Branching
-- All work happens on a feature branch branched from `dev`, never directly on `dev` or `main`
+- The repo has two permanent branches: `main` (protected, always deployable) and short-lived feature branches
+- All work happens on a feature branch branched from `main`, never directly on `main`
 - Name branches by intent: `feat/<scope>`, `fix/<scope>`, `chore/<scope>` (e.g. `feat/job-search`)
-- Keep branches small and scoped to a single feature; merge back via PR into `dev`
+- Keep branches small and scoped to a single feature; merge back via PR into `main`
 
 ### 4.12 AI Coding Agents
 - Agents may autonomously create branches and run `pnpm install` (including on new branches) as needed
