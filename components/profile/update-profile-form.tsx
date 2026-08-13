@@ -59,9 +59,11 @@ export function UpdateProfileForm({
       }
       return;
     }
-    const result = await saveAsync(form.getValues());
-    if (result.success) {
+    try {
+      await saveAsync(form.getValues());
       onSuccess?.();
+    } catch {
+      // error toast is shown by useProfileSave
     }
   };
 
