@@ -131,6 +131,6 @@ export async function updateProfile(raw: unknown): Promise<ProfileActionResult> 
     data: buildData(parsed.data, true),
   });
 
-  revalidatePath("/profile", "layout");
+  revalidatePath("/", "layout");
   return { success: true };
 }
