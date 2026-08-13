@@ -129,8 +129,8 @@
 ### 3.5 Routes
 
 **Public/shared:** `/`, `/sign-in`, `/onboarding`, `/access-denied`
-**Student:** `/jobs`, `/jobs/[id]`, `/profile`, `/applications`
-**Admin:** `/admin/jobs`, `/admin/jobs/new`, `/admin/jobs/[id]/edit`, `/admin/jobs/[id]/applicants`
+**Student:** `/jobs`, `/applications` (job details and profile editing open in modals; there are no dedicated detail or profile routes)
+**Admin:** `/admin/jobs` (create, edit, and removal run in modals on this route)
 
 ---
 
