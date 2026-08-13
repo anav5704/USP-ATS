@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button, Modal, Spinner } from "@heroui/react";
 import { CircleAlertIcon } from "lucide-react";
 import { FormModal } from "@/components/ui/form-modal";
@@ -9,15 +8,20 @@ import { JobForm } from "@/components/jobs/job-form";
 import { useAdminJob } from "@/components/jobs/use-admin-jobs";
 import type { JobInput } from "@/lib/jobs/job-schema";
 
-export function EditJobModal({ jobId }: { jobId: string }) {
-  const router = useRouter();
-  const [isOpen, setIsOpen] = useState(true);
+export function EditJobModal({
+  jobId,
+  isOpen,
+  onOpenChange,
+}: {
+  jobId: string;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const [isSaving, setIsSaving] = useState(false);
   const { data: job, isPending, isError, refetch } = useAdminJob(jobId);
 
   const close = () => {
-    setIsOpen(false);
-    router.push("/");
+    onOpenChange(false);
   };
 
   const initialData: JobInput | undefined = job
