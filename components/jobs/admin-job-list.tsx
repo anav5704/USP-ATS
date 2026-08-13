@@ -125,15 +125,28 @@ export function AdminJobList() {
                         {dateFormatter.format(new Date(job.deadline))}
                       </Table.Cell>
                       <Table.Cell>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                            job.status === "ACTIVE"
+                        {(() => {
+                          const isExpired =
+                            job.status === "ACTIVE" &&
+                            new Date(job.deadline).getTime() < Date.now();
+                          const label = isExpired
+                            ? "Expired"
+                            : job.status === "ACTIVE"
+                              ? "Active"
+                              : "Archived";
+                          const badgeClass = isExpired
+                            ? "bg-amber-50 text-amber-700"
+                            : job.status === "ACTIVE"
                               ? "bg-emerald-50 text-emerald-700"
-                              : "bg-zinc-100 text-zinc-600"
-                          }`}
-                        >
-                          {job.status === "ACTIVE" ? "Active" : "Archived"}
-                        </span>
+                              : "bg-zinc-100 text-zinc-600";
+                          return (
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass}`}
+                            >
+                              {label}
+                            </span>
+                          );
+                        })()}
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
                       <Table.Cell className="sticky right-0 z-10 bg-white">
