@@ -15,6 +15,9 @@ export default async function OnboardingPage() {
   if (session.user.role === "admin") {
     redirect("/");
   }
+  if (session.user.role !== "member") {
+    redirect("/access-denied");
+  }
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
