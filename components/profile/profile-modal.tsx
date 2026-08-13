@@ -57,7 +57,7 @@ export function ProfileModal({
   const email = user.email ?? "";
 
   return (
-        <FormModal
+    <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="My Profile"
