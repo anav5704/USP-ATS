@@ -5,6 +5,7 @@ import { Button, SearchField, Spinner } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
   CircleAlertIcon,
+  LoaderCircleIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
@@ -18,7 +19,7 @@ import {
 } from "@/components/jobs/job-feed-filter-modal";
 
 export function JobFeed() {
-  const { data: jobs, isPending, isError, refetch } = useJobFeed();
+  const { data: jobs, isPending, isError, refetch, isFetching } = useJobFeed();
   const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
@@ -101,13 +102,21 @@ export function JobFeed() {
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto max-w-none">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            Job Feed
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Browse available job opportunities across USP campuses.
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              Job Feed
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              Browse available job opportunities across USP campuses.
+            </p>
+          </div>
+          {isFetching && !isPending ? (
+            <span className="flex shrink-0 items-center gap-2 text-xs text-zinc-500">
+              <LoaderCircleIcon className="size-3.5 animate-spin" />
+              Refreshing
+            </span>
+          ) : null}
         </div>
 
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">

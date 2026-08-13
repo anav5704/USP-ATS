@@ -6,6 +6,7 @@ import {
   ArchiveIcon,
   BriefcaseBusinessIcon,
   CircleAlertIcon,
+  LoaderCircleIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -43,7 +44,7 @@ function jobIsExpired(job: AdminJobListItem) {
 }
 
 export function AdminJobList() {
-  const { data: jobs, isPending, isError, refetch } = useAdminJobs();
+  const { data: jobs, isPending, isError, refetch, isFetching } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
@@ -110,13 +111,21 @@ export function AdminJobList() {
               View and manage job opportunities available through USP.
             </p>
           </div>
-          <Button.Root
-            onPress={() => setCreateOpen(true)}
-            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
-          >
-            <PlusIcon className="size-4" />
-            Create new job
-          </Button.Root>
+          <div className="flex shrink-0 items-center gap-3">
+            {isFetching && !isPending ? (
+              <span className="flex items-center gap-2 text-xs text-zinc-500">
+                <LoaderCircleIcon className="size-3.5 animate-spin" />
+                Refreshing
+              </span>
+            ) : null}
+            <Button.Root
+              onPress={() => setCreateOpen(true)}
+              className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            >
+              <PlusIcon className="size-4" />
+              Create new job
+            </Button.Root>
+          </div>
         </div>
 
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
