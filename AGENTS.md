@@ -155,20 +155,23 @@
 - `ConfirmModal` is used for deletes, withdrawals, and status changes: icon + title + message in the body, cancel/confirm buttons in the footer, `isPending` disables both buttons
 - Per-feature form components (e.g. profile) share small field subcomponents (academic, degree, education, project fields) that consume React Hook Form via `FormProvider`/`useFormContext`; a form is a composition of those fields plus a navigation pattern (stepper, tabs, or plain sections)
 - Section metadata shared by navigation patterns lives in a single config file (e.g. `profile-sections.ts`: id, label, icon, fields, optional) consumed by both stepper and tabs
-- Server actions return `{ success: true } | { success: false; error }`; forms await `mutateAsync` and gate post-save actions (close modal, navigate) on `result.success`
+- Mutations run through TanStack Query against the app's API routes (`app/api/`) via the `lib/api.ts` wrapper; API routes return JSON with proper HTTP status codes and errors are thrown as `ApiError`. Forms await `mutateAsync` (the hook shows error toasts) and gate post-save actions (close modal, navigate) on the promise resolving
+- Server actions are not used for data; server-side gates and redirects live in server components, layouts, and route handlers
 - Save flow: the submit button shows a spinner and stays disabled while `isPending`; the modal stays open until the DB write confirms, then closes on success; the close trigger is disabled during save by lifting `isPending` up via an `onPendingChange` callback into `FormModal.closeDisabled`
 - Modal forms receive data via `initialData` mapped to RHF `defaultValues`; remount the form when the data changes (e.g. `key={JSON.stringify(profile)}`) so reopening the modal shows fresh values
 - Form state persists while navigating within the form (tabs, steps); closing without saving discards changes (no dirty warning)
 
 ### 4.4 Data Fetching & State
-- All server data is fetched via TanStack Query hooks; no ad-hoc `fetch` calls scattered through components
+- All server data is fetched via TanStack Query hooks; no ad-hoc `fetch` calls scattered through components (the `lib/api.ts` wrapper is the only fetch layer)
 - Centralize query keys (e.g. a query-key factory) instead of inline string literals
-- Mutations run through TanStack Query and invalidate/update the relevant cached queries
+- Mutations run through TanStack Query and invalidate/update the relevant cached queries; list-level actions (delete/archive) may use optimistic updates with rollback in `onError`
+- GET queries set `staleTime` per endpoint (e.g. feed 60s, admin list 30s, profile 5min); the feed refetches on a 60s interval
+- Route handlers guard with `requireApiAdmin`/`requireApiMember` (`lib/jobs/require-api.ts`) returning 401/403 JSON
 - TanStack Query owns server state; ephemeral UI state stays in local component state
 
 ### 4.5 Types & Validation
 - Zod schemas are the single source of truth for data shapes; derive TypeScript types with `z.infer`
-- Validate at the API/action boundary (route handlers and server actions)
+- Validate at the API boundary (route handlers); Zod schemas are shared between the API and forms
 - Forms use React Hook Form + Zod for validation (per SRS)
 
 ### 4.6 Naming & File Conventions
