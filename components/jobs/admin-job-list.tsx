@@ -332,7 +332,7 @@ export function AdminJobList() {
       ) : null}
       {editingJob ? (
         <EditJobModal
-          jobId={editingJob.id}
+          job={editingJob}
           isOpen
           onOpenChange={(open) => {
             if (!open) setEditingJob(null);

@@ -76,6 +76,10 @@ export type AdminJobListItem = {
   applicationCount: number;
   createdAt: string;
   hourlyPay: number;
+  gpaMin: number | null;
+  degree: string[];
+  skills: string[];
+  hours: number;
 };
 
 export type AdminJobDetail = JobInput & {
