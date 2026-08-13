@@ -200,9 +200,6 @@ export async function updateJobPosting(
   const admin = await getAdmin();
   if (!admin.success) return admin;
   if (!id) return { success: false, error: "Job posting not found" };
-  if (parsed.data.deadline < todayInFiji()) {
-    return { success: false, error: "Deadline cannot be in the past" };
-  }
 
   try {
     const result = await prisma.jobPosting.updateMany({
