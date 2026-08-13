@@ -1,21 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button, Dropdown, Spinner, Table } from "@heroui/react";
+import { useMemo, useState } from "react";
+import { Button, Dropdown, SearchField, Spinner, Table } from "@heroui/react";
 import {
-  BriefcaseBusinessIcon,
   ArchiveIcon,
+  BriefcaseBusinessIcon,
   CircleAlertIcon,
+  LoaderCircleIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
+  SearchXIcon,
+  SlidersHorizontalIcon,
   Trash2Icon,
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useRemoveJob } from "@/components/jobs/use-remove-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
+import { EditJobModal } from "@/components/jobs/edit-job-modal";
+import {
+  AdminJobFilterModal,
+  EMPTY_ADMIN_FILTERS,
+  type AdminJobFilters,
+} from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 
@@ -31,17 +39,64 @@ const payFormatter = new Intl.NumberFormat("en-FJ", {
   currency: "FJD",
 });
 
+function jobIsExpired(job: AdminJobListItem) {
+  return job.status === "ACTIVE" && new Date(job.deadline).getTime() < Date.now();
+}
+
 export function AdminJobList() {
-  const router = useRouter();
-  const { data: jobs, isPending, isError, refetch } = useAdminJobs();
+  const { data: jobs, isPending, isError, refetch, isFetching } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const confirmRemoval = async () => {
+  const hasFilters = search.trim() !== "" || filters.jobType !== "" || filters.campuses.length > 0 || filters.status !== "";
+
+  const activeFilterCount =
+    (filters.jobType !== "" ? 1 : 0) +
+    (filters.campuses.length > 0 ? 1 : 0) +
+    (filters.status !== "" ? 1 : 0);
+
+  const visibleJobs = useMemo(() => {
+    if (!jobs) return jobs;
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return jobs.filter((job) => {
+      const expired = jobIsExpired(job);
+      const matchesSearch =
+        normalizedSearch === "" ||
+        job.title.toLowerCase().includes(normalizedSearch) ||
+        job.description.toLowerCase().includes(normalizedSearch) ||
+        job.department.toLowerCase().includes(normalizedSearch);
+      const matchesType = filters.jobType === "" || job.jobType === filters.jobType;
+      const matchesCampus =
+        filters.campuses.length === 0 ||
+        job.campus.some((campus) => filters.campuses.includes(campus));
+      const matchesStatus =
+        filters.status === "" ||
+        (filters.status === "Active"
+          ? job.status === "ACTIVE" && !expired
+          : filters.status === "Archived"
+            ? job.status === "ARCHIVED"
+            : expired);
+
+      return matchesSearch && matchesType && matchesCampus && matchesStatus;
+    });
+  }, [jobs, search, filters]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilters(EMPTY_ADMIN_FILTERS);
+  };
+
+  const confirmRemoval = () => {
     if (!selectedJob) return;
-    const result = await removeAsync(selectedJob.id);
-    if (result.success) setSelectedJob(null);
+    const jobId = selectedJob.id;
+    setSelectedJob(null);
+    void removeAsync(jobId);
   };
 
   return (
@@ -56,12 +111,49 @@ export function AdminJobList() {
               View and manage job opportunities available through USP.
             </p>
           </div>
+          <div className="flex shrink-0 items-center gap-3">
+            {isFetching && !isPending ? (
+              <span className="flex items-center gap-2 text-xs text-zinc-500">
+                <LoaderCircleIcon className="size-3.5 animate-spin" />
+                Refreshing
+              </span>
+            ) : null}
+            <Button.Root
+              onPress={() => setCreateOpen(true)}
+              className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            >
+              <PlusIcon className="size-4" />
+              Create new job
+            </Button.Root>
+          </div>
+        </div>
+
+        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <SearchField
+              fullWidth
+              value={search}
+              onChange={setSearch}
+              aria-label="Search job postings"
+            >
+              <SearchField.Group>
+                <SearchField.SearchIcon />
+                <SearchField.Input placeholder="Search by title, description or department" />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+          </div>
           <Button.Root
-            onPress={() => setCreateOpen(true)}
-            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            onPress={() => setFiltersOpen(true)}
+            className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
           >
-            <PlusIcon className="size-4" />
-            Create new job
+            <SlidersHorizontalIcon className="size-4" />
+            Filters
+            {activeFilterCount > 0 ? (
+              <span className="flex size-5 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            ) : null}
           </Button.Root>
         </div>
 
@@ -90,8 +182,27 @@ export function AdminJobList() {
               Create the first posting to make it immediately available to students.
             </p>
           </div>
+        ) : visibleJobs && visibleJobs.length === 0 ? (
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
+            <SearchXIcon className="size-10 text-zinc-400" />
+            <h2 className="mt-4 text-base font-semibold text-zinc-900">
+              No jobs match your filters
+            </h2>
+            <p className="mt-1 max-w-sm text-sm text-zinc-500">
+              Try adjusting your search or clearing the filters.
+            </p>
+            <Button.Root className="mt-5" onPress={clearFilters}>
+              Clear filters
+            </Button.Root>
+          </div>
         ) : (
-          <Table.Root className="rounded-2xl border border-zinc-200 bg-white">
+          <div>
+            {jobs && jobs.length > 0 && hasFilters ? (
+              <p className="mb-4 text-sm text-zinc-500">
+                Showing {visibleJobs?.length} of {jobs.length} jobs
+              </p>
+            ) : null}
+            <Table.Root className="rounded-2xl border border-zinc-200 bg-white">
             <Table.ScrollContainer>
               <Table.Content aria-label="Job postings">
                 <Table.Header>
@@ -106,7 +217,7 @@ export function AdminJobList() {
                     Actions
                   </Table.Column>
                 </Table.Header>
-                <Table.Body items={jobs}>
+                  <Table.Body items={visibleJobs}>
                   {(job) => (
                     <Table.Row id={job.id}>
                       <Table.Cell>
@@ -125,15 +236,28 @@ export function AdminJobList() {
                         {dateFormatter.format(new Date(job.deadline))}
                       </Table.Cell>
                       <Table.Cell>
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                            job.status === "ACTIVE"
+                        {(() => {
+                          const isExpired =
+                            job.status === "ACTIVE" &&
+                            new Date(job.deadline).getTime() < Date.now();
+                          const label = isExpired
+                            ? "Expired"
+                            : job.status === "ACTIVE"
+                              ? "Active"
+                              : "Archived";
+                          const badgeClass = isExpired
+                            ? "bg-amber-50 text-amber-700"
+                            : job.status === "ACTIVE"
                               ? "bg-emerald-50 text-emerald-700"
-                              : "bg-zinc-100 text-zinc-600"
-                          }`}
-                        >
-                          {job.status === "ACTIVE" ? "Active" : "Archived"}
-                        </span>
+                              : "bg-zinc-100 text-zinc-600";
+                          return (
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass}`}
+                            >
+                              {label}
+                            </span>
+                          );
+                        })()}
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
                       <Table.Cell className="sticky right-0 z-10 bg-white">
@@ -148,9 +272,7 @@ export function AdminJobList() {
                             <Dropdown.Menu>
                               <Dropdown.Item
                                 textValue="Edit"
-                                onAction={() =>
-                                  router.push(`/admin/jobs/${job.id}/edit`)
-                                }
+                                onAction={() => setEditingJob(job)}
                                 className="flex items-center gap-2"
                               >
                                 <PencilIcon className="size-4" />
@@ -185,7 +307,8 @@ export function AdminJobList() {
                 </Table.Body>
               </Table.Content>
             </Table.ScrollContainer>
-          </Table.Root>
+            </Table.Root>
+          </div>
         )}
       </div>
       <ConfirmModal
@@ -215,6 +338,22 @@ export function AdminJobList() {
       />
       {createOpen ? (
         <CreateJobModal isOpen onOpenChange={setCreateOpen} />
+      ) : null}
+      {editingJob ? (
+        <EditJobModal
+          job={editingJob}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setEditingJob(null);
+          }}
+        />
+      ) : null}
+      {filtersOpen ? (
+        <AdminJobFilterModal
+          filters={filters}
+          onApply={setFilters}
+          onOpenChange={setFiltersOpen}
+        />
       ) : null}
     </div>
   );

@@ -1,13 +1,17 @@
+"use client";
+
+import type { KeyboardEvent } from "react";
 import { Card } from "@heroui/react";
 import {
   BanknoteIcon,
+  CalendarClockIcon,
   CalendarDaysIcon,
   ClockIcon,
   GraduationCapIcon,
   MapPinIcon,
 } from "lucide-react";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
-import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
+import { JOB_DATE_TIME_ZONE, todayInFiji, toFijiDate } from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
   day: "numeric",
@@ -23,10 +27,10 @@ const payFormatter = new Intl.NumberFormat("en-FJ", {
 
 type MetaItem = {
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
+  label: React.ReactNode;
 };
 
-function MetaRow({ items }: { items: MetaItem[] }) {
+export function MetaRow({ items }: { items: MetaItem[] }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
       {items.map(({ icon: Icon, label }, index) => (
@@ -42,7 +46,7 @@ function MetaRow({ items }: { items: MetaItem[] }) {
   );
 }
 
-function RequirementChips({ items }: { items: string[] }) {
+export function RequirementChips({ items }: { items: string[] }) {
   if (items.length === 0) return null;
 
   return (
@@ -59,12 +63,41 @@ function RequirementChips({ items }: { items: string[] }) {
   );
 }
 
-export function JobFeedCard({ job }: { job: StudentJobListItem }) {
+function relativePostedDate(createdAt: string) {
+  const diffDays = Math.floor(
+    (Date.now() - new Date(createdAt).getTime()) / 86_400_000
+  );
+  if (diffDays <= 0) return "Posted today";
+  if (diffDays === 1) return "Posted yesterday";
+  if (diffDays < 7) return `Posted ${diffDays} days ago`;
+  return `Posted ${dateFormatter.format(new Date(createdAt))}`;
+}
+
+export function JobFeedCard({
+  job,
+  onPress,
+}: {
+  job: StudentJobListItem;
+  onPress?: () => void;
+}) {
   const deadline = dateFormatter.format(new Date(job.deadline));
   const camps = job.campus.join(", ");
+  const closesToday = toFijiDate(new Date(job.deadline)) === todayInFiji();
 
   return (
-    <Card.Root className="h-full rounded-2xl border border-zinc-200 bg-white p-5">
+    <Card.Root
+      onClick={onPress}
+      role={onPress ? "button" : undefined}
+      tabIndex={onPress ? 0 : undefined}
+      onKeyDown={(event: KeyboardEvent<HTMLDivElement>) => {
+        if (!onPress) return;
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onPress();
+        }
+      }}
+      className="h-full cursor-pointer rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+    >
       <div className="flex h-full flex-col gap-3">
         <div>
           <span className="inline-block rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white">
@@ -82,14 +115,30 @@ export function JobFeedCard({ job }: { job: StudentJobListItem }) {
 
         <MetaRow
           items={[
+            {
+              icon: CalendarClockIcon,
+              label: relativePostedDate(job.createdAt),
+            },
             job.hours !== null
               ? { icon: ClockIcon, label: `${job.hours} hrs/week` }
               : { icon: ClockIcon, label: "Hours not specified" },
             { icon: MapPinIcon, label: camps },
             job.hourlyPay > 0
-              ? { icon: BanknoteIcon, label: `${payFormatter.format(job.hourlyPay)}/hr` }
+              ? {
+                  icon: BanknoteIcon,
+                  label: `${payFormatter.format(job.hourlyPay)}/hr`,
+                }
               : { icon: BanknoteIcon, label: "Unpaid" },
-            { icon: CalendarDaysIcon, label: `Deadline ${deadline}` },
+            closesToday ? (
+              {
+                icon: CalendarDaysIcon,
+                label: (
+                  <span className="font-medium text-amber-600">Closes today</span>
+                ),
+              }
+            ) : (
+              { icon: CalendarDaysIcon, label: `Deadline ${deadline}` }
+            ),
           ]}
         />
 

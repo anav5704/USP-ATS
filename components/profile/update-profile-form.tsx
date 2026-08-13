@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Modal, Tabs } from "@heroui/react";
+import { Button, Modal, Tabs, toast } from "@heroui/react";
 import { LoaderCircleIcon, SaveIcon } from "lucide-react";
 import {
   profileInputSchema,
@@ -45,14 +45,32 @@ export function UpdateProfileForm({
     onPendingChange?.(isPending);
   }, [isPending, onPendingChange]);
 
-  const handleSave = async (values: ProfileInput) => {
-    const result = await saveAsync(values);
-    if (result.success) {
+  const handleSaveClick = async () => {
+    const valid = await form.trigger();
+    if (!valid) {
+      const sectionWithErrors = PROFILE_SECTIONS.find((section) =>
+        section.fields.some((field) => form.getFieldState(field).error)
+      );
+      if (sectionWithErrors) {
+        setSelectedTab(sectionWithErrors.id);
+        toast.danger(
+          `Please fix the errors in ${sectionWithErrors.label} before saving.`
+        );
+      }
+      return;
+    }
+    try {
+      await saveAsync(form.getValues());
       onSuccess?.();
+    } catch {
+      // error toast is shown by useProfileSave
     }
   };
 
-  const onSubmit = form.handleSubmit(handleSave);
+  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    void handleSaveClick();
+  };
 
   return (
     <FormProvider {...form}>
@@ -99,7 +117,7 @@ export function UpdateProfileForm({
             <Button.Root
               type="button"
               isDisabled={isPending}
-              onPress={() => void form.handleSubmit(handleSave)()}
+              onPress={() => void handleSaveClick()}
               className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
             >
               {isPending ? (

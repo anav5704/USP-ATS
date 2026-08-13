@@ -5,18 +5,22 @@ import { Button, SearchField, Spinner } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
   CircleAlertIcon,
+  LoaderCircleIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
 import { JobFeedCard } from "@/components/jobs/job-feed-card";
+import { JobDetailModal } from "@/components/jobs/job-detail-modal";
+import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import {
   JobFeedFilterModal,
   type JobFeedFilters,
 } from "@/components/jobs/job-feed-filter-modal";
 
 export function JobFeed() {
-  const { data: jobs, isPending, isError, refetch } = useJobFeed();
+  const { data: jobs, isPending, isError, refetch, isFetching } = useJobFeed();
+  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
@@ -52,7 +56,12 @@ export function JobFeed() {
       const matchesType = jobType === "" || job.jobType === jobType;
       const matchesCampus =
         campuses.length === 0 || job.campus.some((campus) => campuses.includes(campus));
-      const matchesGpa = gpaMin === "" || job.gpaMin === null || job.gpaMin <= Number(gpaMin);
+      const gpaValue = Number(gpaMin);
+      const matchesGpa =
+        gpaMin === "" ||
+        Number.isNaN(gpaValue) ||
+        job.gpaMin === null ||
+        job.gpaMin <= gpaValue;
       const matchesDegree =
         degrees.length === 0 ||
         job.degree.length === 0 ||
@@ -62,18 +71,14 @@ export function JobFeed() {
         job.skills.length === 0 ||
         job.skills.some((skill) => skills.includes(skill));
 
-      const hasCategoryFilters =
-        jobType !== "" || campuses.length > 0 || gpaMin !== "" || degrees.length > 0 || skills.length > 0;
-
-      const matchesAnyCategory =
-        !hasCategoryFilters ||
-        (jobType !== "" && matchesType) ||
-        (campuses.length > 0 && matchesCampus) ||
-        (gpaMin !== "" && matchesGpa) ||
-        (degrees.length > 0 && matchesDegree) ||
-        (skills.length > 0 && matchesSkills);
-
-      return matchesSearch && matchesAnyCategory;
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesCampus &&
+        matchesGpa &&
+        matchesDegree &&
+        matchesSkills
+      );
     });
   }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
 
@@ -97,13 +102,21 @@ export function JobFeed() {
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto max-w-none">
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            Job Feed
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Browse available job opportunities across USP campuses.
-          </p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              Job Feed
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              Browse available job opportunities across USP campuses.
+            </p>
+          </div>
+          {isFetching && !isPending ? (
+            <span className="flex shrink-0 items-center gap-2 text-xs text-zinc-500">
+              <LoaderCircleIcon className="size-3.5 animate-spin" />
+              Refreshing
+            </span>
+          ) : null}
         </div>
 
         <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
@@ -182,7 +195,11 @@ export function JobFeed() {
             ) : null}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {visibleJobs?.map((job) => (
-                <JobFeedCard key={job.id} job={job} />
+                <JobFeedCard
+                  key={job.id}
+                  job={job}
+                  onPress={() => setSelectedJob(job)}
+                />
               ))}
             </div>
           </div>
@@ -193,6 +210,15 @@ export function JobFeed() {
           filters={{ jobType, campuses, gpaMin, degrees, skills }}
           onApply={applyFilters}
           onOpenChange={setFiltersOpen}
+        />
+      ) : null}
+      {selectedJob ? (
+        <JobDetailModal
+          job={selectedJob}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setSelectedJob(null);
+          }}
         />
       ) : null}
     </div>
