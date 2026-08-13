@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Button, Dropdown, Spinner, Table } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
@@ -16,6 +15,7 @@ import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useRemoveJob } from "@/components/jobs/use-remove-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
+import { EditJobModal } from "@/components/jobs/edit-job-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 
@@ -32,10 +32,10 @@ const payFormatter = new Intl.NumberFormat("en-FJ", {
 });
 
 export function AdminJobList() {
-  const router = useRouter();
   const { data: jobs, isPending, isError, refetch } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
   const confirmRemoval = async () => {
@@ -161,9 +161,7 @@ export function AdminJobList() {
                             <Dropdown.Menu>
                               <Dropdown.Item
                                 textValue="Edit"
-                                onAction={() =>
-                                  router.push(`/admin/jobs/${job.id}/edit`)
-                                }
+                                onAction={() => setEditingJob(job)}
                                 className="flex items-center gap-2"
                               >
                                 <PencilIcon className="size-4" />
@@ -228,6 +226,15 @@ export function AdminJobList() {
       />
       {createOpen ? (
         <CreateJobModal isOpen onOpenChange={setCreateOpen} />
+      ) : null}
+      {editingJob ? (
+        <EditJobModal
+          jobId={editingJob.id}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setEditingJob(null);
+          }}
+        />
       ) : null}
     </div>
   );
