@@ -16,8 +16,8 @@ export default function AccessDeniedPage() {
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <Link href="/" className="inline-block">
-            <Button.Root className="rounded-full bg-zinc-900 px-5 text-white">
-              Return home
+            <Button.Root className="rounded-field bg-zinc-900 px-5 text-white">
+              Return Home
             </Button.Root>
           </Link>
           <SignOutButton />

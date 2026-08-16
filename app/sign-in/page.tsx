@@ -54,9 +54,9 @@ function SignInForm() {
           <button
             type="button"
             onClick={() => signInWithMicrosoft(returnTo)}
-            className="mt-6 w-full rounded-full bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+            className="mt-6 w-full rounded-field bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
           >
-            Try again
+            Try Again
           </button>
         </main>
       </div>
