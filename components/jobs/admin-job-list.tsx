@@ -6,7 +6,6 @@ import {
   ArchiveIcon,
   BriefcaseBusinessIcon,
   CircleAlertIcon,
-  LoaderCircleIcon,
   MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
@@ -25,7 +24,10 @@ import {
   type AdminJobFilters,
 } from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
-import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
+import {
+  JOB_DATE_TIME_ZONE,
+  deadlineRemainingLabel,
+} from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
   day: "numeric",
@@ -44,7 +46,7 @@ function jobIsExpired(job: AdminJobListItem) {
 }
 
 export function AdminJobList() {
-  const { data: jobs, isPending, isError, refetch, isFetching } = useAdminJobs();
+  const { data: jobs, isPending, isError, refetch } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
@@ -53,16 +55,27 @@ export function AdminJobList() {
   const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const hasFilters = search.trim() !== "" || filters.jobType !== "" || filters.campuses.length > 0 || filters.status !== "";
+  const hasFilters =
+    search.trim() !== "" ||
+    filters.jobType !== "" ||
+    filters.campuses.length > 0 ||
+    filters.gpaMin !== "" ||
+    filters.degrees.length > 0 ||
+    filters.skills.length > 0 ||
+    filters.status !== "";
 
   const activeFilterCount =
     (filters.jobType !== "" ? 1 : 0) +
     (filters.campuses.length > 0 ? 1 : 0) +
+    (filters.gpaMin !== "" ? 1 : 0) +
+    (filters.degrees.length > 0 ? 1 : 0) +
+    (filters.skills.length > 0 ? 1 : 0) +
     (filters.status !== "" ? 1 : 0);
 
   const visibleJobs = useMemo(() => {
     if (!jobs) return jobs;
     const normalizedSearch = search.trim().toLowerCase();
+    const gpaValue = Number(filters.gpaMin);
 
     return jobs.filter((job) => {
       const expired = jobIsExpired(job);
@@ -75,6 +88,19 @@ export function AdminJobList() {
       const matchesCampus =
         filters.campuses.length === 0 ||
         job.campus.some((campus) => filters.campuses.includes(campus));
+      const matchesGpa =
+        filters.gpaMin === "" ||
+        Number.isNaN(gpaValue) ||
+        job.gpaMin === null ||
+        job.gpaMin <= gpaValue;
+      const matchesDegree =
+        filters.degrees.length === 0 ||
+        job.degree.length === 0 ||
+        job.degree.some((degree) => filters.degrees.includes(degree));
+      const matchesSkills =
+        filters.skills.length === 0 ||
+        job.skills.length === 0 ||
+        job.skills.some((skill) => filters.skills.includes(skill));
       const matchesStatus =
         filters.status === "" ||
         (filters.status === "Active"
@@ -83,7 +109,15 @@ export function AdminJobList() {
             ? job.status === "ARCHIVED"
             : expired);
 
-      return matchesSearch && matchesType && matchesCampus && matchesStatus;
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesCampus &&
+        matchesGpa &&
+        matchesDegree &&
+        matchesSkills &&
+        matchesStatus
+      );
     });
   }, [jobs, search, filters]);
 
@@ -102,33 +136,7 @@ export function AdminJobList() {
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto max-w-none">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              Job postings
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              View and manage job opportunities available through USP.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            {isFetching && !isPending ? (
-              <span className="flex items-center gap-2 text-xs text-zinc-500">
-                <LoaderCircleIcon className="size-3.5 animate-spin" />
-                Refreshing
-              </span>
-            ) : null}
-            <Button.Root
-              onPress={() => setCreateOpen(true)}
-              className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
-            >
-              <PlusIcon className="size-4" />
-              Create new job
-            </Button.Root>
-          </div>
-        </div>
-
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
@@ -136,7 +144,7 @@ export function AdminJobList() {
               onChange={setSearch}
               aria-label="Search job postings"
             >
-              <SearchField.Group>
+              <SearchField.Group className="border-zinc-200">
                 <SearchField.SearchIcon />
                 <SearchField.Input placeholder="Search by title, description or department" />
                 <SearchField.ClearButton />
@@ -145,7 +153,7 @@ export function AdminJobList() {
           </div>
           <Button.Root
             onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="shrink-0 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
           >
             <SlidersHorizontalIcon className="size-4" />
             Filters
@@ -155,11 +163,18 @@ export function AdminJobList() {
               </span>
             ) : null}
           </Button.Root>
+          <Button.Root
+            onPress={() => setCreateOpen(true)}
+            className="shrink-0 rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+          >
+            <PlusIcon className="size-4" />
+            Create New Job
+          </Button.Root>
         </div>
 
         {isPending ? (
           <div className="flex min-h-72 items-center justify-center rounded-2xl border border-zinc-200 bg-white">
-            <Spinner.Root size="lg" />
+            <Spinner.Root size="lg" className="text-zinc-900" />
           </div>
         ) : isError ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
@@ -169,7 +184,7 @@ export function AdminJobList() {
             </h2>
             <p className="mt-1 text-sm text-zinc-500">Please try again.</p>
             <Button.Root className="mt-5" onPress={() => void refetch()}>
-              Try again
+              Try Again
             </Button.Root>
           </div>
         ) : jobs?.length === 0 ? (
@@ -191,14 +206,17 @@ export function AdminJobList() {
             <p className="mt-1 max-w-sm text-sm text-zinc-500">
               Try adjusting your search or clearing the filters.
             </p>
-            <Button.Root className="mt-5" onPress={clearFilters}>
-              Clear filters
+            <Button.Root
+              className="mt-5 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+              onPress={clearFilters}
+            >
+              Clear Filters
             </Button.Root>
           </div>
         ) : (
           <div>
             {jobs && jobs.length > 0 && hasFilters ? (
-              <p className="mb-4 text-sm text-zinc-500">
+              <p className="mb-3 text-sm text-zinc-500">
                 Showing {visibleJobs?.length} of {jobs.length} jobs
               </p>
             ) : null}
@@ -224,22 +242,25 @@ export function AdminJobList() {
                         <div>
                           <p className="font-medium text-zinc-900">{job.title}</p>
                           <p className="text-xs text-zinc-500">{job.department}</p>
-                          <p className="mt-1 max-w-xs truncate text-xs text-zinc-400">
-                            {job.description}
-                          </p>
                         </div>
                       </Table.Cell>
                       <Table.Cell>{job.jobType}</Table.Cell>
                       <Table.Cell>{job.campus.join(", ")}</Table.Cell>
                       <Table.Cell>{payFormatter.format(job.hourlyPay)}</Table.Cell>
                       <Table.Cell>
-                        {dateFormatter.format(new Date(job.deadline))}
+                        <span
+                          title={dateFormatter.format(new Date(job.deadline))}
+                        >
+                          {deadlineRemainingLabel(new Date(job.deadline)).label}
+                        </span>
                       </Table.Cell>
                       <Table.Cell>
                         {(() => {
                           const isExpired =
                             job.status === "ACTIVE" &&
-                            new Date(job.deadline).getTime() < Date.now();
+                            deadlineRemainingLabel(
+                              new Date(job.deadline),
+                            ).expired;
                           const label = isExpired
                             ? "Expired"
                             : job.status === "ACTIVE"

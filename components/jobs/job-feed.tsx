@@ -5,7 +5,6 @@ import { Button, SearchField, Spinner } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
   CircleAlertIcon,
-  LoaderCircleIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
 } from "lucide-react";
@@ -19,7 +18,7 @@ import {
 } from "@/components/jobs/job-feed-filter-modal";
 
 export function JobFeed() {
-  const { data: jobs, isPending, isError, refetch, isFetching } = useJobFeed();
+  const { data: jobs, isPending, isError, refetch } = useJobFeed();
   const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
@@ -102,24 +101,7 @@ export function JobFeed() {
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto max-w-none">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-              Job Feed
-            </h1>
-            <p className="mt-1 text-sm text-zinc-500">
-              Browse available job opportunities across USP campuses.
-            </p>
-          </div>
-          {isFetching && !isPending ? (
-            <span className="flex shrink-0 items-center gap-2 text-xs text-zinc-500">
-              <LoaderCircleIcon className="size-3.5 animate-spin" />
-              Refreshing
-            </span>
-          ) : null}
-        </div>
-
-        <div className="mb-6 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
+        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
@@ -127,7 +109,7 @@ export function JobFeed() {
               onChange={setSearch}
               aria-label="Search jobs"
             >
-              <SearchField.Group>
+              <SearchField.Group className="border-zinc-200">
                 <SearchField.SearchIcon />
                 <SearchField.Input placeholder="Search by title or description" />
                 <SearchField.ClearButton />
@@ -136,7 +118,7 @@ export function JobFeed() {
           </div>
           <Button.Root
             onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="shrink-0 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
           >
             <SlidersHorizontalIcon className="size-4" />
             Filters
@@ -150,7 +132,7 @@ export function JobFeed() {
 
         {isPending ? (
           <div className="flex min-h-72 items-center justify-center rounded-2xl border border-zinc-200 bg-white">
-            <Spinner.Root size="lg" />
+            <Spinner.Root size="lg" className="text-zinc-900" />
           </div>
         ) : isError ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
@@ -160,7 +142,7 @@ export function JobFeed() {
             </h2>
             <p className="mt-1 text-sm text-zinc-500">Please try again.</p>
             <Button.Root className="mt-5" onPress={() => void refetch()}>
-              Try again
+              Try Again
             </Button.Root>
           </div>
         ) : jobs?.length === 0 ? (
@@ -182,14 +164,17 @@ export function JobFeed() {
             <p className="mt-1 max-w-sm text-sm text-zinc-500">
               Try adjusting your search or clearing the filters.
             </p>
-            <Button.Root className="mt-5" onPress={clearFilters}>
-              Clear filters
+            <Button.Root
+              className="mt-5 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+              onPress={clearFilters}
+            >
+              Clear Filters
             </Button.Root>
           </div>
         ) : (
           <div>
             {jobs?.length && jobs.length > 0 && hasFilters ? (
-              <p className="mb-4 text-sm text-zinc-500">
+              <p className="mb-3 text-sm text-zinc-500">
                 Showing {visibleJobs?.length} of {jobs.length} jobs
               </p>
             ) : null}
