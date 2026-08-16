@@ -72,7 +72,7 @@ export function JobForm({
   });
 
   return (
-    <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col">
+    <form onSubmit={submit} noValidate className="mt-5 flex min-h-0 flex-1 flex-col">
       <Modal.Body>
         <div className="space-y-5 py-1">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -108,7 +108,7 @@ export function JobForm({
             </FormField>
           </div>
 
-          <FormField id="description" label="Job description" error={errors.description?.message} hint="Describe the role, expected work, and key duties or responsibilities.">
+          <FormField id="description" label="Job description" error={errors.description?.message}>
             <TextArea.Root
               id="description"
               rows={4}
@@ -150,21 +150,35 @@ export function JobForm({
             </FormField>
           </div>
 
-          <FormField label="Campus" error={errors.campus?.message} hint="Select every campus where this role is available.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="Campus" error={errors.campus?.message}>
+              <Controller
+                name="campus"
+                control={control}
+                render={({ field }) => (
+                  <JobMultipleAutocomplete
+                    value={field.value}
+                    options={USP_CAMPUSES}
+                    placeholder="Select one or more campuses"
+                    searchPlaceholder="Search campuses"
+                    onChange={field.onChange}
+                  />
+                )}
+              />
+            </FormField>
+
             <Controller
-              name="campus"
+              name="deadline"
               control={control}
               render={({ field }) => (
-                <JobMultipleAutocomplete
+                <JobDeadlineField
                   value={field.value}
-                  options={USP_CAMPUSES}
-                  placeholder="Select one or more campuses"
-                  searchPlaceholder="Search campuses"
+                  error={errors.deadline?.message}
                   onChange={field.onChange}
                 />
               )}
             />
-          </FormField>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <FormField id="hours" label="Hours per week" error={errors.hours?.message}>
@@ -180,7 +194,7 @@ export function JobForm({
                 })}
               />
             </FormField>
-            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message} hint="Enter 0 for volunteer or unpaid roles.">
+            <FormField id="hourlyPay" label="Hourly pay" error={errors.hourlyPay?.message}>
               <Input.Root
                 id="hourlyPay"
                 type="number"
@@ -195,19 +209,7 @@ export function JobForm({
             </FormField>
           </div>
 
-          <Controller
-            name="deadline"
-            control={control}
-            render={({ field }) => (
-              <JobDeadlineField
-                value={field.value}
-                error={errors.deadline?.message}
-                onChange={field.onChange}
-              />
-            )}
-          />
-
-          <FormField label="Degree requirement (optional)" error={errors.degree?.message} hint="Select the degrees relevant to this role.">
+          <FormField label="Degree requirement (optional)" error={errors.degree?.message}>
             <Controller
               name="degree"
               control={control}
@@ -223,7 +225,7 @@ export function JobForm({
             />
           </FormField>
 
-          <FormField label="Skills requirement (optional)" error={errors.skills?.message} hint="Select up to 10 skills required for this role.">
+          <FormField label="Skills requirement (optional)" error={errors.skills?.message}>
             <Controller
               name="skills"
               control={control}
@@ -247,7 +249,7 @@ export function JobForm({
           <Button.Root
             type="submit"
             isDisabled={isPending}
-            className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-4 animate-spin" />
@@ -256,7 +258,7 @@ export function JobForm({
             ) : (
               <SaveIcon className="size-4" />
             )}
-            {mode === "create" ? "Create posting" : "Save changes"}
+            {mode === "create" ? "Create Posting" : "Save Changes"}
           </Button.Root>
         </div>
       </Modal.Footer>
