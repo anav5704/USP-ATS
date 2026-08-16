@@ -23,7 +23,6 @@ export function ProjectFields() {
     <RepeaterSection
       icon={FolderGit2Icon}
       title="Personal projects"
-      description="Optional: add projects that showcase your skills."
       addLabel="Add project"
       onAdd={() => append({ name: "", description: "", link: "" })}
     >
@@ -63,7 +62,6 @@ export function ProjectFields() {
             <FormField
               id={`projects.${index}.link`}
               label="Link (optional)"
-              hint="A URL to the project"
               error={errors.projects?.[index]?.link?.message}
             >
               <Input.Root

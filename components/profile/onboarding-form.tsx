@@ -94,7 +94,11 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
             maxVisitedIndex={maxVisited}
             onStepClick={goTo}
           />
-          <CurrentFields />
+          {currentIndex === 0 ? (
+            <AcademicFields campusVariant="single" />
+          ) : (
+            <CurrentFields />
+          )}
         </div>
         <div className="flex w-full items-center justify-between gap-3">
           <Button.Root
@@ -116,21 +120,21 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
                 type="button"
                 isDisabled={isPending}
                 onPress={() => void form.handleSubmit(handleSave)()}
-                className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
               >
                 {isPending ? (
                   <LoaderCircleIcon className="size-4 animate-spin" />
                 ) : (
                   <SparklesIcon className="size-4" />
                 )}
-                Create profile
+                Create Profile
               </Button.Root>
             ) : (
               <Button.Root
                 type="button"
                 isDisabled={isPending}
                 onPress={advance}
-                className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
               >
                 Next
                 <ChevronRightIcon className="size-4" />

@@ -34,14 +34,9 @@ export function ProfileStepper({
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900">
-            Profile progress
-          </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            Complete each step to finish your profile.
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-zinc-900">
+          Profile progress
+        </h2>
         <span className="text-sm font-medium tabular-nums text-zinc-700">
           {percent}%
         </span>
