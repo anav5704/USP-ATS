@@ -4,14 +4,15 @@ import type { KeyboardEvent } from "react";
 import { Card } from "@heroui/react";
 import {
   BanknoteIcon,
-  CalendarClockIcon,
   CalendarDaysIcon,
   ClockIcon,
-  GraduationCapIcon,
   MapPinIcon,
 } from "lucide-react";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
-import { JOB_DATE_TIME_ZONE, todayInFiji, toFijiDate } from "@/lib/jobs/job-dates";
+import {
+  JOB_DATE_TIME_ZONE,
+  deadlineRemainingLabel,
+} from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
   day: "numeric",
@@ -28,17 +29,19 @@ const payFormatter = new Intl.NumberFormat("en-FJ", {
 type MetaItem = {
   icon: React.ComponentType<{ className?: string }>;
   label: React.ReactNode;
+  title?: string;
 };
 
 export function MetaRow({ items }: { items: MetaItem[] }) {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-      {items.map(({ icon: Icon, label }, index) => (
+      {items.map(({ icon: Icon, label, title }, index) => (
         <span
           key={index}
-          className="flex items-center gap-1.5 text-xs text-zinc-600"
+          title={title}
+          className="flex items-center gap-2 text-sm text-zinc-600"
         >
-          <Icon className="size-3.5 text-zinc-400" />
+          <Icon className="size-4 shrink-0 text-zinc-500" />
           {label}
         </span>
       ))}
@@ -63,16 +66,6 @@ export function RequirementChips({ items }: { items: string[] }) {
   );
 }
 
-function relativePostedDate(createdAt: string) {
-  const diffDays = Math.floor(
-    (Date.now() - new Date(createdAt).getTime()) / 86_400_000
-  );
-  if (diffDays <= 0) return "Posted today";
-  if (diffDays === 1) return "Posted yesterday";
-  if (diffDays < 7) return `Posted ${diffDays} days ago`;
-  return `Posted ${dateFormatter.format(new Date(createdAt))}`;
-}
-
 export function JobFeedCard({
   job,
   onPress,
@@ -82,7 +75,43 @@ export function JobFeedCard({
 }) {
   const deadline = dateFormatter.format(new Date(job.deadline));
   const camps = job.campus.join(", ");
-  const closesToday = toFijiDate(new Date(job.deadline)) === todayInFiji();
+  const deadlineStatus = deadlineRemainingLabel(new Date(job.deadline));
+
+  const meta: MetaItem[] = [
+    { icon: MapPinIcon, label: camps },
+    {
+      icon: ClockIcon,
+      label: job.hours !== null ? `${job.hours} hrs/week` : "Hours not specified",
+    },
+    {
+      icon: BanknoteIcon,
+      label:
+        job.hourlyPay > 0
+          ? `${payFormatter.format(job.hourlyPay)}/hr`
+          : "Unpaid",
+    },
+    deadlineStatus.expired
+      ? {
+          icon: CalendarDaysIcon,
+          label: deadlineStatus.label,
+          title: deadline,
+        }
+      : {
+          icon: CalendarDaysIcon,
+          label: (
+            <span
+              className={
+                deadlineStatus.label === "Closes today"
+                  ? "font-medium text-amber-600"
+                  : undefined
+              }
+            >
+              {deadlineStatus.label}
+            </span>
+          ),
+          title: deadline,
+        },
+  ];
 
   return (
     <Card.Root
@@ -109,60 +138,12 @@ export function JobFeedCard({
           <p className="mt-0.5 text-sm text-zinc-500">{job.department}</p>
         </div>
 
-        <p className="line-clamp-3 text-sm leading-relaxed text-zinc-600">
+        <p className="line-clamp-2 text-sm leading-relaxed text-zinc-600">
           {job.description}
         </p>
 
-        <MetaRow
-          items={[
-            {
-              icon: CalendarClockIcon,
-              label: relativePostedDate(job.createdAt),
-            },
-            job.hours !== null
-              ? { icon: ClockIcon, label: `${job.hours} hrs/week` }
-              : { icon: ClockIcon, label: "Hours not specified" },
-            { icon: MapPinIcon, label: camps },
-            job.hourlyPay > 0
-              ? {
-                  icon: BanknoteIcon,
-                  label: `${payFormatter.format(job.hourlyPay)}/hr`,
-                }
-              : { icon: BanknoteIcon, label: "Unpaid" },
-            closesToday ? (
-              {
-                icon: CalendarDaysIcon,
-                label: (
-                  <span className="font-medium text-amber-600">Closes today</span>
-                ),
-              }
-            ) : (
-              { icon: CalendarDaysIcon, label: `Deadline ${deadline}` }
-            ),
-          ]}
-        />
-
-        <div className="mt-auto space-y-2 border-t border-zinc-100 pt-3">
-          {job.gpaMin !== null ? (
-            <p className="flex items-center gap-1.5 text-xs text-zinc-600">
-              <GraduationCapIcon className="size-3.5 text-zinc-400" />
-              Minimum GPA: {job.gpaMin.toFixed(2)}
-            </p>
-          ) : null}
-          {job.degree.length > 0 ? (
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-zinc-500">
-                Degree requirements
-              </p>
-              <RequirementChips items={job.degree} />
-            </div>
-          ) : null}
-          {job.skills.length > 0 ? (
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-zinc-500">Skills</p>
-              <RequirementChips items={job.skills} />
-            </div>
-          ) : null}
+        <div className="mt-auto">
+          <MetaRow items={meta} />
         </div>
       </div>
     </Card.Root>
