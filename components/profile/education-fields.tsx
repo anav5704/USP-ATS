@@ -23,7 +23,6 @@ export function EducationFields() {
     <RepeaterSection
       icon={SchoolIcon}
       title="Education history"
-      description="Add your education history, from high school onwards."
       addLabel="Add entry"
       onAdd={() => append({ institution: "", program: "" })}
     >

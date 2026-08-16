@@ -7,11 +7,16 @@ import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
+import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
-export function AcademicFields() {
+export function AcademicFields({
+  campusVariant = "multi",
+}: {
+  campusVariant?: "single" | "multi";
+}) {
   const {
     register,
     control,
@@ -20,23 +25,17 @@ export function AcademicFields() {
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
-      <div className="mb-4 flex items-start gap-3">
+      <div className="mb-4 flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-900">
           <BookOpenIcon className="size-5" />
         </span>
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900">
-            Academic details
-          </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            Select your degrees and enter your average GPA out of 4.5.
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-zinc-900">
+          Academic details
+        </h2>
       </div>
       <FormField
         label="Degrees"
         error={errors.degrees?.message}
-        hint="Select every degree you are pursuing or have completed."
       >
         <Controller
           name="degrees"
@@ -52,29 +51,38 @@ export function AcademicFields() {
           )}
         />
       </FormField>
-      <div className="mt-4">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField
           label="Campus"
           error={errors.campuses?.message}
-          hint="Select every campus you are currently attending."
         >
           <Controller
             name="campuses"
             control={control}
-            render={({ field }) => (
-              <MultiAutocomplete
-                value={field.value}
-                options={USP_CAMPUSES}
-                placeholder="Select one or more campuses"
-                searchPlaceholder="Search campuses"
-                onChange={field.onChange}
-              />
-            )}
+            render={({ field }) =>
+              campusVariant === "single" ? (
+                <JobSingleAutocomplete
+                  value={field.value[0] ?? ""}
+                  options={USP_CAMPUSES}
+                  placeholder="Select your campus"
+                  searchPlaceholder="Search campuses"
+                  onChange={(campus) =>
+                    field.onChange(campus ? [campus] : [])
+                  }
+                />
+              ) : (
+                <MultiAutocomplete
+                  value={field.value}
+                  options={USP_CAMPUSES}
+                  placeholder="Select one or more campuses"
+                  searchPlaceholder="Search campuses"
+                  onChange={field.onChange}
+                />
+              )
+            }
           />
         </FormField>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FormField id="gpa" label="Average GPA (out of 4.5)" error={errors.gpa?.message}>
+        <FormField id="gpa" label="Average GPA" error={errors.gpa?.message}>
           <Input.Root
             id="gpa"
             type="number"
@@ -82,7 +90,7 @@ export function AcademicFields() {
             step="0.01"
             min={0}
             max={4.5}
-            placeholder="e.g. 3.8"
+            placeholder="e.g. 3.8 (out of 4.5)"
             fullWidth
             {...register("gpa", {
               setValueAs: (value) =>
@@ -95,7 +103,6 @@ export function AcademicFields() {
         <FormField
           label="Skills"
           error={errors.skills?.message}
-          hint="Select up to 10 skills that apply to you."
         >
           <Controller
             name="skills"
