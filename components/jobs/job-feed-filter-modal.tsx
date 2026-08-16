@@ -70,33 +70,34 @@ export function JobFeedFilterModal({
             />
           </FormField>
 
-          <FormField label="Campus">
-            <MultiAutocomplete
-              value={campuses}
-              options={USP_CAMPUSES}
-              placeholder="All campuses"
-              searchPlaceholder="Search campuses"
-              onChange={setCampuses}
-            />
-          </FormField>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="Campus">
+              <MultiAutocomplete
+                value={campuses}
+                options={USP_CAMPUSES}
+                placeholder="All campuses"
+                searchPlaceholder="Search campuses"
+                onChange={setCampuses}
+              />
+            </FormField>
 
-          <FormField
-            id="gpaMin"
-            label="Minimum GPA"
-            hint="Show jobs whose GPA requirement is at or below this value."
-          >
-            <Input.Root
+            <FormField
               id="gpaMin"
-              type="number"
-              min={0}
-              max={4.5}
-              step="0.1"
-              fullWidth
-              placeholder="e.g. 3.0"
-              value={gpaMin}
-              onChange={(event) => setGpaMin(event.target.value)}
-            />
-          </FormField>
+              label="Minimum GPA"
+            >
+              <Input.Root
+                id="gpaMin"
+                type="number"
+                min={0}
+                max={4.5}
+                step="0.1"
+                fullWidth
+                placeholder="e.g. 3.0"
+                value={gpaMin}
+                onChange={(event) => setGpaMin(event.target.value)}
+              />
+            </FormField>
+          </div>
 
           <FormField label="Degree">
             <MultiAutocomplete
@@ -122,7 +123,7 @@ export function JobFeedFilterModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full items-center justify-between gap-3 border-t border-zinc-200 pt-4">
+        <div className="flex w-full items-center justify-between gap-3 pt-4">
           <Button.Root
             type="button"
             variant="ghost"
@@ -130,7 +131,7 @@ export function JobFeedFilterModal({
             className="text-zinc-600"
           >
             <Trash2Icon className="size-4" />
-            Clear all
+            Clear All
           </Button.Root>
           <div className="flex items-center gap-3">
             <Button.Root
@@ -144,7 +145,7 @@ export function JobFeedFilterModal({
             <Button.Root
               type="button"
               onPress={applyFilters}
-              className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
             >
               Apply Filters
             </Button.Root>

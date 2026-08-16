@@ -49,13 +49,13 @@ export function ConfirmModal({
               </div>
             </Modal.Body>
             <Modal.Footer>
-              <div className="flex w-full items-center justify-end gap-3 border-t border-zinc-200 pt-4">
+              <div className="grid w-full grid-cols-2 gap-3 pt-4">
                 <Button.Root
                   type="button"
                   variant="ghost"
                   isDisabled={isPending}
                   onPress={() => onOpenChange(false)}
-                  className="text-zinc-600"
+                  className="w-full text-zinc-600"
                 >
                   {cancelLabel}
                 </Button.Root>
@@ -65,8 +65,8 @@ export function ConfirmModal({
                   onPress={onConfirm}
                   className={
                     danger
-                      ? "rounded-full bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
-                      : "rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                      ? "w-full rounded-field bg-rose-600 px-5 text-sm font-medium text-white transition-colors hover:bg-rose-700"
+                      : "w-full rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
                   }
                 >
                   {isPending ? (

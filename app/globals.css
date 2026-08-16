@@ -5,6 +5,7 @@
   color-scheme: light;
   --field-border-width: 1px;
   --field-border: oklch(0.7 0.012 260);
+  --focus-ring: oklch(0.2 0.012 260);
 }
 
 @theme inline {

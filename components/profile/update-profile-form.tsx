@@ -18,7 +18,7 @@ import { EducationFields } from "@/components/profile/education-fields";
 import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
-const SECTION_COMPONENTS: Record<SectionId, () => React.ReactElement> = {
+const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
   academic: AcademicFields,
   education: EducationFields,
   projects: ProjectFields,
@@ -74,7 +74,7 @@ export function UpdateProfileForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
+      <form onSubmit={onSubmit} noValidate className="mt-5 flex min-h-0 flex-1 flex-col">
         <Modal.Body>
           <div className="min-w-0">
             <div className="space-y-4">
@@ -118,14 +118,14 @@ export function UpdateProfileForm({
               type="button"
               isDisabled={isPending}
               onPress={() => void handleSaveClick()}
-              className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />
               ) : (
                 <SaveIcon className="size-4" />
               )}
-              Save changes
+              Save Changes
             </Button.Root>
           </div>
         </Modal.Footer>
