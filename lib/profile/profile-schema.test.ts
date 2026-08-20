@@ -14,7 +14,6 @@ function baseInput() {
     phone: "",
     bio: "",
     campuses: ["Laucala"],
-    title: "",
     degreeStatus: "in_progress",
     gpa: 3.8,
     skills: ["Python"],

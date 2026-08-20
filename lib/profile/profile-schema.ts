@@ -88,7 +88,6 @@ export const profileInputSchema = z
       .array(z.string().trim().min(1, "Campus name is required"))
       .min(1, "Select your campus or centre")
       .max(20, "Too many campuses"),
-    title: z.string().trim().max(200, "Title is too long"),
     degreeStatus: z.enum(["in_progress", "completed"]),
     gpa: z
       .number({ error: "Enter your GPA" })
