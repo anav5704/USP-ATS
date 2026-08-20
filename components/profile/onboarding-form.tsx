@@ -16,27 +16,46 @@ import {
 } from "@/lib/profile/profile-schema";
 import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
 import { ProfileStepper } from "@/components/profile/profile-stepper";
+import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
 import { EducationFields } from "@/components/profile/education-fields";
+import { CertificatesFields } from "@/components/profile/certificates-fields";
+import { LinksFields } from "@/components/profile/links-fields";
 import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const EMPTY_PROFILE: ProfileInput = {
+  phone: "",
+  bio: "",
+  campuses: [],
+  title: "",
+  degreeStatus: "in_progress",
   gpa: undefined as unknown as number,
   skills: [],
   degrees: [],
-  campuses: [],
+  transcript: null,
   education: [{ institution: "", program: "" }],
+  certificates: [],
   projects: [],
+  socialLinks: [],
+  projectLinks: [],
 };
 
 const SECTION_COMPONENTS = [
   AcademicFields,
   EducationFields,
+  CertificatesFields,
+  LinksFields,
   ProjectFields,
 ];
 
-export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
+export function OnboardingForm({
+  user,
+  onSuccess,
+}: {
+  user?: GeneralUser | null;
+  onSuccess?: () => void;
+}) {
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileInputSchema),
     defaultValues: EMPTY_PROFILE,
@@ -47,7 +66,8 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
   const [maxVisited, setMaxVisited] = useState(0);
 
   const isLastSection = currentIndex === PROFILE_SECTIONS.length - 1;
-  const CurrentFields = SECTION_COMPONENTS[currentIndex];
+  const CurrentFields =
+    SECTION_COMPONENTS[Math.max(0, currentIndex - 1)];
 
   const advance = async () => {
     const section = PROFILE_SECTIONS[currentIndex];
@@ -95,7 +115,7 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
             onStepClick={goTo}
           />
           {currentIndex === 0 ? (
-            <AcademicFields campusVariant="single" />
+            <GeneralFields user={user} />
           ) : (
             <CurrentFields />
           )}
