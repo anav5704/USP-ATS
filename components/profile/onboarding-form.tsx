@@ -26,7 +26,6 @@ const EMPTY_PROFILE: ProfileInput = {
   phone: "",
   bio: "",
   campuses: [],
-  title: "",
   degreeStatus: "in_progress",
   gpa: undefined as unknown as number,
   skills: [],

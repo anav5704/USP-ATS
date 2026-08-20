@@ -13,7 +13,6 @@ export function firstProfileError(error: ZodError) {
 type ScalarProfileData = {
   phone: string | null;
   bio: string | null;
-  title: string | null;
   degreeStatus: "IN_PROGRESS" | "COMPLETED";
   gpa: number;
   skills: string[];
@@ -97,7 +96,6 @@ export function buildProfileData(
   const scalars: ScalarProfileData = {
     phone: input.phone.trim() === "" ? null : input.phone.trim(),
     bio: input.bio.trim() === "" ? null : input.bio.trim(),
-    title: input.title.trim() === "" ? null : input.title.trim(),
     degreeStatus:
       (input.degreeStatus === "completed"
         ? "COMPLETED"

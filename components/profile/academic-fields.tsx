@@ -2,22 +2,36 @@
 
 import { Controller, useFormContext } from "react-hook-form";
 import { Input } from "@heroui/react";
-import { BookOpenIcon } from "lucide-react";
+import { BookOpenIcon, GraduationCapIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
-import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
-import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { DegreeStatusField } from "@/components/profile/degree-status-field";
 import { FileUploadField } from "@/components/profile/file-upload-field";
+import { RepeaterItem } from "@/components/profile/repeater-item";
+import { RepeaterSection } from "@/components/profile/repeater-section";
 
 export function AcademicFields() {
   const {
     register,
     control,
+    watch,
+    setValue,
     formState: { errors },
   } = useFormContext<ProfileInput>();
+
+  const degrees = watch("degrees");
+
+  const addDegree = () => {
+    setValue("degrees", [...degrees, ""], { shouldValidate: true });
+  };
+
+  const removeDegree = (index: number) => {
+    setValue("degrees", degrees.filter((_, i) => i !== index), {
+      shouldValidate: true,
+    });
+  };
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
@@ -29,17 +43,7 @@ export function AcademicFields() {
           Academic details
         </h2>
       </div>
-      <FormField
-        label="Academic title or role (optional)"
-        error={errors.title?.message}
-      >
-        <Input.Root
-          fullWidth
-          placeholder="e.g. Student Research Assistant"
-          {...register("title")}
-        />
-      </FormField>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <FormField
           id="gpa"
           label="Average GPA"
@@ -79,24 +83,41 @@ export function AcademicFields() {
         />
       </div>
       <div className="mt-4">
-        <FormField
-          label="Degrees"
-          error={errors.degrees?.message}
+        <RepeaterSection
+          icon={GraduationCapIcon}
+          title="Degrees"
+          addLabel="Add degree"
+          onAdd={addDegree}
         >
-          <Controller
-            name="degrees"
-            control={control}
-            render={({ field }) => (
-              <MultiAutocomplete
-                value={field.value}
-                optionGroups={USP_DEGREES}
-                placeholder="Select one or more degrees"
-                searchPlaceholder="Search degrees"
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </FormField>
+          {degrees.length === 0 ? (
+            <p className="text-sm text-zinc-500">
+              No degrees yet. Add the degrees you are studying or have completed.
+            </p>
+          ) : (
+            degrees.map((degree, index) => (
+              <RepeaterItem
+                key={`${degree}-${index}`}
+                title="Degree"
+                index={index}
+                canRemove={degrees.length > 1}
+                onRemove={() => removeDegree(index)}
+              >
+                <FormField
+                  id={`degrees.${index}`}
+                  label="Degree title"
+                  error={errors.degrees?.[index]?.message}
+                >
+                  <Input.Root
+                    id={`degrees.${index}`}
+                    fullWidth
+                    placeholder="e.g. Bachelor of Science (Computer Science)"
+                    {...register(`degrees.${index}`)}
+                  />
+                </FormField>
+              </RepeaterItem>
+            ))
+          )}
+        </RepeaterSection>
       </div>
       <div className="mt-4">
         <FormField

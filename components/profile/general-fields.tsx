@@ -95,7 +95,6 @@ export function GeneralFields({
           id="bio"
           label="Bio (optional)"
           error={errors.bio?.message}
-          hint="A short note to express yourself. Max 500 characters."
         >
           <TextArea.Root
             id="bio"

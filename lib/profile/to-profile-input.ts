@@ -6,7 +6,6 @@ import type {
 export type ProfileModel = {
   phone: string | null;
   bio: string | null;
-  title: string | null;
   degreeStatus: "in_progress" | "completed";
   gpa: string | number | null;
   skills: string[] | null;
@@ -27,7 +26,6 @@ export type ProfileModel = {
 export type ProfileResult = {
   phone: string | null;
   bio: string | null;
-  title: string | null;
   degreeStatus: "IN_PROGRESS" | "COMPLETED";
   gpa: { toString(): string } | null;
   skills: string[] | null;
@@ -77,7 +75,6 @@ export function toProfileModel(result: ProfileResult): ProfileModel {
   return {
     phone: result.phone,
     bio: result.bio,
-    title: result.title,
     degreeStatus:
       result.degreeStatus === "COMPLETED" ? "completed" : "in_progress",
     gpa: result.gpa?.toString() ?? null,
@@ -108,7 +105,6 @@ export function toProfileInput(profile: ProfileModel): ProfileInput {
     phone: profile.phone ?? "",
     bio: profile.bio ?? "",
     campuses: profile.campuses,
-    title: profile.title ?? "",
     degreeStatus: profile.degreeStatus,
     gpa: profile.gpa == null ? (undefined as unknown as number) : Number(profile.gpa),
     skills: profile.skills ?? [],

@@ -34,10 +34,10 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your title, degree status, average GPA out of 4.5, technical skills and transcript.",
+    description: "Your degree status, average GPA out of 4.5, technical skills and transcript.",
     icon: BookOpenIcon,
     optional: false,
-    fields: ["title", "degrees", "gpa", "degreeStatus", "transcript", "skills"],
+    fields: ["degrees", "gpa", "degreeStatus", "transcript", "skills"],
   },
   {
     id: "certificates",
