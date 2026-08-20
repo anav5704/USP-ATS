@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
   return (
     <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10">
       <main className="w-full max-w-2xl">
-        <OnboardingForm />
+        <OnboardingForm user={session.user} />
       </main>
     </div>
   );

@@ -7,21 +7,20 @@ import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
-import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
-import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
+import { DegreeStatusField } from "@/components/profile/degree-status-field";
+import { FileUploadField } from "@/components/profile/file-upload-field";
 
-export function AcademicFields({
-  campusVariant = "multi",
-}: {
-  campusVariant?: "single" | "multi";
-}) {
+export function AcademicFields() {
   const {
     register,
     control,
+    watch,
     formState: { errors },
   } = useFormContext<ProfileInput>();
+
+  const degreeStatus = watch("degreeStatus");
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
@@ -34,55 +33,22 @@ export function AcademicFields({
         </h2>
       </div>
       <FormField
-        label="Degrees"
-        error={errors.degrees?.message}
+        label="Academic title or role (optional)"
+        error={errors.title?.message}
       >
-        <Controller
-          name="degrees"
-          control={control}
-          render={({ field }) => (
-            <MultiAutocomplete
-              value={field.value}
-              optionGroups={USP_DEGREES}
-              placeholder="Select one or more degrees"
-              searchPlaceholder="Search degrees"
-              onChange={field.onChange}
-            />
-          )}
+        <Input.Root
+          fullWidth
+          placeholder="e.g. Student Research Assistant"
+          {...register("title")}
         />
       </FormField>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField
-          label="Campus"
-          error={errors.campuses?.message}
+          id="gpa"
+          label="Average GPA"
+          error={errors.gpa?.message}
+          hint="Out of 4.5, up to 2 decimal places"
         >
-          <Controller
-            name="campuses"
-            control={control}
-            render={({ field }) =>
-              campusVariant === "single" ? (
-                <JobSingleAutocomplete
-                  value={field.value[0] ?? ""}
-                  options={USP_CAMPUSES}
-                  placeholder="Select your campus"
-                  searchPlaceholder="Search campuses"
-                  onChange={(campus) =>
-                    field.onChange(campus ? [campus] : [])
-                  }
-                />
-              ) : (
-                <MultiAutocomplete
-                  value={field.value}
-                  options={USP_CAMPUSES}
-                  placeholder="Select one or more campuses"
-                  searchPlaceholder="Search campuses"
-                  onChange={field.onChange}
-                />
-              )
-            }
-          />
-        </FormField>
-        <FormField id="gpa" label="Average GPA" error={errors.gpa?.message}>
           <Input.Root
             id="gpa"
             type="number"
@@ -90,12 +56,50 @@ export function AcademicFields({
             step="0.01"
             min={0}
             max={4.5}
-            placeholder="e.g. 3.8 (out of 4.5)"
+            placeholder="e.g. 3.8"
             fullWidth
             {...register("gpa", {
               setValueAs: (value) =>
                 value === "" ? undefined : Number(value),
             })}
+          />
+        </FormField>
+        <DegreeStatusField />
+      </div>
+      {degreeStatus === "completed" ? (
+        <div className="mt-4">
+          <Controller
+            name="transcript"
+            control={control}
+            render={({ field }) => (
+              <FileUploadField
+                label="Transcript"
+                value={field.value}
+                error={errors.transcript?.message}
+                hint="Required when your degree is completed. PDF preferred, max 10 MB."
+                onChange={field.onChange}
+              />
+            )}
+          />
+        </div>
+      ) : null}
+      <div className="mt-4">
+        <FormField
+          label="Degrees"
+          error={errors.degrees?.message}
+        >
+          <Controller
+            name="degrees"
+            control={control}
+            render={({ field }) => (
+              <MultiAutocomplete
+                value={field.value}
+                optionGroups={USP_DEGREES}
+                placeholder="Select one or more degrees"
+                searchPlaceholder="Search degrees"
+                onChange={field.onChange}
+              />
+            )}
           />
         </FormField>
       </div>

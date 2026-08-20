@@ -8,6 +8,7 @@ import { FormModal } from "@/components/ui/form-modal";
 import { FormField } from "@/components/ui/form-field";
 import { UpdateProfileForm } from "@/components/profile/update-profile-form";
 import { useProfile } from "@/components/profile/use-profile";
+import { splitName } from "@/lib/user-name";
 
 export type ProfileModalUser = {
   role?: string | null;
@@ -16,14 +17,6 @@ export type ProfileModalUser = {
   lastName?: string | null;
   email?: string | null;
 };
-
-function splitName(name: string | null | undefined) {
-  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  return {
-    first: parts[0] ?? "",
-    last: parts.slice(1).join(" ") ?? "",
-  };
-}
 
 function ReadOnlyField({
   label,
@@ -91,6 +84,7 @@ export function ProfileModal({
       ) : activeProfile ? (
         <UpdateProfileForm
           key={JSON.stringify(activeProfile)}
+          user={user}
           initialData={toProfileInput(activeProfile)}
           onSuccess={() => onOpenChange(false)}
           onPendingChange={setSavePending}

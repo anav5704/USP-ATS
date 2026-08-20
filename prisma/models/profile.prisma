@@ -1,17 +1,80 @@
 model Profile {
-  id        String      @id @default(cuid())
-  userId    String      @unique
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills    String[]
-  gpa       Decimal?    @db.Decimal(3, 2)
-  degrees   String[]
-  campuses  String[]    @default([])
-  education Education[]
-  projects  Project[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id           String          @id @default(cuid())
+  userId       String          @unique
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone        String?
+  bio          String?
+  title        String?
+  degreeStatus DegreeStatus    @default(IN_PROGRESS)
+  skills       String[]
+  gpa          Decimal?        @db.Decimal(3, 2)
+  degrees      String[]
+  campuses     String[]        @default([])
+  transcript   Transcript?
+  education    Education[]
+  certificates Certificate[]
+  projects     Project[]
+  socialLinks  SocialLink[]
+  profileLinks ProfileLink[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   @@map("profile")
+}
+
+model Transcript {
+  id           String   @id @default(cuid())
+  profileId    String   @unique
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name         String
+  stored       String
+  type         String
+  size         Int
+  uploadedAt   DateTime @default(now())
+
+  @@map("transcript")
+}
+
+model Certificate {
+  id         String   @id @default(cuid())
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label      String
+  name       String
+  stored     String
+  type       String
+  size       Int
+  uploadedAt DateTime @default(now())
+
+  @@index([profileId])
+  @@map("certificate")
+}
+
+model SocialLink {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform  String
+  url       String
+
+  @@index([profileId])
+  @@map("social_link")
+}
+
+model ProfileLink {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title     String
+  url       String
+
+  @@index([profileId])
+  @@map("profile_link")
+}
+
+enum DegreeStatus {
+  IN_PROGRESS
+  COMPLETED
 }
 
 model Education {
