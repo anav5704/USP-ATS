@@ -3,11 +3,9 @@
 import { Controller, useFormContext } from "react-hook-form";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 
-const DOCUMENT_TYPE_OPTIONS = [
-  { value: "transcript", label: "Transcript" },
-  { value: "degree", label: "Degree" },
-] as const;
+const DOCUMENT_TYPE_OPTIONS = ["Transcript", "Degree"] as const;
 
 export function DocumentTypeField({ index }: { index: number }) {
   const {
@@ -24,19 +22,15 @@ export function DocumentTypeField({ index }: { index: number }) {
         name={`degrees.${index}.documentType`}
         control={control}
         render={({ field }) => (
-          <select
-            value={field.value}
-            onChange={(e) =>
-              field.onChange(e.target.value as "transcript" | "degree")
+          <JobSingleAutocomplete
+            value={field.value === "degree" ? "Degree" : "Transcript"}
+            options={DOCUMENT_TYPE_OPTIONS}
+            placeholder="Select document type"
+            searchPlaceholder="Search document types"
+            onChange={(label) =>
+              field.onChange(label === "Degree" ? "degree" : "transcript")
             }
-            className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500"
-          >
-            {DOCUMENT_TYPE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          />
         )}
       />
     </FormField>
