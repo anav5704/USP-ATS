@@ -13,9 +13,13 @@ export type ProfileModel = {
   degrees: string[];
   campuses: string[];
   transcript: FileRef | null;
-  education: { institution: string; program: string | null }[];
-  certificates: { label: string; uploadedAt: string; file: FileRef }[];
-  projects: { name: string; description: string | null; link: string | null }[];
+  certificates: {
+    label: string;
+    organization: string;
+    url: string;
+    uploadedAt: string;
+    file: FileRef;
+  }[];
   socialLinks: { platform: string; url: string }[];
   profileLinks: { title: string; url: string }[];
 };
@@ -35,16 +39,16 @@ export type ProfileResult = {
     type: string;
     size: number;
   } | null;
-  education: { institution: string; program: string | null }[];
   certificates: {
     label: string;
+    organization: string | null;
+    url: string | null;
     uploadedAt: Date;
     name: string;
     stored: string;
     type: string;
     size: number;
   }[];
-  projects: { name: string; description: string | null; link: string | null }[];
   socialLinks: { platform: string; url: string }[];
   profileLinks: { title: string; url: string }[];
 };
@@ -81,19 +85,12 @@ export function toProfileModel(result: ProfileResult): ProfileModel {
     degrees: result.degrees,
     campuses: result.campuses,
     transcript: result.transcript ? fileRef(result.transcript) : null,
-    education: result.education.map((entry) => ({
-      institution: entry.institution,
-      program: entry.program,
-    })),
     certificates: result.certificates.map((entry) => ({
       label: entry.label,
+      organization: entry.organization ?? "",
+      url: entry.url ?? "",
       uploadedAt: toDateInputValue(entry.uploadedAt),
       file: fileRef(entry),
-    })),
-    projects: result.projects.map((project) => ({
-      name: project.name,
-      description: project.description,
-      link: project.link,
     })),
     socialLinks: result.socialLinks.map((link) => ({
       platform: link.platform,
@@ -117,16 +114,7 @@ export function toProfileInput(profile: ProfileModel): ProfileInput {
     skills: profile.skills ?? [],
     degrees: profile.degrees,
     transcript: profile.transcript,
-    education: profile.education.map((entry) => ({
-      institution: entry.institution,
-      program: entry.program ?? "",
-    })),
     certificates: profile.certificates,
-    projects: profile.projects.map((project) => ({
-      name: project.name,
-      description: project.description ?? "",
-      link: project.link ?? "",
-    })),
     socialLinks: profile.socialLinks,
     projectLinks: profile.profileLinks,
   };

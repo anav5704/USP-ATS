@@ -12,9 +12,7 @@ import { pruneStoredFiles } from "@/lib/uploads/storage";
 
 const PROFILE_INCLUDE = {
   transcript: true,
-  education: true,
   certificates: true,
-  projects: true,
   socialLinks: true,
   profileLinks: true,
 } as const;

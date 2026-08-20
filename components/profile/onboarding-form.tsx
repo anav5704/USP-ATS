@@ -18,10 +18,8 @@ import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
 import { ProfileStepper } from "@/components/profile/profile-stepper";
 import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { EducationFields } from "@/components/profile/education-fields";
 import { CertificatesFields } from "@/components/profile/certificates-fields";
 import { LinksFields } from "@/components/profile/links-fields";
-import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const EMPTY_PROFILE: ProfileInput = {
@@ -34,19 +32,15 @@ const EMPTY_PROFILE: ProfileInput = {
   skills: [],
   degrees: [],
   transcript: null,
-  education: [{ institution: "", program: "" }],
   certificates: [],
-  projects: [],
   socialLinks: [],
   projectLinks: [],
 };
 
 const SECTION_COMPONENTS = [
   AcademicFields,
-  EducationFields,
   CertificatesFields,
   LinksFields,
-  ProjectFields,
 ];
 
 export function OnboardingForm({

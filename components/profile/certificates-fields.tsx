@@ -35,6 +35,8 @@ export function CertificatesFields() {
       onAdd={() =>
         append({
           label: "",
+          organization: "",
+          url: "",
           uploadedAt: todayInputValue(),
           file: null,
         })
@@ -63,6 +65,30 @@ export function CertificatesFields() {
                   fullWidth
                   placeholder="e.g. Certified Peer Tutor"
                   {...register(`certificates.${index}.label`)}
+                />
+              </FormField>
+              <FormField
+                id={`certificates.${index}.organization`}
+                label="Organization"
+                error={errors.certificates?.[index]?.organization?.message}
+              >
+                <Input.Root
+                  id={`certificates.${index}.organization`}
+                  fullWidth
+                  placeholder="e.g. University of the South Pacific"
+                  {...register(`certificates.${index}.organization`)}
+                />
+              </FormField>
+              <FormField
+                id={`certificates.${index}.url`}
+                label="Credential URL (optional)"
+                error={errors.certificates?.[index]?.url?.message}
+              >
+                <Input.Root
+                  id={`certificates.${index}.url`}
+                  fullWidth
+                  placeholder="https://..."
+                  {...register(`certificates.${index}.url`)}
                 />
               </FormField>
               <div className="grid gap-4 sm:grid-cols-2">

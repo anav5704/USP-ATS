@@ -15,10 +15,8 @@ import {
 } from "@/components/profile/profile-sections";
 import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { EducationFields } from "@/components/profile/education-fields";
 import { CertificatesFields } from "@/components/profile/certificates-fields";
 import { LinksFields } from "@/components/profile/links-fields";
-import { ProjectFields } from "@/components/profile/project-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const SECTION_COMPONENTS: Record<
@@ -27,10 +25,8 @@ const SECTION_COMPONENTS: Record<
 > = {
   general: GeneralFields,
   academic: AcademicFields,
-  education: EducationFields,
   certificates: CertificatesFields,
   links: LinksFields,
-  projects: ProjectFields,
 };
 
 export function UpdateProfileForm({

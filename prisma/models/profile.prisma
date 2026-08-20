@@ -11,9 +11,7 @@ model Profile {
   degrees      String[]
   campuses     String[]        @default([])
   transcript   Transcript?
-  education    Education[]
   certificates Certificate[]
-  projects     Project[]
   socialLinks  SocialLink[]
   profileLinks ProfileLink[]
   createdAt    DateTime        @default(now())
@@ -36,15 +34,17 @@ model Transcript {
 }
 
 model Certificate {
-  id         String   @id @default(cuid())
-  profileId  String
-  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  label      String
-  name       String
-  stored     String
-  type       String
-  size       Int
-  uploadedAt DateTime @default(now())
+  id           String   @id @default(cuid())
+  profileId    String
+  profile      Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  label        String
+  organization String?
+  url          String?
+  name         String
+  stored       String
+  type         String
+  size         Int
+  uploadedAt   DateTime @default(now())
 
   @@index([profileId])
   @@map("certificate")
@@ -75,28 +75,4 @@ model ProfileLink {
 enum DegreeStatus {
   IN_PROGRESS
   COMPLETED
-}
-
-model Education {
-  id          String   @id @default(cuid())
-  profileId   String
-  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  institution String
-  program     String?
-  createdAt   DateTime @default(now())
-
-  @@index([profileId])
-  @@map("education")
-}
-
-model Project {
-  id          String  @id @default(cuid())
-  profileId   String
-  profile     Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  link        String?
-
-  @@index([profileId])
-  @@map("project")
 }
