@@ -6,7 +6,7 @@ export const USP_CAMPUSES = [
   "Port Vila",
   "Bairiki",
   "Majuro",
-  "Nauru",
+  "Naoero",
   "Alofi",
   "Apia",
   "Honiara",
