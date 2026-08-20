@@ -15,12 +15,14 @@ async function ownedStoredNames(userId: string) {
   const profile = await prisma.profile.findUnique({
     where: { userId },
     select: {
-      transcript: { select: { stored: true } },
+      degrees: { select: { stored: true } },
       certificates: { select: { stored: true } },
     },
   });
   const names = new Set<string>();
-  if (profile?.transcript) names.add(profile.transcript.stored);
+  for (const degree of profile?.degrees ?? []) {
+    names.add(degree.stored);
+  }
   for (const certificate of profile?.certificates ?? []) {
     names.add(certificate.stored);
   }

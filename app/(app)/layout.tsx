@@ -27,7 +27,7 @@ export default async function AppLayout({
     const result = await prisma.profile.findUnique({
       where: { userId: session.user.id },
       include: {
-        transcript: true,
+        degrees: { orderBy: { uploadedAt: "asc" } },
         certificates: true,
         socialLinks: true,
         profileLinks: true,

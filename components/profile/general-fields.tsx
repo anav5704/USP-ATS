@@ -5,6 +5,8 @@ import { Input, TextArea } from "@heroui/react";
 import { UserRoundIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
+import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
 import { splitName } from "@/lib/user-name";
@@ -103,6 +105,28 @@ export function GeneralFields({
             fullWidth
             placeholder="Tell employers a little about who you are"
             {...register("bio")}
+          />
+        </FormField>
+      </div>
+      <div className="mt-4">
+        <FormField
+          label="Skills"
+          error={errors.skills?.message}
+        >
+          <Controller
+            name="skills"
+            control={control}
+            render={({ field }) => (
+              <SkillAutocomplete
+                value={field.value}
+                groups={SKILL_GROUPS}
+                placeholder="Select up to 10 skills"
+                searchPlaceholder="Search skills"
+                emptyMessage="No skills found"
+                maxItems={10}
+                onChange={field.onChange}
+              />
+            )}
           />
         </FormField>
       </div>
