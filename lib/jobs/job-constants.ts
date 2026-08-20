@@ -1,10 +1,10 @@
 export const USP_CAMPUSES = [
+  "Laucala",
+  "Lautoka",
+  "Labasa",
   "Cook Islands",
   "Emalus",
   "Kiribati",
-  "Labasa",
-  "Laucala",
-  "Lautoka",
   "Marshall Islands",
   "Nauru",
   "Niue",
@@ -13,6 +13,15 @@ export const USP_CAMPUSES = [
   "Tokelau",
   "Tonga",
   "Tuvalu",
+  "Savusavu",
+  "Santo",
+  "Tafea",
+  "Malampa",
+  "Torba",
+  "Gizo",
+  "Lata",
+  "Ha'apai",
+  "Vava'u",
 ] as const;
 
 export const USP_DEPARTMENTS = [

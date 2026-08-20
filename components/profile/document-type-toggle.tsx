@@ -1,11 +1,13 @@
 "use client";
 
 import { Controller, useFormContext } from "react-hook-form";
-import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 
-const DOCUMENT_TYPE_OPTIONS = ["transcript", "degree"] as const;
+const DOCUMENT_TYPE_OPTIONS = [
+  { value: "transcript", label: "Transcript" },
+  { value: "degree", label: "Degree" },
+] as const;
 
 export function DocumentTypeField({ index }: { index: number }) {
   const {
@@ -17,33 +19,24 @@ export function DocumentTypeField({ index }: { index: number }) {
     <FormField
       label="Document type"
       error={errors.degrees?.[index]?.documentType?.message}
-      hint="Flag this upload as a transcript or the degree itself"
     >
       <Controller
         name={`degrees.${index}.documentType`}
         control={control}
         render={({ field }) => (
-          <ToggleButtonGroup
-            fullWidth
-            isDetached
-            selectedKeys={[field.value]}
-            onSelectionChange={(keys) => {
-              const value = [...keys].pop();
-              if (value === "transcript" || value === "degree") {
-                field.onChange(value);
-              }
-            }}
+          <select
+            value={field.value}
+            onChange={(e) =>
+              field.onChange(e.target.value as "transcript" | "degree")
+            }
+            className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-colors focus:border-zinc-500"
           >
             {DOCUMENT_TYPE_OPTIONS.map((option) => (
-              <ToggleButton
-                key={option}
-                id={option}
-                className="data-selected:bg-zinc-900 data-selected:text-white"
-              >
-                {option === "transcript" ? "Transcript" : "Degree"}
-              </ToggleButton>
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
             ))}
-          </ToggleButtonGroup>
+          </select>
         )}
       />
     </FormField>
