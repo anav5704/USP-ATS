@@ -25,19 +25,19 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "general",
     label: "General details",
     shortLabel: "General",
-    description: "Your campus or centre, phone number and a short bio.",
+    description: "Your campus or centre, phone number, a short bio and your technical skills.",
     icon: UserRoundIcon,
     optional: false,
-    fields: ["phone", "campuses", "bio"],
+    fields: ["phone", "campuses", "bio", "skills"],
   },
   {
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your degree status, average GPA out of 4.5, technical skills and transcript.",
+    description: "Each degree with its GPA and a transcript or degree upload.",
     icon: BookOpenIcon,
     optional: false,
-    fields: ["degrees", "gpa", "degreeStatus", "transcript", "skills"],
+    fields: ["degrees"],
   },
   {
     id: "certificates",
@@ -69,27 +69,28 @@ export function isSectionComplete(
       return (
         values.campuses.length > 0 &&
         values.campuses.every((campus) => campus.trim().length > 0) &&
+        values.skills.length > 0 &&
+        values.skills.every((skill) => skill.trim().length > 0) &&
         !errors.campuses &&
         !errors.phone &&
-        !errors.bio
+        !errors.bio &&
+        !errors.skills
       );
     case "academic": {
-      const gpaOk =
-        typeof values.gpa === "number" &&
-        !Number.isNaN(values.gpa) &&
-        values.gpa >= 0 &&
-        values.gpa <= 4.5;
+      const gpaOk = (degree: ProfileInput["degrees"][number]) =>
+        typeof degree.gpa === "number" &&
+        !Number.isNaN(degree.gpa) &&
+        degree.gpa >= 0 &&
+        degree.gpa <= 4.5;
       return (
         values.degrees.length > 0 &&
-        values.degrees.every((degree) => degree.trim().length > 0) &&
-        !errors.degrees &&
-        gpaOk &&
-        values.skills.length > 0 &&
-        values.transcript !== null &&
-        !errors.gpa &&
-        !errors.skills &&
-        !errors.degreeStatus &&
-        !errors.transcript
+        values.degrees.every(
+          (degree) =>
+            degree.name.trim().length > 0 &&
+            gpaOk(degree) &&
+            degree.document !== null
+        ) &&
+        !errors.degrees
       );
     }
     case "certificates":

@@ -1,14 +1,12 @@
 "use client";
 
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { Input } from "@heroui/react";
 import { BookOpenIcon, GraduationCapIcon } from "lucide-react";
-import type { ProfileInput } from "@/lib/profile/profile-schema";
+import type { ProfileInput, DegreeInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
-import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
-import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
-import { DegreeStatusField } from "@/components/profile/degree-status-field";
 import { FileUploadField } from "@/components/profile/file-upload-field";
+import { DocumentTypeField } from "@/components/profile/document-type-toggle";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 
@@ -16,21 +14,22 @@ export function AcademicFields() {
   const {
     register,
     control,
-    watch,
-    setValue,
     formState: { errors },
   } = useFormContext<ProfileInput>();
 
-  const degrees = watch("degrees");
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "degrees",
+  });
 
   const addDegree = () => {
-    setValue("degrees", [...degrees, ""], { shouldValidate: true });
-  };
-
-  const removeDegree = (index: number) => {
-    setValue("degrees", degrees.filter((_, i) => i !== index), {
-      shouldValidate: true,
-    });
+    const empty: DegreeInput = {
+      name: "",
+      gpa: undefined as unknown as number,
+      documentType: "transcript",
+      document: null,
+    };
+    append(empty);
   };
 
   return (
@@ -43,104 +42,80 @@ export function AcademicFields() {
           Academic details
         </h2>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          id="gpa"
-          label="Average GPA"
-          error={errors.gpa?.message}
-          hint="Out of 4.5, up to 2 decimal places"
-        >
-          <Input.Root
-            id="gpa"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min={0}
-            max={4.5}
-            placeholder="e.g. 3.8"
-            fullWidth
-            {...register("gpa", {
-              setValueAs: (value) =>
-                value === "" ? undefined : Number(value),
-            })}
-          />
-        </FormField>
-        <DegreeStatusField />
-      </div>
-      <div className="mt-4">
-        <Controller
-          name="transcript"
-          control={control}
-          render={({ field }) => (
-            <FileUploadField
-              label="Transcript"
-              value={field.value}
-              error={errors.transcript?.message}
-              hint="Required. PDF preferred, max 10 MB."
-              onChange={field.onChange}
-            />
-          )}
-        />
-      </div>
-      <div className="mt-4">
-        <RepeaterSection
-          icon={GraduationCapIcon}
-          title="Degrees"
-          addLabel="Add degree"
-          onAdd={addDegree}
-        >
-          {degrees.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              No degrees yet. Add the degrees you are studying or have completed.
-            </p>
-          ) : (
-            degrees.map((degree, index) => (
-              <RepeaterItem
-                key={`${degree}-${index}`}
-                title="Degree"
-                index={index}
-                canRemove={degrees.length > 1}
-                onRemove={() => removeDegree(index)}
-              >
+      <RepeaterSection
+        icon={GraduationCapIcon}
+        title="Degrees"
+        addLabel="Add degree"
+        onAdd={addDegree}
+      >
+        {fields.length === 0 ? (
+          <p className="text-sm text-zinc-500">
+            No degrees yet. Add the degrees you are studying or have completed.
+          </p>
+        ) : (
+          fields.map((field, index) => (
+            <RepeaterItem
+              key={field.id}
+              title="Degree"
+              index={index}
+              canRemove={fields.length > 1}
+              onRemove={() => remove(index)}
+            >
+              <div className="space-y-4">
                 <FormField
-                  id={`degrees.${index}`}
+                  id={`degrees.${index}.name`}
                   label="Degree title"
-                  error={errors.degrees?.[index]?.message}
+                  error={errors.degrees?.[index]?.name?.message}
                 >
                   <Input.Root
-                    id={`degrees.${index}`}
+                    id={`degrees.${index}.name`}
                     fullWidth
                     placeholder="e.g. Bachelor of Science (Computer Science)"
-                    {...register(`degrees.${index}`)}
+                    {...register(`degrees.${index}.name`)}
                   />
                 </FormField>
-              </RepeaterItem>
-            ))
-          )}
-        </RepeaterSection>
-      </div>
-      <div className="mt-4">
-        <FormField
-          label="Skills"
-          error={errors.skills?.message}
-        >
-          <Controller
-            name="skills"
-            control={control}
-            render={({ field }) => (
-              <SkillAutocomplete
-                value={field.value}
-                groups={SKILL_GROUPS}
-                placeholder="Select up to 10 skills"
-                searchPlaceholder="Search skills"
-                emptyMessage="No skills found"
-                maxItems={10}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </FormField>
-      </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <FormField
+                    id={`degrees.${index}.gpa`}
+                    label="GPA for this degree"
+                    error={errors.degrees?.[index]?.gpa?.message}
+                    hint="Out of 4.5, up to 2 decimal places"
+                  >
+                    <Input.Root
+                      id={`degrees.${index}.gpa`}
+                      type="number"
+                      inputMode="decimal"
+                      step="0.01"
+                      min={0}
+                      max={4.5}
+                      placeholder="e.g. 3.8"
+                      fullWidth
+                      {...register(`degrees.${index}.gpa`, {
+                        setValueAs: (value) =>
+                          value === "" ? undefined : Number(value),
+                      })}
+                    />
+                  </FormField>
+                  <DocumentTypeField index={index} />
+                </div>
+                <Controller
+                  name={`degrees.${index}.document`}
+                  control={control}
+                  render={({ field }) => (
+                    <FileUploadField
+                      label="Transcript or degree"
+                      value={field.value}
+                      error={errors.degrees?.[index]?.document?.message}
+                      hint="Required. PDF preferred, max 10 MB."
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
+              </div>
+            </RepeaterItem>
+          ))
+        )}
+      </RepeaterSection>
     </section>
   );
 }

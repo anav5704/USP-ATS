@@ -47,6 +47,24 @@ export const certificateInputSchema = z.object({
   file: fileRefSchema.nullable(),
 });
 
+export const degreeInputSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Degree name is required")
+    .max(200, "Degree name is too long"),
+  gpa: z
+    .number({ error: "Enter your GPA" })
+    .min(0, "GPA must be between 0.00 and 4.50")
+    .max(4.5, "GPA must be between 0.00 and 4.50")
+    .refine(
+      (value) => Math.round(value * 100) / 100 === value,
+      "GPA can have at most 2 decimal places"
+    ),
+  documentType: z.enum(["transcript", "degree"]),
+  document: fileRefSchema.nullable(),
+});
+
 export const socialLinkInputSchema = z.object({
   platform: z
     .string()
@@ -88,24 +106,14 @@ export const profileInputSchema = z
       .array(z.string().trim().min(1, "Campus name is required"))
       .min(1, "Select your campus or centre")
       .max(20, "Too many campuses"),
-    degreeStatus: z.enum(["in_progress", "completed"]),
-    gpa: z
-      .number({ error: "Enter your GPA" })
-      .min(0, "GPA must be between 0.00 and 4.50")
-      .max(4.5, "GPA must be between 0.00 and 4.50")
-      .refine(
-        (value) => Math.round(value * 100) / 100 === value,
-        "GPA can have at most 2 decimal places"
-      ),
     skills: z
       .array(z.string().trim().min(1, "Skill name is required"))
       .min(1, "Select at least one skill")
       .max(10, "You can select up to 10 skills"),
     degrees: z
-      .array(z.string().trim().min(1, "Degree name is required"))
+      .array(degreeInputSchema)
       .min(1, "Add at least one degree")
       .max(20, "Too many degrees"),
-    transcript: fileRefSchema.nullable(),
     certificates: z
       .array(certificateInputSchema)
       .max(MAX_UPLOAD_COUNT, `You can add up to ${MAX_UPLOAD_COUNT} certificates`),
@@ -117,13 +125,15 @@ export const profileInputSchema = z
       .max(20, "Too many project links"),
   })
   .superRefine((data, ctx) => {
-    if (!data.transcript) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["transcript"],
-        message: "Transcript is required",
-      });
-    }
+    data.degrees.forEach((degree, index) => {
+      if (!degree.document) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["degrees", index, "document"],
+          message: "Upload a transcript or degree",
+        });
+      }
+    });
     data.certificates.forEach((entry, index) => {
       if (!entry.file) {
         ctx.addIssue({
@@ -136,6 +146,7 @@ export const profileInputSchema = z
   });
 
 export type ProfileInput = z.infer<typeof profileInputSchema>;
+export type DegreeInput = z.infer<typeof degreeInputSchema>;
 export type CertificateInput = z.infer<typeof certificateInputSchema>;
 export type SocialLinkInput = z.infer<typeof socialLinkInputSchema>;
 export type ProjectLinkInput = z.infer<typeof projectLinkInputSchema>;

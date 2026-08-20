@@ -6,12 +6,14 @@ import type {
 export type ProfileModel = {
   phone: string | null;
   bio: string | null;
-  degreeStatus: "in_progress" | "completed";
-  gpa: string | number | null;
   skills: string[] | null;
-  degrees: string[];
   campuses: string[];
-  transcript: FileRef | null;
+  degrees: {
+    name: string;
+    gpa: string | number;
+    documentType: "transcript" | "degree";
+    document: FileRef;
+  }[];
   certificates: {
     label: string;
     organization: string;
@@ -26,17 +28,18 @@ export type ProfileModel = {
 export type ProfileResult = {
   phone: string | null;
   bio: string | null;
-  degreeStatus: "IN_PROGRESS" | "COMPLETED";
-  gpa: { toString(): string } | null;
   skills: string[] | null;
-  degrees: string[];
   campuses: string[];
-  transcript: {
+  degrees: {
     name: string;
+    gpa: { toString(): string };
+    documentType: "TRANSCRIPT" | "DEGREE";
+    fileName: string;
     stored: string;
     type: string;
     size: number;
-  } | null;
+    uploadedAt: Date;
+  }[];
   certificates: {
     label: string;
     organization: string | null;
@@ -50,14 +53,6 @@ export type ProfileResult = {
   socialLinks: { platform: string; url: string }[];
   profileLinks: { title: string; url: string }[];
 };
-
-function toDateInputValue(value: Date | string): string {
-  const date = value instanceof Date ? value : new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 export function toProfileModel(result: ProfileResult): ProfileModel {
   const fileRef = (file: {
@@ -75,13 +70,20 @@ export function toProfileModel(result: ProfileResult): ProfileModel {
   return {
     phone: result.phone,
     bio: result.bio,
-    degreeStatus:
-      result.degreeStatus === "COMPLETED" ? "completed" : "in_progress",
-    gpa: result.gpa?.toString() ?? null,
     skills: result.skills,
-    degrees: result.degrees,
     campuses: result.campuses,
-    transcript: result.transcript ? fileRef(result.transcript) : null,
+    degrees: result.degrees.map((degree) => ({
+      name: degree.name,
+      gpa: degree.gpa.toString(),
+      documentType:
+        degree.documentType === "DEGREE" ? "degree" : "transcript",
+      document: fileRef({
+        name: degree.fileName,
+        stored: degree.stored,
+        type: degree.type,
+        size: degree.size,
+      }),
+    })),
     certificates: result.certificates.map((entry) => ({
       label: entry.label,
       organization: entry.organization ?? "",
@@ -105,13 +107,23 @@ export function toProfileInput(profile: ProfileModel): ProfileInput {
     phone: profile.phone ?? "",
     bio: profile.bio ?? "",
     campuses: profile.campuses,
-    degreeStatus: profile.degreeStatus,
-    gpa: profile.gpa == null ? (undefined as unknown as number) : Number(profile.gpa),
     skills: profile.skills ?? [],
-    degrees: profile.degrees,
-    transcript: profile.transcript,
+    degrees: profile.degrees.map((degree) => ({
+      name: degree.name,
+      gpa: Number(degree.gpa),
+      documentType: degree.documentType,
+      document: degree.document,
+    })),
     certificates: profile.certificates,
     socialLinks: profile.socialLinks,
     projectLinks: profile.profileLinks,
   };
+}
+
+function toDateInputValue(value: Date | string): string {
+  const date = value instanceof Date ? value : new Date(value);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

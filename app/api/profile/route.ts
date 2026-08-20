@@ -11,7 +11,7 @@ import { toProfileModel } from "@/lib/profile/to-profile-input";
 import { pruneStoredFiles } from "@/lib/uploads/storage";
 
 const PROFILE_INCLUDE = {
-  transcript: true,
+  degrees: { orderBy: { uploadedAt: "asc" as const } },
   certificates: true,
   socialLinks: true,
   profileLinks: true,
@@ -53,17 +53,14 @@ export async function PUT(request: NextRequest) {
   try {
     const existing = await prisma.profile.findUnique({
       where: { userId: guard.session.user.id },
-      select: { id: true, transcript: { select: { id: true } } },
+      select: { id: true },
     });
 
     const userId = guard.session.user.id;
     const result = existing
       ? await prisma.profile.update({
           where: { id: existing.id },
-          data: buildProfileData(parsed.data, {
-            replace: true,
-            transcriptExists: existing.transcript !== null,
-          }),
+          data: buildProfileData(parsed.data, { replace: true }),
           include: PROFILE_INCLUDE,
         })
       : await prisma.profile.create({

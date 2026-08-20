@@ -2,6 +2,7 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import {
   certificateInputSchema,
+  degreeInputSchema,
   profileInputSchema,
   projectLinkInputSchema,
   socialLinkInputSchema,
@@ -14,11 +15,15 @@ function baseInput() {
     phone: "",
     bio: "",
     campuses: ["Laucala"],
-    degreeStatus: "in_progress",
-    gpa: 3.8,
     skills: ["Python"],
-    degrees: ["Bachelor of Science (Computer Science)"],
-    transcript: transcriptFile(),
+    degrees: [
+      {
+        name: "Bachelor of Science (Computer Science)",
+        gpa: 3.8,
+        documentType: "transcript",
+        document: transcriptFile(),
+      },
+    ],
     certificates: [],
     socialLinks: [],
     projectLinks: [],
@@ -35,83 +40,70 @@ function transcriptFile(overrides: Record<string, unknown> = {}) {
   };
 }
 
-describe("profileInputSchema GPA validation", () => {
+function degree(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "Bachelor of Science (Computer Science)",
+    gpa: 3.8,
+    documentType: "transcript",
+    document: transcriptFile(),
+    ...overrides,
+  };
+}
+
+describe("degreeInputSchema GPA validation", () => {
   it("accepts boundary values 0.00 and 4.50", () => {
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: 0 }).success,
-      true
-    );
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: 4.5 }).success,
-      true
-    );
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 0 })).success, true);
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 4.5 })).success, true);
   });
 
   it("rejects values below 0 or above 4.5", () => {
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: -0.01 }).success,
-      false
-    );
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: 4.51 }).success,
-      false
-    );
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: -0.01 })).success, false);
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 4.51 })).success, false);
   });
 
   it("rejects values with more than 2 decimal places", () => {
-    const result = profileInputSchema.safeParse({
-      ...baseInput(),
-      gpa: 3.801,
-    });
-    assert.equal(result.success, false);
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 3.801 })).success, false);
   });
 
   it("accepts values with up to 2 decimal places", () => {
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: 3.8 }).success,
-      true
-    );
-    assert.equal(
-      profileInputSchema.safeParse({ ...baseInput(), gpa: 4.49 }).success,
-      true
-    );
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 3.8 })).success, true);
+    assert.equal(degreeInputSchema.safeParse(degree({ gpa: 4.49 })).success, true);
   });
 });
 
-describe("transcript requirement", () => {
-  it("requires a transcript when degree is in progress", () => {
+describe("degree document requirement", () => {
+  it("requires a document for each degree", () => {
     const result = profileInputSchema.safeParse({
       ...baseInput(),
-      degreeStatus: "in_progress",
-      transcript: null,
+      degrees: [degree({ document: null })],
     });
     assert.equal(result.success, false);
-    assert.equal(result.success === false ? result.error.issues[0]?.path[0] : null, "transcript");
+    assert.equal(
+      result.success === false ? result.error.issues[0]?.path[0] : null,
+      "degrees"
+    );
   });
 
-  it("requires a transcript when degree is completed", () => {
+  it("accepts a degree with a transcript", () => {
     const result = profileInputSchema.safeParse({
       ...baseInput(),
-      degreeStatus: "completed",
-      transcript: null,
-    });
-    assert.equal(result.success, false);
-    assert.equal(result.success === false ? result.error.issues[0]?.path[0] : null, "transcript");
-  });
-
-  it("accepts a transcript when degree is completed", () => {
-    const result = profileInputSchema.safeParse({
-      ...baseInput(),
-      degreeStatus: "completed",
-      transcript: transcriptFile(),
+      degrees: [degree({ documentType: "transcript" })],
     });
     assert.equal(result.success, true);
   });
 
-  it("rejects unknown degree status values", () => {
+  it("accepts a degree with a degree document", () => {
     const result = profileInputSchema.safeParse({
       ...baseInput(),
-      degreeStatus: "graduated",
+      degrees: [degree({ documentType: "degree" })],
+    });
+    assert.equal(result.success, true);
+  });
+
+  it("rejects unknown document type values", () => {
+    const result = profileInputSchema.safeParse({
+      ...baseInput(),
+      degrees: [degree({ documentType: "graduated" })],
     });
     assert.equal(result.success, false);
   });

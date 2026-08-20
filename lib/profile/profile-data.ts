@@ -13,27 +13,22 @@ export function firstProfileError(error: ZodError) {
 type ScalarProfileData = {
   phone: string | null;
   bio: string | null;
-  degreeStatus: "IN_PROGRESS" | "COMPLETED";
-  gpa: number;
   skills: string[];
-  degrees: string[];
   campuses: string[];
 };
 
 export type BuildCreateProfileDataResult = ScalarProfileData & {
-  transcript?:
-    | { create: Prisma.TranscriptCreateWithoutProfileInput }
-    | { create: Prisma.TranscriptUncheckedCreateWithoutProfileInput };
+  degrees: { create: Prisma.DegreeCreateWithoutProfileInput[] };
   certificates: { create: Prisma.CertificateCreateWithoutProfileInput[] };
   socialLinks: { create: Prisma.SocialLinkCreateWithoutProfileInput[] };
   profileLinks: { create: Prisma.ProfileLinkCreateWithoutProfileInput[] };
 };
 
 export type BuildUpdateProfileDataResult = ScalarProfileData & {
-  transcript?:
-    | { create: Prisma.TranscriptCreateWithoutProfileInput }
-    | { update: Prisma.TranscriptUpdateWithoutProfileInput }
-    | { delete: true };
+  degrees: {
+    deleteMany: Prisma.DegreeScalarWhereInput;
+    create: Prisma.DegreeCreateWithoutProfileInput[];
+  };
   certificates: {
     deleteMany: Prisma.CertificateScalarWhereInput;
     create: Prisma.CertificateCreateWithoutProfileInput[];
@@ -54,18 +49,30 @@ export function buildProfileData(
 ): BuildCreateProfileDataResult;
 export function buildProfileData(
   input: ProfileInput,
-  options: { replace: true; transcriptExists: boolean }
+  options: { replace: true }
 ): BuildUpdateProfileDataResult;
 export function buildProfileData(
   input: ProfileInput,
-  options: { replace: boolean; transcriptExists?: boolean }
+  options: { replace: boolean }
 ): BuildCreateProfileDataResult | BuildUpdateProfileDataResult;
 export function buildProfileData(
   input: ProfileInput,
-  options: { replace: boolean; transcriptExists?: boolean }
+  options: { replace: boolean }
 ): BuildCreateProfileDataResult | BuildUpdateProfileDataResult {
-  const { replace, transcriptExists = false } = options;
+  const { replace } = options;
 
+  const degrees = input.degrees.map((degree) => ({
+    name: degree.name,
+    gpa: degree.gpa,
+    documentType:
+      (degree.documentType === "degree"
+        ? "DEGREE"
+        : "TRANSCRIPT") as "TRANSCRIPT" | "DEGREE",
+    fileName: degree.document!.name,
+    stored: degree.document!.stored,
+    type: degree.document!.type,
+    size: degree.document!.size,
+  }));
   const certificates = input.certificates.map((entry) => ({
     label: entry.label,
     organization: toNullable(entry.organization),
@@ -84,49 +91,27 @@ export function buildProfileData(
     title: link.title,
     url: link.url,
   }));
-  const transcriptData = input.transcript
-    ? {
-        name: input.transcript.name,
-        stored: input.transcript.stored,
-        type: input.transcript.type,
-        size: input.transcript.size,
-      }
-    : null;
 
   const scalars: ScalarProfileData = {
     phone: input.phone.trim() === "" ? null : input.phone.trim(),
     bio: input.bio.trim() === "" ? null : input.bio.trim(),
-    degreeStatus:
-      (input.degreeStatus === "completed"
-        ? "COMPLETED"
-        : "IN_PROGRESS") as "IN_PROGRESS" | "COMPLETED",
-    gpa: input.gpa,
     skills: input.skills,
-    degrees: input.degrees,
     campuses: input.campuses,
   };
 
   if (!replace) {
     return {
       ...scalars,
-      ...(transcriptData ? { transcript: { create: transcriptData } } : {}),
+      degrees: { create: degrees },
       certificates: { create: certificates },
       socialLinks: { create: socialLinks },
       profileLinks: { create: profileLinks },
     };
   }
 
-  const transcript: BuildUpdateProfileDataResult["transcript"] = transcriptData
-    ? transcriptExists
-      ? { update: transcriptData }
-      : { create: transcriptData }
-    : transcriptExists
-      ? { delete: true }
-      : undefined;
-
   return {
     ...scalars,
-    ...(transcript ? { transcript } : {}),
+    degrees: { deleteMany: {}, create: degrees },
     certificates: { deleteMany: {}, create: certificates },
     socialLinks: { deleteMany: {}, create: socialLinks },
     profileLinks: { deleteMany: {}, create: profileLinks },
@@ -135,7 +120,9 @@ export function buildProfileData(
 
 export function referencedStoredFiles(input: ProfileInput) {
   const stored = new Set<string>();
-  if (input.transcript) stored.add(input.transcript.stored);
+  for (const degree of input.degrees) {
+    if (degree.document) stored.add(degree.document.stored);
+  }
   for (const entry of input.certificates) {
     if (entry.file) stored.add(entry.file.stored);
   }

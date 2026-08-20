@@ -5,19 +5,22 @@ import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 
-const DEGREE_STATUS_OPTIONS = ["in_progress", "completed"] as const;
+const DOCUMENT_TYPE_OPTIONS = ["transcript", "degree"] as const;
 
-export function DegreeStatusField() {
-  const { control, formState: { errors } } = useFormContext<ProfileInput>();
+export function DocumentTypeField({ index }: { index: number }) {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<ProfileInput>();
 
   return (
     <FormField
-      label="Degree status"
-      error={errors.degreeStatus?.message}
-      hint="Transcript is required for both statuses"
+      label="Document type"
+      error={errors.degrees?.[index]?.documentType?.message}
+      hint="Flag this upload as a transcript or the degree itself"
     >
       <Controller
-        name="degreeStatus"
+        name={`degrees.${index}.documentType`}
         control={control}
         render={({ field }) => (
           <ToggleButtonGroup
@@ -26,21 +29,18 @@ export function DegreeStatusField() {
             selectedKeys={[field.value]}
             onSelectionChange={(keys) => {
               const value = [...keys].pop();
-              if (
-                value === "in_progress" ||
-                value === "completed"
-              ) {
+              if (value === "transcript" || value === "degree") {
                 field.onChange(value);
               }
             }}
           >
-            {DEGREE_STATUS_OPTIONS.map((option) => (
+            {DOCUMENT_TYPE_OPTIONS.map((option) => (
               <ToggleButton
                 key={option}
                 id={option}
                 className="data-selected:bg-zinc-900 data-selected:text-white"
               >
-                {option === "in_progress" ? "In progress" : "Completed"}
+                {option === "transcript" ? "Transcript" : "Degree"}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
