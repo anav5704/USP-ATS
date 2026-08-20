@@ -14,7 +14,7 @@ export function DegreeStatusField() {
     <FormField
       label="Degree status"
       error={errors.degreeStatus?.message}
-      hint="Select completed to add your transcript"
+      hint="Transcript is required for both statuses"
     >
       <Controller
         name="degreeStatus"

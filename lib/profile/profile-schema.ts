@@ -5,28 +5,6 @@ import {
   isSafeStoredName,
 } from "@/lib/profile/upload";
 
-export const educationInputSchema = z.object({
-  institution: z
-    .string()
-    .trim()
-    .min(1, "Institution is required")
-    .max(200, "Institution name is too long"),
-  program: z.string().trim().max(200, "Program name is too long"),
-});
-
-export const projectInputSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Project name is required")
-    .max(200, "Project name is too long"),
-  description: z.string().trim().max(2000, "Description is too long"),
-  link: z.union([
-    z.string().trim().url("Enter a valid URL").max(2000, "Link is too long"),
-    z.literal(""),
-  ]),
-});
-
 const PHONE_PATTERN = /^\+?[0-9][0-9\s()-]{5,19}$/;
 
 export const fileRefSchema = z.object({
@@ -53,6 +31,15 @@ export const certificateInputSchema = z.object({
     .trim()
     .min(1, "Certificate name is required")
     .max(200, "Certificate name is too long"),
+  organization: z
+    .string()
+    .trim()
+    .min(1, "Organization is required")
+    .max(200, "Organization name is too long"),
+  url: z.union([
+    z.string().trim().url("Enter a valid URL").max(2000, "Link is too long"),
+    z.literal(""),
+  ]),
   uploadedAt: z
     .string()
     .trim()
@@ -120,10 +107,6 @@ export const profileInputSchema = z
       .min(1, "Add at least one degree")
       .max(20, "Too many degrees"),
     transcript: fileRefSchema.nullable(),
-    education: z
-      .array(educationInputSchema)
-      .min(1, "Add at least one education entry")
-      .max(20, "Too many education entries"),
     certificates: z
       .array(certificateInputSchema)
       .max(MAX_UPLOAD_COUNT, `You can add up to ${MAX_UPLOAD_COUNT} certificates`),
@@ -133,16 +116,13 @@ export const profileInputSchema = z
     projectLinks: z
       .array(projectLinkInputSchema)
       .max(20, "Too many project links"),
-    projects: z
-      .array(projectInputSchema)
-      .max(20, "Too many projects"),
   })
   .superRefine((data, ctx) => {
-    if (data.degreeStatus === "completed" && !data.transcript) {
+    if (!data.transcript) {
       ctx.addIssue({
         code: "custom",
         path: ["transcript"],
-        message: "Transcript is required when your degree is completed",
+        message: "Transcript is required",
       });
     }
     data.certificates.forEach((entry, index) => {
@@ -157,8 +137,6 @@ export const profileInputSchema = z
   });
 
 export type ProfileInput = z.infer<typeof profileInputSchema>;
-export type EducationInput = z.infer<typeof educationInputSchema>;
-export type ProjectInput = z.infer<typeof projectInputSchema>;
 export type CertificateInput = z.infer<typeof certificateInputSchema>;
 export type SocialLinkInput = z.infer<typeof socialLinkInputSchema>;
 export type ProjectLinkInput = z.infer<typeof projectLinkInputSchema>;

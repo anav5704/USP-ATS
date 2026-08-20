@@ -1,22 +1,14 @@
 import type { FieldErrors, FieldPath } from "react-hook-form";
 import {
   BookOpenIcon,
-  FolderGit2Icon,
   Link2Icon,
   MedalIcon,
-  SchoolIcon,
   UserRoundIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 
-export type SectionId =
-  | "general"
-  | "academic"
-  | "education"
-  | "certificates"
-  | "links"
-  | "projects";
+export type SectionId = "general" | "academic" | "certificates" | "links";
 
 export type ProfileSection = {
   id: SectionId;
@@ -42,19 +34,10 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your title, degree status, average GPA out of 4.5 and technical skills.",
+    description: "Your title, degree status, average GPA out of 4.5, technical skills and transcript.",
     icon: BookOpenIcon,
     optional: false,
     fields: ["title", "degrees", "gpa", "degreeStatus", "transcript", "skills"],
-  },
-  {
-    id: "education",
-    label: "Education history",
-    shortLabel: "Education",
-    description: "Add at least one education entry.",
-    icon: SchoolIcon,
-    optional: false,
-    fields: ["education"],
   },
   {
     id: "certificates",
@@ -73,15 +56,6 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     icon: Link2Icon,
     optional: true,
     fields: ["socialLinks", "projectLinks"],
-  },
-  {
-    id: "projects",
-    label: "Personal projects",
-    shortLabel: "Projects",
-    description: "Optional. Projects are a positive signal on your profile.",
-    icon: FolderGit2Icon,
-    optional: true,
-    fields: ["projects"],
   },
 ];
 
@@ -105,32 +79,27 @@ export function isSectionComplete(
         !Number.isNaN(values.gpa) &&
         values.gpa >= 0 &&
         values.gpa <= 4.5;
-      const transcriptOk =
-        values.degreeStatus !== "completed" || values.transcript !== null;
       return (
         values.degrees.length > 0 &&
         values.degrees.every((degree) => degree.trim().length > 0) &&
         !errors.degrees &&
         gpaOk &&
         values.skills.length > 0 &&
+        values.transcript !== null &&
         !errors.gpa &&
         !errors.skills &&
         !errors.degreeStatus &&
-        transcriptOk &&
         !errors.transcript
       );
     }
-    case "education":
-      return (
-        values.education.length > 0 &&
-        values.education.every((entry) => entry.institution.trim().length > 0) &&
-        !errors.education
-      );
     case "certificates":
       return (
         !errors.certificates &&
         values.certificates.every(
-          (entry) => entry.label.trim().length > 0 && entry.file !== null
+          (entry) =>
+            entry.label.trim().length > 0 &&
+            entry.organization.trim().length > 0 &&
+            entry.file !== null
         )
       );
     case "links":
@@ -143,12 +112,6 @@ export function isSectionComplete(
         values.projectLinks.every(
           (link) => link.title.trim().length > 0 && link.url.trim().length > 0
         )
-      );
-    case "projects":
-      return (
-        values.projects.length > 0 &&
-        values.projects.every((project) => project.name.trim().length > 0) &&
-        !errors.projects
       );
     default:
       return false;

@@ -16,11 +16,8 @@ export function AcademicFields() {
   const {
     register,
     control,
-    watch,
     formState: { errors },
   } = useFormContext<ProfileInput>();
-
-  const degreeStatus = watch("degreeStatus");
 
   return (
     <section className="rounded-2xl border border-zinc-200 bg-white p-5">
@@ -66,23 +63,21 @@ export function AcademicFields() {
         </FormField>
         <DegreeStatusField />
       </div>
-      {degreeStatus === "completed" ? (
-        <div className="mt-4">
-          <Controller
-            name="transcript"
-            control={control}
-            render={({ field }) => (
-              <FileUploadField
-                label="Transcript"
-                value={field.value}
-                error={errors.transcript?.message}
-                hint="Required when your degree is completed. PDF preferred, max 10 MB."
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </div>
-      ) : null}
+      <div className="mt-4">
+        <Controller
+          name="transcript"
+          control={control}
+          render={({ field }) => (
+            <FileUploadField
+              label="Transcript"
+              value={field.value}
+              error={errors.transcript?.message}
+              hint="Required. PDF preferred, max 10 MB."
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </div>
       <div className="mt-4">
         <FormField
           label="Degrees"

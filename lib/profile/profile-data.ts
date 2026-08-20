@@ -25,11 +25,9 @@ export type BuildCreateProfileDataResult = ScalarProfileData & {
   transcript?:
     | { create: Prisma.TranscriptCreateWithoutProfileInput }
     | { create: Prisma.TranscriptUncheckedCreateWithoutProfileInput };
-  education: { create: Prisma.EducationCreateWithoutProfileInput[] };
   certificates: { create: Prisma.CertificateCreateWithoutProfileInput[] };
   socialLinks: { create: Prisma.SocialLinkCreateWithoutProfileInput[] };
   profileLinks: { create: Prisma.ProfileLinkCreateWithoutProfileInput[] };
-  projects: { create: Prisma.ProjectCreateWithoutProfileInput[] };
 };
 
 export type BuildUpdateProfileDataResult = ScalarProfileData & {
@@ -37,10 +35,6 @@ export type BuildUpdateProfileDataResult = ScalarProfileData & {
     | { create: Prisma.TranscriptCreateWithoutProfileInput }
     | { update: Prisma.TranscriptUpdateWithoutProfileInput }
     | { delete: true };
-  education: {
-    deleteMany: Prisma.EducationScalarWhereInput;
-    create: Prisma.EducationCreateWithoutProfileInput[];
-  };
   certificates: {
     deleteMany: Prisma.CertificateScalarWhereInput;
     create: Prisma.CertificateCreateWithoutProfileInput[];
@@ -52,10 +46,6 @@ export type BuildUpdateProfileDataResult = ScalarProfileData & {
   profileLinks: {
     deleteMany: Prisma.ProfileLinkScalarWhereInput;
     create: Prisma.ProfileLinkCreateWithoutProfileInput[];
-  };
-  projects: {
-    deleteMany: Prisma.ProjectScalarWhereInput;
-    create: Prisma.ProjectCreateWithoutProfileInput[];
   };
 };
 
@@ -77,17 +67,10 @@ export function buildProfileData(
 ): BuildCreateProfileDataResult | BuildUpdateProfileDataResult {
   const { replace, transcriptExists = false } = options;
 
-  const education = input.education.map((entry) => ({
-    institution: entry.institution,
-    program: toNullable(entry.program),
-  }));
-  const projects = input.projects.map((project) => ({
-    name: project.name,
-    description: toNullable(project.description),
-    link: toNullable(project.link),
-  }));
   const certificates = input.certificates.map((entry) => ({
     label: entry.label,
+    organization: toNullable(entry.organization),
+    url: toNullable(entry.url),
     uploadedAt: new Date(`${entry.uploadedAt}T00:00:00`),
     name: entry.file!.name,
     stored: entry.file!.stored,
@@ -129,11 +112,9 @@ export function buildProfileData(
     return {
       ...scalars,
       ...(transcriptData ? { transcript: { create: transcriptData } } : {}),
-      education: { create: education },
       certificates: { create: certificates },
       socialLinks: { create: socialLinks },
       profileLinks: { create: profileLinks },
-      projects: { create: projects },
     };
   }
 
@@ -148,11 +129,9 @@ export function buildProfileData(
   return {
     ...scalars,
     ...(transcript ? { transcript } : {}),
-    education: { deleteMany: {}, create: education },
     certificates: { deleteMany: {}, create: certificates },
     socialLinks: { deleteMany: {}, create: socialLinks },
     profileLinks: { deleteMany: {}, create: profileLinks },
-    projects: { deleteMany: {}, create: projects },
   };
 }
 

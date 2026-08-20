@@ -28,9 +28,7 @@ export default async function AppLayout({
       where: { userId: session.user.id },
       include: {
         transcript: true,
-        education: true,
         certificates: true,
-        projects: true,
         socialLinks: true,
         profileLinks: true,
       },

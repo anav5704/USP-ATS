@@ -19,10 +19,8 @@ function baseInput() {
     gpa: 3.8,
     skills: ["Python"],
     degrees: ["Bachelor of Science (Computer Science)"],
-    transcript: null,
-    education: [{ institution: "USP", program: "" }],
+    transcript: transcriptFile(),
     certificates: [],
-    projects: [],
     socialLinks: [],
     projectLinks: [],
   };
@@ -81,14 +79,15 @@ describe("profileInputSchema GPA validation", () => {
   });
 });
 
-describe("degree_status toggle logic", () => {
-  it("allows no transcript when degree is in progress", () => {
+describe("transcript requirement", () => {
+  it("requires a transcript when degree is in progress", () => {
     const result = profileInputSchema.safeParse({
       ...baseInput(),
       degreeStatus: "in_progress",
       transcript: null,
     });
-    assert.equal(result.success, true);
+    assert.equal(result.success, false);
+    assert.equal(result.success === false ? result.error.issues[0]?.path[0] : null, "transcript");
   });
 
   it("requires a transcript when degree is completed", () => {
@@ -179,6 +178,8 @@ describe("certificate input validation", () => {
     assert.equal(
       certificateInputSchema.safeParse({
         label: "Peer Tutor",
+        organization: "USP",
+        url: "",
         uploadedAt: "2026-01-15",
         file: transcriptFile({ name: "peer-tutor.pdf" }),
       }).success,
@@ -190,16 +191,23 @@ describe("certificate input validation", () => {
     const result = profileInputSchema.safeParse({
       ...baseInput(),
       certificates: [
-        { label: "Peer Tutor", uploadedAt: "2026-01-15", file: null },
+        {
+          label: "Peer Tutor",
+          organization: "USP",
+          url: "",
+          uploadedAt: "2026-01-15",
+          file: null,
+        },
       ],
     });
     assert.equal(result.success, false);
   });
 
-  it("rejects a certificate without a label or with an invalid date", () => {
+  it("rejects a certificate without a label or organization, or with an invalid date or url", () => {
     assert.equal(
       certificateInputSchema.safeParse({
         label: "",
+        organization: "USP",
         uploadedAt: "2026-01-15",
         file: transcriptFile(),
       }).success,
@@ -208,7 +216,27 @@ describe("certificate input validation", () => {
     assert.equal(
       certificateInputSchema.safeParse({
         label: "Peer Tutor",
+        organization: "",
+        uploadedAt: "2026-01-15",
+        file: transcriptFile(),
+      }).success,
+      false
+    );
+    assert.equal(
+      certificateInputSchema.safeParse({
+        label: "Peer Tutor",
+        organization: "USP",
         uploadedAt: "not-a-date",
+        file: transcriptFile(),
+      }).success,
+      false
+    );
+    assert.equal(
+      certificateInputSchema.safeParse({
+        label: "Peer Tutor",
+        organization: "USP",
+        url: "not-a-url",
+        uploadedAt: "2026-01-15",
         file: transcriptFile(),
       }).success,
       false
