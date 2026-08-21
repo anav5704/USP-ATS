@@ -1,0 +1,104 @@
+"use client";
+
+import { useRef } from "react";
+import { Button } from "@heroui/react";
+import { DownloadIcon, FileTextIcon, LoaderCircleIcon, UploadIcon, XIcon } from "lucide-react";
+import type { FileRef } from "@/lib/profile/profile-schema";
+import { FormField } from "@/components/ui/form-field";
+import { useUploadProfileFiles } from "@/components/profile/use-upload";
+
+const ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp";
+
+function formatFileSize(size: number) {
+  if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  if (size >= 1024) return `${Math.round(size / 1024)} KB`;
+  return `${size} B`;
+}
+
+export function FileUploadField({
+  label,
+  id,
+  value,
+  onChange,
+  error,
+  hint,
+}: {
+  label: string;
+  id?: string;
+  value: FileRef | null;
+  onChange: (value: FileRef | null) => void;
+  error?: string;
+  hint?: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { isUploading, uploadAsync } = useUploadProfileFiles();
+
+  const handleSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const [ref] = await uploadAsync([file]);
+      if (ref) onChange(ref);
+    } catch {
+      // error toast is shown by useUploadProfileFiles
+    }
+  };
+
+  return (
+    <FormField label={label} id={id} error={error} hint={hint}>
+      <input
+        ref={inputRef}
+        id={id}
+        type="file"
+        accept={ACCEPT}
+        className="sr-only"
+        onChange={(event) => void handleSelect(event)}
+      />
+      <Button.Root
+        type="button"
+        variant="outline"
+        isDisabled={isUploading}
+        onPress={() => inputRef.current?.click()}
+        className="w-full border-zinc-300 bg-white text-zinc-700"
+      >
+        {isUploading ? (
+          <LoaderCircleIcon className="size-4 animate-spin" />
+        ) : (
+          <UploadIcon className="size-4" />
+        )}
+        {value ? "Replace file" : "Choose file"}
+      </Button.Root>
+      {value ? (
+        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+            <FileTextIcon className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium text-zinc-900">
+              {value.name}
+            </p>
+            <p className="text-xs text-zinc-500">
+              {formatFileSize(value.size)} (PDF or image)
+            </p>
+          </div>
+          <a
+            href={`/api/profile/uploads/${value.stored}`}
+            aria-label={`Download ${value.name}`}
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+          >
+            <DownloadIcon className="size-4" />
+          </a>
+          <button
+            type="button"
+            aria-label={`Remove ${value.name}`}
+            onClick={() => onChange(null)}
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-red-500"
+          >
+            <XIcon className="size-4" />
+          </button>
+        </div>
+      ) : null}
+    </FormField>
+  );
+}

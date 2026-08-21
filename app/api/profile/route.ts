@@ -5,8 +5,17 @@ import { profileInputSchema } from "@/lib/profile/profile-schema";
 import {
   buildProfileData,
   firstProfileError,
+  referencedStoredFiles,
 } from "@/lib/profile/profile-data";
 import { toProfileModel } from "@/lib/profile/to-profile-input";
+import { pruneStoredFiles } from "@/lib/uploads/storage";
+
+const PROFILE_INCLUDE = {
+  degrees: { orderBy: { uploadedAt: "asc" as const } },
+  certificates: true,
+  socialLinks: true,
+  profileLinks: true,
+} as const;
 
 export async function GET() {
   const guard = await requireApiMember();
@@ -15,10 +24,7 @@ export async function GET() {
   try {
     const result = await prisma.profile.findUnique({
       where: { userId: guard.session.user.id },
-      include: {
-        education: true,
-        projects: true,
-      },
+      include: PROFILE_INCLUDE,
     });
 
     if (!result) {
@@ -50,25 +56,22 @@ export async function PUT(request: NextRequest) {
       select: { id: true },
     });
 
+    const userId = guard.session.user.id;
     const result = existing
       ? await prisma.profile.update({
           where: { id: existing.id },
-          data: buildProfileData(parsed.data, true),
-          include: {
-            education: true,
-            projects: true,
-          },
+          data: buildProfileData(parsed.data, { replace: true }),
+          include: PROFILE_INCLUDE,
         })
       : await prisma.profile.create({
           data: {
-            userId: guard.session.user.id,
-            ...buildProfileData(parsed.data, false),
+            userId,
+            ...buildProfileData(parsed.data, { replace: false }),
           },
-          include: {
-            education: true,
-            projects: true,
-          },
+          include: PROFILE_INCLUDE,
         });
+
+    await pruneStoredFiles(userId, referencedStoredFiles(parsed.data));
 
     return NextResponse.json(toProfileModel(result));
   } catch {

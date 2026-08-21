@@ -18,7 +18,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     ...init,
     headers: {
-      ...(init?.body != null ? { "Content-Type": "application/json" } : {}),
+      ...(init?.body != null && !(init.body instanceof FormData)
+        ? { "Content-Type": "application/json" }
+        : {}),
       ...init?.headers,
     },
   });
@@ -72,4 +74,6 @@ export const api = {
     }),
   delete: <T>(path: string, init?: RequestInit) =>
     request<T>(path, { ...init, method: "DELETE" }),
+  upload: <T>(path: string, form: FormData, init?: RequestInit) =>
+    request<T>(path, { ...init, method: "POST", body: form }),
 };

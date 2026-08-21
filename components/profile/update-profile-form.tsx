@@ -13,22 +13,29 @@ import {
   PROFILE_SECTIONS,
   type SectionId,
 } from "@/components/profile/profile-sections";
+import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { EducationFields } from "@/components/profile/education-fields";
-import { ProjectFields } from "@/components/profile/project-fields";
+import { CertificatesFields } from "@/components/profile/certificates-fields";
+import { LinksFields } from "@/components/profile/links-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
-const SECTION_COMPONENTS: Record<SectionId, React.ComponentType> = {
+const SECTION_COMPONENTS: Record<
+  SectionId,
+  React.ComponentType<{ user?: GeneralUser | null }>
+> = {
+  general: GeneralFields,
   academic: AcademicFields,
-  education: EducationFields,
-  projects: ProjectFields,
+  certificates: CertificatesFields,
+  links: LinksFields,
 };
 
 export function UpdateProfileForm({
+  user,
   initialData,
   onSuccess,
   onPendingChange,
 }: {
+  user?: GeneralUser | null;
   initialData?: ProfileInput;
   onSuccess?: () => void;
   onPendingChange?: (pending: boolean) => void;
@@ -39,7 +46,7 @@ export function UpdateProfileForm({
   });
   const { isPending, saveAsync } = useProfileSave("update");
 
-  const [selectedTab, setSelectedTab] = useState<SectionId>("academic");
+  const [selectedTab, setSelectedTab] = useState<SectionId>("general");
 
   useEffect(() => {
     onPendingChange?.(isPending);
@@ -104,7 +111,11 @@ export function UpdateProfileForm({
                   const Fields = SECTION_COMPONENTS[section.id];
                   return (
                     <Tabs.Panel key={section.id} id={section.id}>
-                      <Fields />
+                      {section.id === "general" ? (
+                        <GeneralFields user={user} />
+                      ) : (
+                        <Fields />
+                      )}
                     </Tabs.Panel>
                   );
                 })}
