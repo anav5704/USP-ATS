@@ -95,6 +95,7 @@ export function isSectionComplete(
     }
     case "certificates":
       return (
+        values.certificates.length > 0 &&
         !errors.certificates &&
         values.certificates.every(
           (entry) =>
@@ -105,6 +106,7 @@ export function isSectionComplete(
       );
     case "links":
       return (
+        (values.socialLinks.length > 0 || values.projectLinks.length > 0) &&
         !errors.socialLinks &&
         !errors.projectLinks &&
         values.socialLinks.every(
