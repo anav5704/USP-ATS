@@ -25,20 +25,17 @@ export const USP_CAMPUSES_CENTRES = [
 ] as const;
 
 const LEGACY_CAMPUS_CENTRE_NAMES: Record<string, string> = {
-  "Cook Islands": "Cook Islands Campus",
-  Emalus: "Emalus Campus",
-  Kiribati: "Kiribati Campus",
-  Labasa: "Labasa Campus",
-  Laucala: "Laucala Campus",
-  Lautoka: "Lautoka Campus",
-  "Marshall Islands": "Marshall Islands Campus",
-  Nauru: "Naoero Campus",
-  Niue: "Niue Campus",
-  Samoa: "Samoa Campus",
-  "Solomon Islands": "Solomon Islands Campus",
-  Tokelau: "Tokelau Campus",
-  Tonga: "Tonga Campus",
-  Tuvalu: "Tuvalu Campus",
+  Laucala: "Laucala Campus", Lautoka: "Lautoka Campus", Labasa: "Labasa Campus",
+  Savusavu: "Savusavu Centre", Rarotonga: "Cook Islands Campus",
+  "Cook Islands": "Cook Islands Campus", "Port Vila": "Emalus Campus", Emalus: "Emalus Campus",
+  Santo: "Santo Centre", Tafea: "Tafea Centre", Malampa: "Malampa Centre", Torba: "Torba Centre",
+  Bairiki: "Kiribati Campus", Kiribati: "Kiribati Campus", Majuro: "Marshall Islands Campus",
+  "Marshall Islands": "Marshall Islands Campus", Naoero: "Naoero Campus", Nauru: "Naoero Campus",
+  Alofi: "Niue Campus", Niue: "Niue Campus", Apia: "Samoa Campus", Samoa: "Samoa Campus",
+  Honiara: "Solomon Islands Campus", "Solomon Islands": "Solomon Islands Campus",
+  Gizo: "Gizo Centre", Lata: "Lata Centre", Atafu: "Tokelau Campus", Tokelau: "Tokelau Campus",
+  "Nuku'alofa": "Tonga Campus", Tonga: "Tonga Campus", "Ha'apai": "Ha'apai Centre",
+  "Vava'u": "Vava'u Centre", Funafuti: "Tuvalu Campus", Tuvalu: "Tuvalu Campus",
 };
 
 export function normalizeCampusCentre(value: string) {

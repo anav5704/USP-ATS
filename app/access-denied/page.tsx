@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@heroui/react";
 import { ShieldXIcon } from "lucide-react";
+import { SignOutButton } from "@/components/ui/sign-out-button";
 
 export default function AccessDeniedPage() {
   return (
@@ -13,11 +14,14 @@ export default function AccessDeniedPage() {
         <p className="mt-2 text-sm text-zinc-500">
           Your account does not have permission to access this page.
         </p>
-        <Link href="/" className="mt-6 inline-block">
-          <Button.Root className="rounded-full bg-zinc-900 px-5 text-white">
-            Return home
-          </Button.Root>
-        </Link>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link href="/" className="inline-block">
+            <Button.Root className="rounded-field bg-zinc-900 px-5 text-white">
+              Return Home
+            </Button.Root>
+          </Link>
+          <SignOutButton />
+        </div>
       </main>
     </div>
   );

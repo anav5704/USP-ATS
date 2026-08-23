@@ -1,13 +1,14 @@
 import type { FieldErrors, FieldPath } from "react-hook-form";
 import {
   BookOpenIcon,
-  FolderGit2Icon,
-  SchoolIcon,
+  Link2Icon,
+  MedalIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 
-export type SectionId = "academic" | "education" | "projects";
+export type SectionId = "general" | "academic" | "certificates" | "links";
 
 export type ProfileSection = {
   id: SectionId;
@@ -21,31 +22,40 @@ export type ProfileSection = {
 
 export const PROFILE_SECTIONS: ProfileSection[] = [
   {
+    id: "general",
+    label: "General details",
+    shortLabel: "General",
+    description: "Your campus or centre, phone number, a short bio and your technical skills.",
+    icon: UserRoundIcon,
+    optional: false,
+    fields: ["phone", "campuses", "bio", "skills"],
+  },
+  {
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Your degrees, campus, average GPA out of 4.5 and technical skills.",
+    description: "Each degree with its GPA and a transcript or degree upload.",
     icon: BookOpenIcon,
     optional: false,
-    fields: ["degrees", "campuses", "gpa", "skills"],
+    fields: ["degrees"],
   },
   {
-    id: "education",
-    label: "Education history",
-    shortLabel: "Education",
-    description: "Add at least one education entry.",
-    icon: SchoolIcon,
-    optional: false,
-    fields: ["education"],
-  },
-  {
-    id: "projects",
-    label: "Personal projects",
-    shortLabel: "Projects",
-    description: "Optional. Projects are a positive signal on your profile.",
-    icon: FolderGit2Icon,
+    id: "certificates",
+    label: "Certificates",
+    shortLabel: "Certificates",
+    description: "Optional. Upload certificates and achievements.",
+    icon: MedalIcon,
     optional: true,
-    fields: ["projects"],
+    fields: ["certificates"],
+  },
+  {
+    id: "links",
+    label: "Links",
+    shortLabel: "Links",
+    description: "Optional. Social profiles and project links.",
+    icon: Link2Icon,
+    optional: true,
+    fields: ["socialLinks", "projectLinks"],
   },
 ];
 
@@ -55,36 +65,56 @@ export function isSectionComplete(
   errors: FieldErrors<ProfileInput>
 ): boolean {
   switch (section.id) {
-    case "academic": {
-      const gpaOk =
-        typeof values.gpa === "number" &&
-        !Number.isNaN(values.gpa) &&
-        values.gpa >= 0 &&
-        values.gpa <= 4.5;
+    case "general":
       return (
-        values.degrees.length > 0 &&
-        values.degrees.every((degree) => degree.trim().length > 0) &&
-        !errors.degrees &&
         values.campuses.length > 0 &&
         values.campuses.every((campus) => campus.trim().length > 0) &&
-        !errors.campuses &&
-        gpaOk &&
         values.skills.length > 0 &&
-        !errors.gpa &&
+        values.skills.every((skill) => skill.trim().length > 0) &&
+        !errors.campuses &&
+        !errors.phone &&
+        !errors.bio &&
         !errors.skills
       );
-    }
-    case "education":
+    case "academic": {
+      const gpaOk = (degree: ProfileInput["degrees"][number]) =>
+        typeof degree.gpa === "number" &&
+        !Number.isNaN(degree.gpa) &&
+        degree.gpa >= 0 &&
+        degree.gpa <= 4.5;
       return (
-        values.education.length > 0 &&
-        values.education.every((entry) => entry.institution.trim().length > 0) &&
-        !errors.education
+        values.degrees.length > 0 &&
+        values.degrees.every(
+          (degree) =>
+            degree.name.trim().length > 0 &&
+            gpaOk(degree) &&
+            degree.document !== null
+        ) &&
+        !errors.degrees
       );
-    case "projects":
+    }
+    case "certificates":
       return (
-        values.projects.length > 0 &&
-        values.projects.every((project) => project.name.trim().length > 0) &&
-        !errors.projects
+        values.certificates.length > 0 &&
+        !errors.certificates &&
+        values.certificates.every(
+          (entry) =>
+            entry.label.trim().length > 0 &&
+            entry.organization.trim().length > 0 &&
+            entry.file !== null
+        )
+      );
+    case "links":
+      return (
+        (values.socialLinks.length > 0 || values.projectLinks.length > 0) &&
+        !errors.socialLinks &&
+        !errors.projectLinks &&
+        values.socialLinks.every(
+          (link) => link.platform.trim().length > 0 && link.url.trim().length > 0
+        ) &&
+        values.projectLinks.every(
+          (link) => link.title.trim().length > 0 && link.url.trim().length > 0
+        )
       );
     default:
       return false;

@@ -56,10 +56,7 @@ export const jobInputSchema = z.object({
     .number({ error: "Enter the hourly pay" })
     .min(0, "Hourly pay must be at least 0")
     .max(1000000, "Hourly pay is too large"),
-  benefit: z
-    .string()
-    .trim()
-    .max(500, "Benefit or perk is too long"),
+  benefit: z.string().trim().max(500, "Benefit or perk is too long"),
   deadline: z
     .string()
     .min(1, "Deadline is required")
@@ -81,8 +78,29 @@ export type AdminJobListItem = {
   createdAt: string;
   hourlyPay: number;
   benefit: string | null;
+  gpaMin: number | null;
+  degree: string[];
+  skills: string[];
+  hours: number;
 };
 
 export type AdminJobDetail = JobInput & {
   id: string;
+};
+
+export type StudentJobListItem = {
+  id: string;
+  title: string;
+  description: string;
+  department: string;
+  jobType: string;
+  campus: string[];
+  gpaMin: number | null;
+  degree: string[];
+  skills: string[];
+  hours: number | null;
+  hourlyPay: number;
+  benefit: string | null;
+  deadline: string;
+  createdAt: string;
 };

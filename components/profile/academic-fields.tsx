@@ -1,15 +1,14 @@
 "use client";
 
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { Input } from "@heroui/react";
-import { BookOpenIcon } from "lucide-react";
-import type { ProfileInput } from "@/lib/profile/profile-schema";
+import { GraduationCapIcon } from "lucide-react";
+import type { ProfileInput, DegreeInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
-import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
-import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
-import { USP_DEGREES } from "@/lib/usp-degrees";
-import { USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
-import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
+import { FileUploadField } from "@/components/profile/file-upload-field";
+import { DocumentTypeField } from "@/components/profile/document-type-toggle";
+import { RepeaterItem } from "@/components/profile/repeater-item";
+import { RepeaterSection } from "@/components/profile/repeater-section";
 
 export function AcademicFields() {
   const {
@@ -18,102 +17,95 @@ export function AcademicFields() {
     formState: { errors },
   } = useFormContext<ProfileInput>();
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "degrees",
+  });
+
+  const addDegree = () => {
+    const empty: DegreeInput = {
+      name: "",
+      gpa: undefined as unknown as number,
+      documentType: "transcript",
+      document: null,
+    };
+    append(empty);
+  };
+
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5">
-      <div className="mb-4 flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-900">
-          <BookOpenIcon className="size-5" />
-        </span>
-        <div>
-          <h2 className="text-sm font-semibold text-zinc-900">
-            Academic details
-          </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            Select your degrees and enter your average GPA out of 4.5.
-          </p>
-        </div>
-      </div>
-      <FormField
-        label="Degrees"
-        error={errors.degrees?.message}
-        hint="Select every degree you are pursuing or have completed."
-      >
-        <Controller
-          name="degrees"
-          control={control}
-          render={({ field }) => (
-            <MultiAutocomplete
-              value={field.value}
-              optionGroups={USP_DEGREES}
-              placeholder="Select one or more degrees"
-              searchPlaceholder="Search degrees"
-              onChange={field.onChange}
-            />
-          )}
-        />
-      </FormField>
-      <div className="mt-4">
-        <FormField
-          label="Campus/Centre"
-          error={errors.campuses?.message}
-          hint="Select every campus or centre you are currently attending."
-        >
-          <Controller
-            name="campuses"
-            control={control}
-            render={({ field }) => (
-              <MultiAutocomplete
-                value={field.value}
-                options={USP_CAMPUSES_CENTRES}
-                placeholder="Select one or more campuses or centres"
-                searchPlaceholder="Search campuses and centres"
-                onChange={field.onChange}
+    <RepeaterSection
+      icon={GraduationCapIcon}
+      title="Degrees"
+      addLabel="Add degree"
+      onAdd={addDegree}
+    >
+      {fields.length === 0 ? (
+        <p className="text-sm text-zinc-500">
+          No degrees yet. Add the degrees you are studying or have completed.
+        </p>
+      ) : (
+        fields.map((field, index) => (
+          <RepeaterItem
+            key={field.id}
+            title="Degree"
+            index={index}
+            canRemove={fields.length > 1}
+            onRemove={() => remove(index)}
+          >
+            <div className="space-y-4">
+              <FormField
+                id={`degrees.${index}.name`}
+                label="Degree title"
+                error={errors.degrees?.[index]?.name?.message}
+              >
+                <Input.Root
+                  id={`degrees.${index}.name`}
+                  fullWidth
+                  placeholder="e.g. Bachelor of Science (Computer Science)"
+                  {...register(`degrees.${index}.name`)}
+                />
+              </FormField>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  id={`degrees.${index}.gpa`}
+                  label="GPA for this degree"
+                  error={errors.degrees?.[index]?.gpa?.message}
+                  hint="Out of 4.5, up to 2 decimal places"
+                >
+                  <Input.Root
+                    id={`degrees.${index}.gpa`}
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min={0}
+                    max={4.5}
+                    placeholder="e.g. 3.8"
+                    fullWidth
+                    {...register(`degrees.${index}.gpa`, {
+                      setValueAs: (value) =>
+                        value === "" ? undefined : Number(value),
+                    })}
+                  />
+                </FormField>
+                <DocumentTypeField index={index} />
+              </div>
+              <Controller
+                name={`degrees.${index}.document`}
+                control={control}
+                render={({ field }) => (
+                  <FileUploadField
+                    label="Transcript or degree"
+                    value={field.value}
+                    error={errors.degrees?.[index]?.document?.message}
+                    hint="Required. PDF preferred, max 10 MB."
+                    onChange={field.onChange}
+                  />
+                )}
               />
-            )}
-          />
-        </FormField>
-      </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <FormField id="gpa" label="Average GPA (out of 4.5)" error={errors.gpa?.message}>
-          <Input.Root
-            id="gpa"
-            type="number"
-            inputMode="decimal"
-            step="0.01"
-            min={0}
-            max={4.5}
-            placeholder="e.g. 3.8"
-            fullWidth
-            {...register("gpa", {
-              setValueAs: (value) =>
-                value === "" ? undefined : Number(value),
-            })}
-          />
-        </FormField>
-      </div>
-      <div className="mt-4">
-        <FormField
-          label="Skills"
-          error={errors.skills?.message}
-          hint="Select up to 10 skills that apply to you."
-        >
-          <Controller
-            name="skills"
-            control={control}
-            render={({ field }) => (
-              <SkillAutocomplete
-                value={field.value}
-                groups={SKILL_GROUPS}
-                placeholder="Select up to 10 skills"
-                searchPlaceholder="Search skills"
-                emptyMessage="No skills found"
-                maxItems={10}
-                onChange={field.onChange}
-              />
-            )}
-          />
-        </FormField>
-      </div>
-    </section>
+            </div>
+          </RepeaterItem>
+        ))
+      )}
+    </RepeaterSection>
   );
 }

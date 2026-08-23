@@ -24,9 +24,9 @@ export function JobDeadlineField({
 
   return (
     <FormField label="Application deadline" error={error}>
-      <div className="sm:pl-2">
         <DatePicker
           aria-label="Application deadline"
+          className="w-full"
           value={parseValue(value)}
           minValue={minimumDate}
           onChange={(date) => onChange(date?.toString() ?? "")}
@@ -64,7 +64,6 @@ export function JobDeadlineField({
             </Calendar>
           </DatePicker.Popover>
         </DatePicker>
-      </div>
     </FormField>
   );
 }

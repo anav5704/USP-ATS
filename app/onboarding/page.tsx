@@ -15,6 +15,9 @@ export default async function OnboardingPage() {
   if (session.user.role === "admin") {
     redirect("/");
   }
+  if (session.user.role !== "member") {
+    redirect("/access-denied");
+  }
 
   const profile = await prisma.profile.findUnique({
     where: { userId: session.user.id },
@@ -27,16 +30,7 @@ export default async function OnboardingPage() {
   return (
     <div className="flex flex-1 justify-center bg-zinc-50 px-4 py-10">
       <main className="w-full max-w-2xl">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            Create your profile
-          </h1>
-          <p className="mx-auto mt-2 max-w-md text-sm text-zinc-500">
-            You need a complete profile before you can browse and apply to job
-            postings. You can update it any time.
-          </p>
-        </div>
-        <OnboardingForm />
+        <OnboardingForm user={session.user} />
       </main>
     </div>
   );

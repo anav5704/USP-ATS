@@ -7,6 +7,8 @@ import { toProfileInput } from "@/lib/profile/to-profile-input";
 import { FormModal } from "@/components/ui/form-modal";
 import { FormField } from "@/components/ui/form-field";
 import { UpdateProfileForm } from "@/components/profile/update-profile-form";
+import { useProfile } from "@/components/profile/use-profile";
+import { splitName } from "@/lib/user-name";
 
 export type ProfileModalUser = {
   role?: string | null;
@@ -15,14 +17,6 @@ export type ProfileModalUser = {
   lastName?: string | null;
   email?: string | null;
 };
-
-function splitName(name: string | null | undefined) {
-  const parts = (name ?? "").trim().split(/\s+/).filter(Boolean);
-  return {
-    first: parts[0] ?? "",
-    last: parts.slice(1).join(" ") ?? "",
-  };
-}
 
 function ReadOnlyField({
   label,
@@ -51,13 +45,15 @@ export function ProfileModal({
 }) {
   const isAdmin = user.role === "admin";
   const [savePending, setSavePending] = useState(false);
+  const { data: profileData } = useProfile(profile, !isAdmin);
+  const activeProfile = profileData ?? profile;
   const { first, last } = user.firstName
     ? { first: user.firstName, last: user.lastName ?? "" }
     : splitName(user.name);
   const email = user.email ?? "";
 
   return (
-        <FormModal
+    <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="My Profile"
@@ -85,10 +81,11 @@ export function ProfileModal({
             </Button.Root>
           </Modal.Footer>
         </>
-      ) : profile ? (
+      ) : activeProfile ? (
         <UpdateProfileForm
-          key={JSON.stringify(profile)}
-          initialData={toProfileInput(profile)}
+          key={JSON.stringify(activeProfile)}
+          user={user}
+          initialData={toProfileInput(activeProfile)}
           onSuccess={() => onOpenChange(false)}
           onPendingChange={setSavePending}
         />

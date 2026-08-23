@@ -27,10 +27,10 @@ type NavItem = {
 
 const studentNav: NavItem[] = [
   {
-    href: "/",
+    href: "/jobs",
     label: "Job Feed",
     icon: BriefcaseIcon,
-    isActive: (p) => p === "/" || p.startsWith("/jobs"),
+    isActive: (p) => p === "/jobs" || p.startsWith("/jobs/"),
   },
   {
     href: "/applications",
@@ -137,12 +137,12 @@ export function AppSidebar({
                 </Dropdown.Item>
               ) : null}
               <Dropdown.Item
-                textValue="Sign out"
+                textValue="Sign Out"
                 onAction={handleSignOut}
                 className="flex items-center gap-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
               >
                 <LogOutIcon className="size-4" />
-                Sign out
+                Sign Out
               </Dropdown.Item>
             </Dropdown.Menu>
           </Dropdown.Popover>

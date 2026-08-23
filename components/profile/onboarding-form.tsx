@@ -16,27 +16,43 @@ import {
 } from "@/lib/profile/profile-schema";
 import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
 import { ProfileStepper } from "@/components/profile/profile-stepper";
+import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
-import { EducationFields } from "@/components/profile/education-fields";
-import { ProjectFields } from "@/components/profile/project-fields";
+import { CertificatesFields } from "@/components/profile/certificates-fields";
+import { LinksFields } from "@/components/profile/links-fields";
 import { useProfileSave } from "@/components/profile/use-profile-save";
 
 const EMPTY_PROFILE: ProfileInput = {
-  gpa: undefined as unknown as number,
-  skills: [],
-  degrees: [],
+  phone: "",
+  bio: "",
   campuses: [],
-  education: [{ institution: "", program: "" }],
-  projects: [],
+  skills: [],
+  degrees: [
+    {
+      name: "",
+      gpa: undefined as unknown as number,
+      documentType: "transcript",
+      document: null,
+    },
+  ],
+  certificates: [],
+  socialLinks: [],
+  projectLinks: [],
 };
 
 const SECTION_COMPONENTS = [
   AcademicFields,
-  EducationFields,
-  ProjectFields,
+  CertificatesFields,
+  LinksFields,
 ];
 
-export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
+export function OnboardingForm({
+  user,
+  onSuccess,
+}: {
+  user?: GeneralUser | null;
+  onSuccess?: () => void;
+}) {
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileInputSchema),
     defaultValues: EMPTY_PROFILE,
@@ -47,7 +63,8 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
   const [maxVisited, setMaxVisited] = useState(0);
 
   const isLastSection = currentIndex === PROFILE_SECTIONS.length - 1;
-  const CurrentFields = SECTION_COMPONENTS[currentIndex];
+  const CurrentFields =
+    SECTION_COMPONENTS[Math.max(0, currentIndex - 1)];
 
   const advance = async () => {
     const section = PROFILE_SECTIONS[currentIndex];
@@ -94,7 +111,11 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
             maxVisitedIndex={maxVisited}
             onStepClick={goTo}
           />
-          <CurrentFields />
+          {currentIndex === 0 ? (
+            <GeneralFields user={user} />
+          ) : (
+            <CurrentFields />
+          )}
         </div>
         <div className="flex w-full items-center justify-between gap-3">
           <Button.Root
@@ -116,21 +137,21 @@ export function OnboardingForm({ onSuccess }: { onSuccess?: () => void }) {
                 type="button"
                 isDisabled={isPending}
                 onPress={() => void form.handleSubmit(handleSave)()}
-                className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
               >
                 {isPending ? (
                   <LoaderCircleIcon className="size-4 animate-spin" />
                 ) : (
                   <SparklesIcon className="size-4" />
                 )}
-                Create profile
+                Create Profile
               </Button.Root>
             ) : (
               <Button.Root
                 type="button"
                 isDisabled={isPending}
                 onPress={advance}
-                className="rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
               >
                 Next
                 <ChevronRightIcon className="size-4" />
