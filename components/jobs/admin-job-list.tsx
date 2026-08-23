@@ -226,14 +226,12 @@ export function AdminJobList() {
                 <Table.Header>
                   <Table.Column isRowHeader>Job</Table.Column>
                   <Table.Column>Type</Table.Column>
-                  <Table.Column>Campus</Table.Column>
+                  <Table.Column>Campus/Centre</Table.Column>
                   <Table.Column>Hourly pay</Table.Column>
                   <Table.Column>Deadline</Table.Column>
                   <Table.Column>Status</Table.Column>
                   <Table.Column>Applications</Table.Column>
-                  <Table.Column className="sticky right-0 z-10">
-                    Actions
-                  </Table.Column>
+                  <Table.Column>Actions</Table.Column>
                 </Table.Header>
                   <Table.Body items={visibleJobs}>
                   {(job) => (
@@ -281,7 +279,7 @@ export function AdminJobList() {
                         })()}
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
-                      <Table.Cell className="sticky right-0 z-10 bg-white">
+                      <Table.Cell>
                         <Dropdown.Root>
                           <Dropdown.Trigger
                             aria-label={`Actions for ${job.title}`}

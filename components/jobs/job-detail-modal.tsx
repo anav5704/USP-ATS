@@ -107,8 +107,15 @@ export function JobDetailModal({
           {job.gpaMin !== null ? (
             <Fact
               icon={GraduationCapIcon}
-              label={`Minimum GPA: ${job.gpaMin.toFixed(2)}`}
+              label={`GPA Required: ${job.gpaMin.toFixed(2)}`}
             />
+          ) : null}
+
+          {job.benefit ? (
+            <p className="text-sm text-zinc-600">
+              <span className="font-medium text-zinc-900">Benefit or perk:</span>{" "}
+              {job.benefit}
+            </p>
           ) : null}
 
           {job.degree.length > 0 ? (

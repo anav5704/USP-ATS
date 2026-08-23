@@ -8,7 +8,7 @@ import { FormField } from "@/components/ui/form-field";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
-import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import { USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { splitName } from "@/lib/user-name";
 
 export type GeneralUser = {
@@ -72,7 +72,7 @@ export function GeneralFields({
           />
         </FormField>
         <FormField
-          label="Campus or centre"
+          label="Campus/Centre"
           error={errors.campuses?.message}
         >
           <Controller
@@ -81,9 +81,9 @@ export function GeneralFields({
             render={({ field }) => (
               <JobSingleAutocomplete
                 value={field.value[0] ?? ""}
-                options={USP_CAMPUSES}
+                options={USP_CAMPUSES_CENTRES}
                 placeholder="Select your campus or centre"
-                searchPlaceholder="Search campuses"
+                searchPlaceholder="Search campuses and centres"
                 onChange={(campus) =>
                   field.onChange(campus ? [campus] : [])
                 }

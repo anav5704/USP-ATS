@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   JOB_TYPES,
-  USP_CAMPUSES,
+  USP_CAMPUSES_CENTRES,
   USP_DEPARTMENTS,
 } from "@/lib/jobs/job-constants";
 
@@ -34,12 +34,12 @@ export const jobInputSchema = z.object({
     error: "Select a job type",
   }),
   campus: z
-    .array(z.enum(USP_CAMPUSES))
-    .min(1, "Select at least one campus"),
+    .array(z.enum(USP_CAMPUSES_CENTRES))
+    .min(1, "Select at least one campus or centre"),
   gpaMin: z
     .number()
-    .min(0, "Minimum GPA must be between 0 and 4.5")
-    .max(4.5, "Minimum GPA must be between 0 and 4.5")
+    .min(0, "GPA Required must be between 0 and 4.5")
+    .max(4.5, "GPA Required must be between 0 and 4.5")
     .nullable(),
   degree: z
     .array(z.string().trim().min(1, "Degree name is required"))
@@ -56,6 +56,7 @@ export const jobInputSchema = z.object({
     .number({ error: "Enter the hourly pay" })
     .min(0, "Hourly pay must be at least 0")
     .max(1000000, "Hourly pay is too large"),
+  benefit: z.string().trim().max(500, "Benefit or perk is too long"),
   deadline: z
     .string()
     .min(1, "Deadline is required")
@@ -76,6 +77,7 @@ export type AdminJobListItem = {
   applicationCount: number;
   createdAt: string;
   hourlyPay: number;
+  benefit: string | null;
   gpaMin: number | null;
   degree: string[];
   skills: string[];
@@ -98,6 +100,7 @@ export type StudentJobListItem = {
   skills: string[];
   hours: number | null;
   hourlyPay: number;
+  benefit: string | null;
   deadline: string;
   createdAt: string;
 };

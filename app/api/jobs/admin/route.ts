@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
+import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 
 export async function GET() {
   const guard = await requireApiAdmin();
@@ -19,6 +20,7 @@ export async function GET() {
         deadline: true,
         status: true,
         hourlyPay: true,
+        benefit: true,
         createdAt: true,
         gpaMin: true,
         degree: true,
@@ -35,10 +37,11 @@ export async function GET() {
         description: posting.description,
         department: posting.department,
         jobType: posting.jobType,
-        campus: posting.campus,
+        campus: posting.campus.map(normalizeCampusCentre),
         deadline: posting.deadline.toISOString(),
         status: posting.status,
         hourlyPay: Number(posting.hourlyPay),
+        benefit: posting.benefit,
         applicationCount: posting._count.applications,
         createdAt: posting.createdAt.toISOString(),
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),

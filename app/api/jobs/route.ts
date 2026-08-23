@@ -8,6 +8,7 @@ import {
   startOfFijiDay,
   todayInFiji,
 } from "@/lib/jobs/job-dates";
+import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 
 export async function GET() {
   const guard = await requireApiMember();
@@ -32,6 +33,7 @@ export async function GET() {
         skills: true,
         hours: true,
         hourlyPay: true,
+        benefit: true,
         deadline: true,
         createdAt: true,
       },
@@ -44,12 +46,13 @@ export async function GET() {
         description: posting.description,
         department: posting.department,
         jobType: posting.jobType,
-        campus: posting.campus,
+        campus: posting.campus.map(normalizeCampusCentre),
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
         degree: posting.degree,
         skills: posting.skills,
         hours: posting.hours,
         hourlyPay: Number(posting.hourlyPay),
+        benefit: posting.benefit,
         deadline: posting.deadline.toISOString(),
         createdAt: posting.createdAt.toISOString(),
       }))
@@ -94,6 +97,7 @@ export async function POST(request: NextRequest) {
         skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
+        benefit: parsed.data.benefit || null,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
         status: PostingStatus.ACTIVE,
         createdById: guard.session.user.id,

@@ -8,7 +8,7 @@ import { FormField } from "@/components/ui/form-field";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
-import { JOB_TYPES, USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import { JOB_TYPES, USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
@@ -71,19 +71,19 @@ export function JobFeedFilterModal({
           </FormField>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Campus">
+            <FormField label="Campus/Centre">
               <MultiAutocomplete
                 value={campuses}
-                options={USP_CAMPUSES}
-                placeholder="All campuses"
-                searchPlaceholder="Search campuses"
+                options={USP_CAMPUSES_CENTRES}
+                placeholder="All campuses and centres"
+                searchPlaceholder="Search campuses and centres"
                 onChange={setCampuses}
               />
             </FormField>
 
             <FormField
               id="gpaMin"
-              label="Minimum GPA"
+              label="GPA Required"
             >
               <Input.Root
                 id="gpaMin"

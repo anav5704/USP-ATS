@@ -29,6 +29,7 @@ export function EditJobModal({
     skills: job.skills,
     hours: job.hours,
     hourlyPay: job.hourlyPay,
+    benefit: job.benefit ?? "",
     deadline: toFijiDate(new Date(job.deadline)),
   };
 

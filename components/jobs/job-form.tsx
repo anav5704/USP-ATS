@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input, Modal, TextArea } from "@heroui/react";
 import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
 import {
-  JOB_TITLES,
   JOB_TYPES,
-  USP_CAMPUSES,
+  USP_CAMPUSES_CENTRES,
   USP_DEPARTMENTS,
 } from "@/lib/jobs/job-constants";
 import { jobInputSchema, type JobInput } from "@/lib/jobs/job-schema";
@@ -20,6 +19,13 @@ import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
+import {
+  getMatchingJobTemplateValues,
+  getJobTemplateTransition,
+  JOB_TITLES,
+  JOB_TEMPLATE_FIELDS,
+  type JobTemplateDefaults,
+} from "@/lib/jobs/job-templates";
 
 const EMPTY_JOB: JobInput = {
   title: "",
@@ -32,6 +38,7 @@ const EMPTY_JOB: JobInput = {
   skills: [],
   hours: undefined as unknown as number,
   hourlyPay: undefined as unknown as number,
+  benefit: "",
   deadline: "",
 };
 
@@ -51,12 +58,24 @@ export function JobForm({
   const {
     register,
     control,
+    getValues,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<JobInput>({
     resolver: zodResolver(jobInputSchema),
     defaultValues: initialData ?? EMPTY_JOB,
   });
+  const initialTemplateValues = initialData
+    ? (Object.fromEntries(
+        JOB_TEMPLATE_FIELDS.map((field) => [field, initialData[field]])
+      ) as JobTemplateDefaults)
+    : null;
+  const lastAppliedTemplate = useRef<Partial<JobTemplateDefaults>>(
+    initialData && initialTemplateValues
+      ? getMatchingJobTemplateValues(initialData.title, initialTemplateValues)
+      : {}
+  );
   const { isPending, saveAsync } = useSaveJob(mode, jobId);
   useEffect(() => {
     onPendingChange?.(isPending);
@@ -70,6 +89,24 @@ export function JobForm({
       // error toast is shown by useSaveJob
     }
   });
+
+  const applyTitleTemplate = (title: string) => {
+    const currentForm = getValues();
+    const currentValues = Object.fromEntries(
+      JOB_TEMPLATE_FIELDS.map((field) => [field, currentForm[field]])
+    ) as JobTemplateDefaults;
+    const { updates, applied } = getJobTemplateTransition(
+      title,
+      currentValues,
+      lastAppliedTemplate.current
+    );
+
+    reset(
+      { ...currentForm, ...updates, title },
+      { keepErrors: true, keepTouched: true }
+    );
+    lastAppliedTemplate.current = applied;
+  };
 
   return (
     <form onSubmit={submit} noValidate className="mt-5 flex min-h-0 flex-1 flex-col">
@@ -86,7 +123,7 @@ export function JobForm({
                     options={JOB_TITLES}
                     placeholder="Select a job title"
                     searchPlaceholder="Search job titles"
-                    onChange={field.onChange}
+                    onChange={applyTitleTemplate}
                   />
                 )}
               />
@@ -134,33 +171,52 @@ export function JobForm({
                 )}
               />
             </FormField>
-            <FormField id="gpaMin" label="Minimum GPA (optional)" error={errors.gpaMin?.message}>
-              <Input.Root
-                id="gpaMin"
-                type="number"
-                min={0}
-                max={4.5}
-                step="0.01"
-                fullWidth
-                placeholder="e.g. 3.0"
-                {...register("gpaMin", {
-                  setValueAs: (value) => value === "" ? null : Number(value),
-                })}
+            <FormField id="gpaMin" label="GPA Required" error={errors.gpaMin?.message}>
+              <Controller
+                name="gpaMin"
+                control={control}
+                render={({ field }) => (
+                  <Input.Root
+                    id="gpaMin"
+                    type="number"
+                    min={0}
+                    max={4.5}
+                    step="0.01"
+                    fullWidth
+                    placeholder="e.g. 3.0"
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value ?? ""}
+                    onBlur={field.onBlur}
+                    onChange={(event) =>
+                      field.onChange(event.target.value === "" ? null : Number(event.target.value))
+                    }
+                  />
+                )}
               />
             </FormField>
           </div>
 
+          <FormField
+            id="benefit"
+            label="Benefit or perk (optional)"
+            error={errors.benefit?.message}
+            hint="Add non-cash compensation or another perk, such as Free food."
+          >
+            <Input.Root id="benefit" fullWidth placeholder="e.g. Free food" {...register("benefit")} />
+          </FormField>
+
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Campus" error={errors.campus?.message}>
+            <FormField label="Campus/Centre" error={errors.campus?.message}>
               <Controller
                 name="campus"
                 control={control}
                 render={({ field }) => (
                   <JobMultipleAutocomplete
                     value={field.value}
-                    options={USP_CAMPUSES}
-                    placeholder="Select one or more campuses"
-                    searchPlaceholder="Search campuses"
+                    options={USP_CAMPUSES_CENTRES}
+                    placeholder="Select one or more campuses or centres"
+                    searchPlaceholder="Search campuses and centres"
                     onChange={field.onChange}
                   />
                 )}

@@ -40,6 +40,7 @@ export async function PATCH(
         skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
+        benefit: parsed.data.benefit || null,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
       },
     });

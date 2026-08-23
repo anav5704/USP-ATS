@@ -2,7 +2,11 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { JOB_TYPES, USP_CAMPUSES, USP_DEPARTMENTS } from "@/lib/jobs/job-constants";
+import {
+  JOB_TYPES,
+  USP_CAMPUSES_CENTRES,
+  USP_DEPARTMENTS,
+} from "@/lib/jobs/job-constants";
 import {
   deadlineAtEndOfFijiDay,
   toFijiDate,
@@ -130,7 +134,7 @@ async function main() {
     const title = pick(TITLES);
     const department = pick(USP_DEPARTMENTS);
     const jt = pick(JOB_TYPES);
-    const campuses = pickMany(USP_CAMPUSES, 3);
+    const campuses = pickMany(USP_CAMPUSES_CENTRES, 3);
     const hours = 5 + Math.floor(Math.random() * 30);
     const pay = Math.random() < 0.25 ? 0 : 6 + Math.floor(Math.random() * 15);
     const gpaMin =
