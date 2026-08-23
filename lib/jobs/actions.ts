@@ -14,6 +14,7 @@ import {
   type AdminJobDetail,
   type AdminJobListItem,
 } from "@/lib/jobs/job-schema";
+import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 import { PostingStatus, Prisma } from "@/generated/prisma/client";
 
 export type JobActionResult =
@@ -68,6 +69,7 @@ export async function getAdminJobPostings(): Promise<JobListResult> {
         deadline: true,
         status: true,
         hourlyPay: true,
+        benefit: true,
         createdAt: true,
         _count: { select: { applications: true } },
       },
@@ -81,10 +83,11 @@ export async function getAdminJobPostings(): Promise<JobListResult> {
         description: posting.description,
         department: posting.department,
         jobType: posting.jobType,
-        campus: posting.campus,
+        campus: posting.campus.map(normalizeCampusCentre),
         deadline: posting.deadline.toISOString(),
         status: posting.status,
         hourlyPay: Number(posting.hourlyPay),
+        benefit: posting.benefit,
         applicationCount: posting._count.applications,
         createdAt: posting.createdAt.toISOString(),
       })),
@@ -115,6 +118,7 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
         skills: true,
         hours: true,
         hourlyPay: true,
+        benefit: true,
         deadline: true,
       },
     });
@@ -131,12 +135,15 @@ export async function getAdminJobPosting(id: string): Promise<JobDetailResult> {
         description: posting.description,
         department: posting.department as AdminJobDetail["department"],
         jobType: posting.jobType as AdminJobDetail["jobType"],
-        campus: posting.campus as AdminJobDetail["campus"],
+        campus: posting.campus.map(
+          normalizeCampusCentre
+        ) as AdminJobDetail["campus"],
         gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
         degree: posting.degree ?? [],
         skills: posting.skills ?? [],
         hours: posting.hours ?? (undefined as unknown as number),
         hourlyPay: Number(posting.hourlyPay),
+        benefit: posting.benefit ?? "",
         deadline: toFijiDate(posting.deadline),
       },
     };
@@ -170,6 +177,7 @@ export async function createJobPosting(raw: unknown): Promise<JobActionResult> {
         skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
+        benefit: parsed.data.benefit || null,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
         status: PostingStatus.ACTIVE,
         createdById: admin.userId,
@@ -212,6 +220,7 @@ export async function updateJobPosting(
         skills: parsed.data.skills,
         hours: parsed.data.hours,
         hourlyPay: parsed.data.hourlyPay,
+        benefit: parsed.data.benefit || null,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
       },
     });

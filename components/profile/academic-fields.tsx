@@ -8,7 +8,7 @@ import { FormField } from "@/components/ui/form-field";
 import { MultiAutocomplete } from "@/components/ui/multi-autocomplete";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { USP_DEGREES } from "@/lib/usp-degrees";
-import { USP_CAMPUSES } from "@/lib/jobs/job-constants";
+import { USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 
 export function AcademicFields() {
@@ -54,9 +54,9 @@ export function AcademicFields() {
       </FormField>
       <div className="mt-4">
         <FormField
-          label="Campus"
+          label="Campus/Centre"
           error={errors.campuses?.message}
-          hint="Select every campus you are currently attending."
+          hint="Select every campus or centre you are currently attending."
         >
           <Controller
             name="campuses"
@@ -64,9 +64,9 @@ export function AcademicFields() {
             render={({ field }) => (
               <MultiAutocomplete
                 value={field.value}
-                options={USP_CAMPUSES}
-                placeholder="Select one or more campuses"
-                searchPlaceholder="Search campuses"
+                options={USP_CAMPUSES_CENTRES}
+                placeholder="Select one or more campuses or centres"
+                searchPlaceholder="Search campuses and centres"
                 onChange={field.onChange}
               />
             )}

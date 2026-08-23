@@ -32,6 +32,7 @@ export function EditJobModal({ jobId }: { jobId: string }) {
         skills: job.skills,
         hours: job.hours,
         hourlyPay: job.hourlyPay,
+        benefit: job.benefit,
         deadline: job.deadline,
       }
     : undefined;

@@ -10,6 +10,7 @@ model JobPosting {
   skills       String[]
   hours        Int?
   hourlyPay    Decimal       @default(0) @db.Decimal(10, 2)
+  benefit      String?
   deadline     DateTime
   status       PostingStatus @default(ACTIVE)
   createdById  String
