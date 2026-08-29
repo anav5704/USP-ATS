@@ -17,13 +17,13 @@ export function RepeaterSection({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5">
+    <section className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-900">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-secondary text-foreground">
             <Icon className="size-5" />
           </span>
-          <h2 className="text-sm font-semibold text-zinc-900">
+          <h2 className="text-xl font-semibold text-foreground">
             {title}
           </h2>
         </div>
@@ -32,7 +32,7 @@ export function RepeaterSection({
           size="sm"
           variant="ghost"
           onPress={onAdd}
-          className="shrink-0 text-zinc-600"
+          className="shrink-0 text-muted"
         >
           <PlusIcon className="size-4" />
           {addLabel}

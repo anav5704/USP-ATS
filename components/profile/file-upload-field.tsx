@@ -21,14 +21,12 @@ export function FileUploadField({
   value,
   onChange,
   error,
-  hint,
 }: {
   label: string;
   id?: string;
   value: FileRef | null;
   onChange: (value: FileRef | null) => void;
   error?: string;
-  hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isUploading, uploadAsync } = useUploadProfileFiles();
@@ -46,7 +44,7 @@ export function FileUploadField({
   };
 
   return (
-    <FormField label={label} id={id} error={error} hint={hint}>
+    <FormField label={label} id={id} error={error}>
       <input
         ref={inputRef}
         id={id}
@@ -60,7 +58,7 @@ export function FileUploadField({
         variant="outline"
         isDisabled={isUploading}
         onPress={() => inputRef.current?.click()}
-        className="w-full border-zinc-300 bg-white text-zinc-700"
+        className="w-full border-border bg-surface text-foreground"
       >
         {isUploading ? (
           <LoaderCircleIcon className="size-4 animate-spin" />
@@ -70,22 +68,22 @@ export function FileUploadField({
         {value ? "Replace file" : "Choose file"}
       </Button.Root>
       {value ? (
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-field p-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-muted">
             <FileTextIcon className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-zinc-900">
+            <p className="truncate text-sm font-medium text-foreground">
               {value.name}
             </p>
-            <p className="text-xs text-zinc-500">
+            <p className="text-xs text-muted">
               {formatFileSize(value.size)} (PDF or image)
             </p>
           </div>
           <a
             href={`/api/profile/uploads/${value.stored}`}
             aria-label={`Download ${value.name}`}
-            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-700"
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground"
           >
             <DownloadIcon className="size-4" />
           </a>
@@ -93,7 +91,7 @@ export function FileUploadField({
             type="button"
             aria-label={`Remove ${value.name}`}
             onClick={() => onChange(null)}
-            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-red-500"
+            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-danger"
           >
             <XIcon className="size-4" />
           </button>

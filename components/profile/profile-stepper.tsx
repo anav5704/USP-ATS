@@ -32,12 +32,12 @@ export function ProfileStepper({
   );
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5">
+    <section className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-semibold text-zinc-900">
+        <h2 className="text-xl font-semibold text-foreground">
           Profile progress
         </h2>
-        <span className="text-sm font-medium tabular-nums text-zinc-700">
+        <span className="text-sm font-medium tabular-nums text-foreground">
           {percent}%
         </span>
       </div>
@@ -57,8 +57,8 @@ export function ProfileStepper({
                   aria-hidden="true"
                   className={`absolute h-0.5 w-full ${
                     connectorDone
-                      ? "bg-emerald-400"
-                      : "bg-zinc-200"
+                      ? "bg-primary-bright"
+                      : "bg-border"
                   }`}
                   style={{ left: "-50%", top: "15px" }}
                 />
@@ -71,12 +71,12 @@ export function ProfileStepper({
                   aria-current={isCurrent ? "step" : undefined}
                   aria-label={`${section.label}${isComplete ? " (complete)" : ""}`}
                   onClick={() => isClickable && onStepClick?.(index)}
-                  className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-default ${
+                  className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 disabled:cursor-default ${
                     isComplete
-                      ? "border-emerald-500 bg-emerald-500 text-white"
+                      ? "border-primary-bright bg-primary-gradient text-white"
                       : isCurrent
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-200 bg-zinc-100 text-zinc-400"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-surface-secondary text-muted"
                   }`}
                 >
                   {isComplete ? (
@@ -88,10 +88,10 @@ export function ProfileStepper({
                 <span
                   className={`max-w-full truncate px-0.5 text-center text-[11px] font-medium ${
                     isCurrent
-                      ? "text-zinc-900"
+                      ? "text-foreground"
                       : isComplete
-                        ? "text-zinc-600"
-                        : "text-zinc-400"
+                        ? "text-muted"
+                        : "text-muted"
                   }`}
                 >
                   {section.shortLabel}

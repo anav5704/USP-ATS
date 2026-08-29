@@ -16,9 +16,9 @@ export function RepeaterItem({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+    <div className="rounded-xl border border-border bg-surface-secondary p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">
           {index > 0 ? `${title} ${index + 1}` : title}
         </p>
         {canRemove ? (
@@ -29,7 +29,7 @@ export function RepeaterItem({
             variant="ghost"
             aria-label={`Remove ${title.toLowerCase()}`}
             onPress={onRemove}
-            className="text-zinc-500 transition-colors hover:text-red-500"
+            className="text-muted transition-colors hover:text-danger"
           >
             <Trash2Icon className="size-4" />
           </Button.Root>

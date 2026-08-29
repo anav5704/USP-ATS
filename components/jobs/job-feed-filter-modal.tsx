@@ -128,7 +128,7 @@ export function JobFeedFilterModal({
             type="button"
             variant="ghost"
             onPress={clearAll}
-            className="text-zinc-600"
+            className="text-muted"
           >
             <Trash2Icon className="size-4" />
             Clear All
@@ -138,14 +138,14 @@ export function JobFeedFilterModal({
               type="button"
               variant="ghost"
               onPress={() => onOpenChange(false)}
-              className="text-zinc-600"
+              className="text-muted"
             >
               Cancel
             </Button.Root>
             <Button.Root
               type="button"
               onPress={applyFilters}
-              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
             >
               Apply Filters
             </Button.Root>

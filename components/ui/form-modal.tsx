@@ -24,7 +24,9 @@ export function FormModal({
         <Modal.Container size={size ?? "lg"} scroll="inside">
           <Modal.Dialog className="max-w-2xl">
             <Modal.Header>
-              <Modal.Heading>{title}</Modal.Heading>
+              <Modal.Heading className="text-2xl font-semibold">
+                {title}
+              </Modal.Heading>
               <Modal.CloseTrigger isDisabled={closeDisabled} />
             </Modal.Header>
             {children}

@@ -17,7 +17,7 @@ export function SignOutButton() {
     <Button.Root
       onPress={() => void handleSignOut()}
       variant="ghost"
-      className="rounded-field border border-zinc-300 px-5 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+      className="rounded-field border border-border px-5 text-sm font-medium text-foreground hover:bg-surface-secondary"
     >
       <LogOutIcon className="size-4" />
       Sign Out

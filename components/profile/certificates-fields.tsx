@@ -43,7 +43,7 @@ export function CertificatesFields() {
       }
     >
       {fields.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted">
           No certificates yet. Add one to show your achievements.
         </p>
       ) : (
@@ -112,7 +112,6 @@ export function CertificatesFields() {
                       label="Certificate file"
                       value={field.value}
                       error={errors.certificates?.[index]?.file?.message}
-                      hint="PDF or image, max 10 MB"
                       onChange={field.onChange}
                     />
                   )}
