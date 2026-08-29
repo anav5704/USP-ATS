@@ -123,13 +123,13 @@ export function OnboardingForm({
             variant="ghost"
             isDisabled={currentIndex === 0 || isPending}
             onPress={goBack}
-            className="text-zinc-600"
+            className="text-white"
           >
             <ArrowLeftIcon className="size-4" />
             Back
           </Button.Root>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-medium tabular-nums text-zinc-500">
+            <span className="text-xs font-medium tabular-nums text-white">
               Step {currentIndex + 1} of {PROFILE_SECTIONS.length}
             </span>
             {isLastSection ? (
@@ -137,7 +137,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={() => void form.handleSubmit(handleSave)()}
-                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
               >
                 {isPending ? (
                   <LoaderCircleIcon className="size-4 animate-spin" />
@@ -151,7 +151,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={advance}
-                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
               >
                 Next
                 <ChevronRightIcon className="size-4" />

@@ -39,9 +39,9 @@ export function MetaRow({ items }: { items: MetaItem[] }) {
         <span
           key={index}
           title={title}
-          className="flex items-center gap-2 text-sm text-zinc-600"
+          className="flex items-center gap-2 text-sm text-muted"
         >
-          <Icon className="size-4 shrink-0 text-zinc-500" />
+          <Icon className="size-4 shrink-0 text-muted" />
           {label}
         </span>
       ))}
@@ -57,7 +57,7 @@ export function RequirementChips({ items }: { items: string[] }) {
       {items.map((item, index) => (
         <span
           key={`${item}-${index}`}
-          className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600"
+          className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground"
         >
           {item}
         </span>
@@ -102,7 +102,7 @@ export function JobFeedCard({
             <span
               className={
                 deadlineStatus.label === "Closes today"
-                  ? "font-medium text-amber-600"
+                  ? "font-medium text-warning"
                   : undefined
               }
             >
@@ -125,20 +125,20 @@ export function JobFeedCard({
           onPress();
         }
       }}
-      className="h-full cursor-pointer rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-zinc-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
     >
       <div className="flex h-full flex-col gap-3">
         <div>
-          <span className="inline-block rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white">
+          <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
             {job.jobType}
           </span>
-          <h2 className="mt-2 text-base font-semibold text-zinc-900">
+          <h2 className="mt-2 text-xl font-semibold text-foreground">
             {job.title}
           </h2>
-          <p className="mt-0.5 text-sm text-zinc-500">{job.department}</p>
+          <p className="mt-0.5 text-sm text-muted">{job.department}</p>
         </div>
 
-        <p className="line-clamp-2 text-sm leading-relaxed text-zinc-600">
+        <p className="line-clamp-2 text-sm leading-relaxed text-muted">
           {job.description}
         </p>
 

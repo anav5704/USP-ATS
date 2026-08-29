@@ -136,7 +136,7 @@ export function AdminJobList() {
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto max-w-none">
-        <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:flex-row sm:items-center">
+        <div className="sticky top-4 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center lg:top-6">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
@@ -144,7 +144,7 @@ export function AdminJobList() {
               onChange={setSearch}
               aria-label="Search job postings"
             >
-              <SearchField.Group className="border-zinc-200">
+              <SearchField.Group className="border-border">
                 <SearchField.SearchIcon />
                 <SearchField.Input placeholder="Search by title, description or department" />
                 <SearchField.ClearButton />
@@ -153,19 +153,19 @@ export function AdminJobList() {
           </div>
           <Button.Root
             onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
           >
             <SlidersHorizontalIcon className="size-4" />
             Filters
             {activeFilterCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-zinc-900 text-xs font-semibold text-white">
+              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
                 {activeFilterCount}
               </span>
             ) : null}
           </Button.Root>
           <Button.Root
             onPress={() => setCreateOpen(true)}
-            className="shrink-0 rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            className="shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
           >
             <PlusIcon className="size-4" />
             Create New Job
@@ -173,41 +173,41 @@ export function AdminJobList() {
         </div>
 
         {isPending ? (
-          <div className="flex min-h-72 items-center justify-center rounded-2xl border border-zinc-200 bg-white">
-            <Spinner.Root size="lg" className="text-zinc-900" />
+          <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
+            <Spinner.Root size="lg" className="text-foreground" />
           </div>
         ) : isError ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-            <CircleAlertIcon className="size-10 text-rose-500" />
-            <h2 className="mt-4 text-base font-semibold text-zinc-900">
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+            <CircleAlertIcon className="size-10 text-danger" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">
               Job postings could not be loaded
             </h2>
-            <p className="mt-1 text-sm text-zinc-500">Please try again.</p>
+            <p className="mt-1 text-sm text-muted">Please try again.</p>
             <Button.Root className="mt-5" onPress={() => void refetch()}>
               Try Again
             </Button.Root>
           </div>
         ) : jobs?.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-            <BriefcaseBusinessIcon className="size-10 text-zinc-400" />
-            <h2 className="mt-4 text-base font-semibold text-zinc-900">
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+            <BriefcaseBusinessIcon className="size-10 text-muted" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">
               No job postings yet
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-zinc-500">
+            <p className="mt-1 max-w-sm text-sm text-muted">
               Create the first posting to make it immediately available to students.
             </p>
           </div>
         ) : visibleJobs && visibleJobs.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-            <SearchXIcon className="size-10 text-zinc-400" />
-            <h2 className="mt-4 text-base font-semibold text-zinc-900">
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+            <SearchXIcon className="size-10 text-muted" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">
               No jobs match your filters
             </h2>
-            <p className="mt-1 max-w-sm text-sm text-zinc-500">
+            <p className="mt-1 max-w-sm text-sm text-muted">
               Try adjusting your search or clearing the filters.
             </p>
             <Button.Root
-              className="mt-5 rounded-field border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+              className="mt-5 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
               onPress={clearFilters}
             >
               Clear Filters
@@ -216,11 +216,11 @@ export function AdminJobList() {
         ) : (
           <div>
             {jobs && jobs.length > 0 && hasFilters ? (
-              <p className="mb-3 text-sm text-zinc-500">
+              <p className="mb-3 text-sm text-muted">
                 Showing {visibleJobs?.length} of {jobs.length} jobs
               </p>
             ) : null}
-            <Table.Root className="rounded-2xl border border-zinc-200 bg-white">
+            <Table.Root className="rounded-2xl border border-border bg-surface">
             <Table.ScrollContainer>
               <Table.Content aria-label="Job postings">
                 <Table.Header>
@@ -238,8 +238,8 @@ export function AdminJobList() {
                     <Table.Row id={job.id}>
                       <Table.Cell>
                         <div>
-                          <p className="font-medium text-zinc-900">{job.title}</p>
-                          <p className="text-xs text-zinc-500">{job.department}</p>
+                          <p className="font-medium text-foreground">{job.title}</p>
+                          <p className="text-xs text-muted">{job.department}</p>
                         </div>
                       </Table.Cell>
                       <Table.Cell>{job.jobType}</Table.Cell>
@@ -264,14 +264,15 @@ export function AdminJobList() {
                             : job.status === "ACTIVE"
                               ? "Active"
                               : "Archived";
-                          const badgeClass = isExpired
-                            ? "bg-amber-50 text-amber-700"
-                            : job.status === "ACTIVE"
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-zinc-100 text-zinc-600";
                           return (
                             <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass}`}
+                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                                isExpired
+                                  ? "bg-warning-soft text-warning-soft-foreground"
+                                  : job.status === "ACTIVE"
+                                    ? "bg-success-soft text-success-soft-foreground"
+                                    : "bg-surface-secondary text-foreground"
+                              }`}
                             >
                               {label}
                             </span>
@@ -283,7 +284,7 @@ export function AdminJobList() {
                         <Dropdown.Root>
                           <Dropdown.Trigger
                             aria-label={`Actions for ${job.title}`}
-                            className="rounded-xl p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100"
+                            className="rounded-xl p-1.5 text-muted transition-colors hover:bg-surface-secondary"
                           >
                             <MoreVerticalIcon className="size-4" />
                           </Dropdown.Trigger>
@@ -305,7 +306,7 @@ export function AdminJobList() {
                                       : "Archive"
                                   }
                                   onAction={() => setSelectedJob(job)}
-                                  className="flex items-center gap-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
+                                  className="flex items-center gap-2 text-danger hover:bg-danger-soft hover:text-danger"
                                 >
                                   {job.applicationCount === 0 ? (
                                     <Trash2Icon className="size-4" />

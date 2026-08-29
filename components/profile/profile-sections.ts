@@ -94,8 +94,8 @@ export function isSectionComplete(
       );
     }
     case "certificates":
+      if (values.certificates.length === 0) return true;
       return (
-        values.certificates.length > 0 &&
         !errors.certificates &&
         values.certificates.every(
           (entry) =>
@@ -104,9 +104,11 @@ export function isSectionComplete(
             entry.file !== null
         )
       );
-    case "links":
+    case "links": {
+      const hasLinks =
+        values.socialLinks.length > 0 || values.projectLinks.length > 0;
+      if (!hasLinks) return true;
       return (
-        (values.socialLinks.length > 0 || values.projectLinks.length > 0) &&
         !errors.socialLinks &&
         !errors.projectLinks &&
         values.socialLinks.every(
@@ -116,6 +118,7 @@ export function isSectionComplete(
           (link) => link.title.trim().length > 0 && link.url.trim().length > 0
         )
       );
+    }
     default:
       return false;
   }

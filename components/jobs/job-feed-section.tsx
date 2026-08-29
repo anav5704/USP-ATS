@@ -23,13 +23,13 @@ export function JobFeedSection({
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
           {title}
         </h2>
         {jobs.length > PREVIEW_COUNT ? (
           <Button.Root
             onPress={() => setExpanded((value) => !value)}
-            className="shrink-0 rounded-full border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-50"
+            className="shrink-0 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
           >
             {expanded ? (
               <ChevronUpIcon className="size-4" />
@@ -51,8 +51,8 @@ export function JobFeedSection({
           ))}
         </div>
       ) : (
-        <p className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-500">
-          <InboxIcon className="size-4 shrink-0 text-zinc-400" />
+        <p className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-surface px-4 py-6 text-center text-sm text-muted">
+          <InboxIcon className="size-4 shrink-0 text-muted" />
           No matching opportunities available currently.
         </p>
       )}

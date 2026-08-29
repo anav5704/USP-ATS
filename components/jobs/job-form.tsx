@@ -201,7 +201,6 @@ export function JobForm({
             id="benefit"
             label="Benefit or perk (optional)"
             error={errors.benefit?.message}
-            hint="Add non-cash compensation or another perk, such as Free food."
           >
             <Input.Root id="benefit" fullWidth placeholder="e.g. Free food" {...register("benefit")} />
           </FormField>
@@ -305,7 +304,7 @@ export function JobForm({
           <Button.Root
             type="submit"
             isDisabled={isPending}
-            className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+            className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-4 animate-spin" />

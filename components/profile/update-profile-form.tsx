@@ -99,7 +99,7 @@ export function UpdateProfileForm({
                       <Tabs.Tab
                         key={section.id}
                         id={section.id}
-                        className="gap-2 data-selected:bg-white data-selected:text-zinc-900"
+                        className="gap-2 data-selected:bg-surface data-selected:text-foreground"
                       >
                         <section.icon className="size-4 shrink-0" />
                         {section.shortLabel}
@@ -129,7 +129,7 @@ export function UpdateProfileForm({
               type="button"
               isDisabled={isPending}
               onPress={() => void handleSaveClick()}
-              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />

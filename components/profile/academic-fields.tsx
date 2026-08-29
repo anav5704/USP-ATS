@@ -40,7 +40,7 @@ export function AcademicFields() {
       onAdd={addDegree}
     >
       {fields.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted">
           No degrees yet. Add the degrees you are studying or have completed.
         </p>
       ) : (
@@ -70,7 +70,6 @@ export function AcademicFields() {
                   id={`degrees.${index}.gpa`}
                   label="GPA for this degree"
                   error={errors.degrees?.[index]?.gpa?.message}
-                  hint="Out of 4.5, up to 2 decimal places"
                 >
                   <Input.Root
                     id={`degrees.${index}.gpa`}
@@ -97,7 +96,6 @@ export function AcademicFields() {
                     label="Transcript or degree"
                     value={field.value}
                     error={errors.degrees?.[index]?.document?.message}
-                    hint="Required. PDF preferred, max 10 MB."
                     onChange={field.onChange}
                   />
                 )}
