@@ -9,9 +9,10 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
-import { JobFeedCard } from "@/components/jobs/job-feed-card";
+import { JobFeedSection } from "@/components/jobs/job-feed-section";
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
+import { useProfile } from "@/components/profile/use-profile";
 import {
   JobFeedFilterModal,
   type JobFeedFilters,
@@ -19,6 +20,7 @@ import {
 
 export function JobFeed() {
   const { data: jobs, isPending, isError, refetch } = useJobFeed();
+  const { data: profile } = useProfile();
   const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
@@ -80,6 +82,33 @@ export function JobFeed() {
       );
     });
   }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
+
+  const { campusMatchedJobs, degreeMatchedJobs, otherJobs } = useMemo(() => {
+    const studentCampuses = profile?.campuses ?? [];
+    const studentDegrees =
+      profile?.degrees.map((degree) => degree.name.trim().toLowerCase()) ?? [];
+
+    const campusMatchedJobs: StudentJobListItem[] = [];
+    const degreeMatchedJobs: StudentJobListItem[] = [];
+    const otherJobs: StudentJobListItem[] = [];
+
+    for (const job of visibleJobs ?? []) {
+      const matchesCampus =
+        studentCampuses.length > 0 &&
+        job.campus.some((campus) => studentCampuses.includes(campus));
+      const matchesDegree =
+        studentDegrees.length > 0 &&
+        job.degree.some((degree) =>
+          studentDegrees.includes(degree.trim().toLowerCase())
+        );
+
+      if (matchesCampus) campusMatchedJobs.push(job);
+      if (matchesDegree) degreeMatchedJobs.push(job);
+      if (!matchesCampus && !matchesDegree) otherJobs.push(job);
+    }
+
+    return { campusMatchedJobs, degreeMatchedJobs, otherJobs };
+  }, [visibleJobs, profile]);
 
   const clearFilters = () => {
     setSearch("");
@@ -178,14 +207,22 @@ export function JobFeed() {
                 Showing {visibleJobs?.length} of {jobs.length} jobs
               </p>
             ) : null}
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {visibleJobs?.map((job) => (
-                <JobFeedCard
-                  key={job.id}
-                  job={job}
-                  onPress={() => setSelectedJob(job)}
-                />
-              ))}
+            <div className="space-y-8">
+              <JobFeedSection
+                title="Opportunities Near You"
+                jobs={campusMatchedJobs}
+                onJobPress={setSelectedJob}
+              />
+              <JobFeedSection
+                title="Opportunities Matching Your Degree"
+                jobs={degreeMatchedJobs}
+                onJobPress={setSelectedJob}
+              />
+              <JobFeedSection
+                title="Other Opportunities"
+                jobs={otherJobs}
+                onJobPress={setSelectedJob}
+              />
             </div>
           </div>
         )}
