@@ -19,11 +19,12 @@ export function LinksFields() {
   const project = useFieldArray({ control, name: "projectLinks" });
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-[60vh] min-h-0 flex-col gap-4">
       <RepeaterSection
         icon={Link2Icon}
         title="Social links"
         addLabel="Add link"
+        fill
         onAdd={() => social.append({ platform: "", url: "" })}
       >
         {social.fields.length === 0 ? (
@@ -73,6 +74,7 @@ export function LinksFields() {
         icon={Link2Icon}
         title="Project links"
         addLabel="Add link"
+        fill
         onAdd={() => project.append({ title: "", url: "" })}
       >
         {project.fields.length === 0 ? (

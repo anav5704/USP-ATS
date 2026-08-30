@@ -8,17 +8,25 @@ export function RepeaterSection({
   title,
   addLabel,
   onAdd,
+  fill = false,
+  fixed = false,
   children,
 }: {
   icon: LucideIcon;
   title: string;
   addLabel: string;
   onAdd: () => void;
+  fill?: boolean;
+  fixed?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5">
-      <div className="mb-4 flex items-start justify-between gap-4">
+    <section
+      className={`flex flex-col rounded-2xl border border-border bg-surface p-5 ${
+        fill ? "min-h-0 flex-1" : fixed ? "h-[60vh]" : "max-h-[60vh]"
+      }`}
+    >
+      <div className="mb-4 flex shrink-0 items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-secondary text-foreground">
             <Icon className="size-5" />
@@ -38,7 +46,7 @@ export function RepeaterSection({
           {addLabel}
         </Button.Root>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">{children}</div>
     </section>
   );
 }
