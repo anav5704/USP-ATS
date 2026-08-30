@@ -134,9 +134,9 @@ export function AdminJobList() {
   };
 
   return (
-    <div className="p-4 lg:p-6">
+    <div className="p-3">
       <div className="mx-auto max-w-none">
-        <div className="sticky top-4 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center lg:top-6">
+        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
