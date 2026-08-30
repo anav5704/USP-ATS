@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@heroui/react";
 import { DownloadIcon, FileTextIcon, LoaderCircleIcon, UploadIcon, XIcon } from "lucide-react";
 import type { FileRef } from "@/lib/profile/profile-schema";
@@ -30,6 +30,24 @@ export function FileUploadField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { isUploading, uploadAsync } = useUploadProfileFiles();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async (stored: string, name: string) => {
+    setIsDownloading(true);
+    try {
+      const res = await fetch(`/api/profile/uploads/${stored}`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handleSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -80,18 +98,24 @@ export function FileUploadField({
               {formatFileSize(value.size)} (PDF or image)
             </p>
           </div>
-          <a
-            href={`/api/profile/uploads/${value.stored}`}
+          <button
+            type="button"
             aria-label={`Download ${value.name}`}
-            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground"
+            disabled={isDownloading}
+            onClick={() => void handleDownload(value.stored, value.name)}
+            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
           >
-            <DownloadIcon className="size-4" />
-          </a>
+            {isDownloading ? (
+              <LoaderCircleIcon className="size-4 animate-spin" />
+            ) : (
+              <DownloadIcon className="size-4" />
+            )}
+          </button>
           <button
             type="button"
             aria-label={`Remove ${value.name}`}
             onClick={() => onChange(null)}
-            className="flex size-7 shrink-0 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-danger"
+            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-danger"
           >
             <XIcon className="size-4" />
           </button>

@@ -32,6 +32,7 @@ export function CertificatesFields() {
       icon={AwardIcon}
       title="Certificates"
       addLabel="Add certificate"
+      fixed
       onAdd={() =>
         append({
           label: "",
@@ -79,19 +80,19 @@ export function CertificatesFields() {
                   {...register(`certificates.${index}.organization`)}
                 />
               </FormField>
-              <FormField
-                id={`certificates.${index}.url`}
-                label="Credential URL (optional)"
-                error={errors.certificates?.[index]?.url?.message}
-              >
-                <Input.Root
-                  id={`certificates.${index}.url`}
-                  fullWidth
-                  placeholder="https://..."
-                  {...register(`certificates.${index}.url`)}
-                />
-              </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  id={`certificates.${index}.url`}
+                  label="Credential URL (optional)"
+                  error={errors.certificates?.[index]?.url?.message}
+                >
+                  <Input.Root
+                    id={`certificates.${index}.url`}
+                    fullWidth
+                    placeholder="https://..."
+                    {...register(`certificates.${index}.url`)}
+                  />
+                </FormField>
                 <FormField
                   id={`certificates.${index}.uploadedAt`}
                   label="Date obtained"
@@ -104,19 +105,19 @@ export function CertificatesFields() {
                     {...register(`certificates.${index}.uploadedAt`)}
                   />
                 </FormField>
-                <Controller
-                  name={`certificates.${index}.file`}
-                  control={control}
-                  render={({ field }) => (
-                    <FileUploadField
-                      label="Certificate file"
-                      value={field.value}
-                      error={errors.certificates?.[index]?.file?.message}
-                      onChange={field.onChange}
-                    />
-                  )}
-                />
               </div>
+              <Controller
+                name={`certificates.${index}.file`}
+                control={control}
+                render={({ field }) => (
+                  <FileUploadField
+                    label="Certificate file"
+                    value={field.value}
+                    error={errors.certificates?.[index]?.file?.message}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </div>
           </RepeaterItem>
         ))
