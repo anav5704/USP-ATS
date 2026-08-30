@@ -1,19 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Tabs, toast } from "@heroui/react";
-import { LoaderCircleIcon, SparklesIcon } from "lucide-react";
+import { Button } from "@heroui/react";
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  LoaderCircleIcon,
+  SparklesIcon,
+} from "lucide-react";
 import {
   profileInputSchema,
   type ProfileInput,
 } from "@/lib/profile/profile-schema";
+import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
+import { ProfileStepper } from "@/components/profile/profile-stepper";
 import {
-  PROFILE_SECTIONS,
-  type SectionId,
-} from "@/components/profile/profile-sections";
-import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
+  GeneralFields,
+  type GeneralUser,
+} from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
 import { CertificatesFields } from "@/components/profile/certificates-fields";
 import { LinksFields } from "@/components/profile/links-fields";
@@ -37,15 +43,7 @@ const EMPTY_PROFILE: ProfileInput = {
   projectLinks: [],
 };
 
-const SECTION_COMPONENTS: Record<
-  SectionId,
-  React.ComponentType<{ user?: GeneralUser | null }>
-> = {
-  general: GeneralFields,
-  academic: AcademicFields,
-  certificates: CertificatesFields,
-  links: LinksFields,
-};
+const SECTION_COMPONENTS = [AcademicFields, CertificatesFields, LinksFields];
 
 export function OnboardingForm({
   user,
@@ -60,83 +58,110 @@ export function OnboardingForm({
   });
   const { isPending, save } = useProfileSave("create");
 
-  const [selectedTab, setSelectedTab] = useState<SectionId>("general");
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [maxVisited, setMaxVisited] = useState(0);
 
-  const handleSaveClick = async () => {
-    const valid = await form.trigger();
-    if (!valid) {
-      const sectionWithErrors = PROFILE_SECTIONS.find((section) =>
-        section.fields.some((field) => form.getFieldState(field).error)
-      );
-      if (sectionWithErrors) {
-        setSelectedTab(sectionWithErrors.id);
-        toast.danger(
-          `Please fix the errors in ${sectionWithErrors.label} before saving.`
-        );
-      }
-      return;
-    }
-    save(form.getValues());
+  const isLastSection = currentIndex === PROFILE_SECTIONS.length - 1;
+  const CurrentFields =
+    SECTION_COMPONENTS[Math.max(0, currentIndex - 1)];
+
+  const advance = async () => {
+    const section = PROFILE_SECTIONS[currentIndex];
+    const valid = await form.trigger(section.fields);
+    if (!valid) return;
+    const next = Math.min(currentIndex + 1, PROFILE_SECTIONS.length - 1);
+    setCurrentIndex(next);
+    setMaxVisited((visited) => Math.max(visited, next));
+  };
+
+  const goBack = () => {
+    setCurrentIndex((index) => Math.max(0, index - 1));
+  };
+
+  const goTo = (index: number) => {
+    if (index > maxVisited) return;
+    setCurrentIndex(index);
+  };
+
+  const handleSave = async (values: ProfileInput) => {
+    save(values);
     onSuccess?.();
   };
 
-  const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = form.handleSubmit(handleSave);
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLFormElement>) => {
+    if (event.key !== "Enter") return;
+    const target = event.target as HTMLElement;
+    if (target instanceof HTMLTextAreaElement) return;
+    if (target instanceof HTMLButtonElement) return;
     event.preventDefault();
-    void handleSaveClick();
+    if (!isLastSection) {
+      void advance();
+    }
   };
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit} noValidate className="space-y-6">
-        <Tabs.Root
-          selectedKey={selectedTab}
-          onSelectionChange={(key) => {
-            if (typeof key === "string") {
-              setSelectedTab(key as SectionId);
-            }
-          }}
-        >
-          <Tabs.ListContainer className="sticky top-0 z-10 rounded-field bg-background">
-            <Tabs.List className="w-full">
-              {PROFILE_SECTIONS.map((section) => (
-                <Tabs.Tab
-                  key={section.id}
-                  id={section.id}
-                  className="gap-2 rounded-field data-selected:bg-surface data-selected:text-foreground"
-                >
-                  <section.icon className="size-4 shrink-0" />
-                  {section.shortLabel}
-                </Tabs.Tab>
-              ))}
-            </Tabs.List>
-          </Tabs.ListContainer>
-          {PROFILE_SECTIONS.map((section) => {
-            const Fields = SECTION_COMPONENTS[section.id];
-            return (
-              <Tabs.Panel key={section.id} id={section.id}>
-                {section.id === "general" ? (
-                  <GeneralFields user={user} />
-                ) : (
-                  <Fields />
-                )}
-              </Tabs.Panel>
-            );
-          })}
-        </Tabs.Root>
-        <div className="flex w-full items-center justify-end gap-3">
+      <form
+        onSubmit={onSubmit}
+        onKeyDown={handleKeyDown}
+        noValidate
+        className="space-y-6"
+      >
+        <div className="min-w-0 space-y-4">
+          <ProfileStepper
+            currentIndex={currentIndex}
+            maxVisitedIndex={maxVisited}
+            onStepClick={goTo}
+          />
+          {currentIndex === 0 ? (
+            <GeneralFields user={user} />
+          ) : (
+            <CurrentFields />
+          )}
+        </div>
+        <div className="flex w-full items-center justify-between gap-3">
           <Button.Root
             type="button"
-            isDisabled={isPending}
-            onPress={() => void handleSaveClick()}
-            className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+            variant="ghost"
+            isDisabled={currentIndex === 0 || isPending}
+            onPress={goBack}
+            className="rounded-field text-muted"
           >
-            {isPending ? (
-              <LoaderCircleIcon className="size-4 animate-spin" />
-            ) : (
-              <SparklesIcon className="size-4" />
-            )}
-            Create Profile
+            <ArrowLeftIcon className="size-4" />
+            Back
           </Button.Root>
+          <div className="flex items-center gap-4">
+            <span className="text-xs font-medium tabular-nums text-zinc-500">
+              Step {currentIndex + 1} of {PROFILE_SECTIONS.length}
+            </span>
+            {isLastSection ? (
+              <Button.Root
+                type="button"
+                isDisabled={isPending}
+                onPress={() => void form.handleSubmit(handleSave)()}
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+              >
+                {isPending ? (
+                  <LoaderCircleIcon className="size-4 animate-spin" />
+                ) : (
+                  <SparklesIcon className="size-4" />
+                )}
+                Create Profile
+              </Button.Root>
+            ) : (
+              <Button.Root
+                type="button"
+                isDisabled={isPending}
+                onPress={advance}
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+              >
+                Next
+                <ChevronRightIcon className="size-4" />
+              </Button.Root>
+            )}
+          </div>
         </div>
       </form>
     </FormProvider>

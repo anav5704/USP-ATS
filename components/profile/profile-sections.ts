@@ -94,31 +94,9 @@ export function isSectionComplete(
       );
     }
     case "certificates":
-      if (values.certificates.length === 0) return true;
-      return (
-        !errors.certificates &&
-        values.certificates.every(
-          (entry) =>
-            entry.label.trim().length > 0 &&
-            entry.organization.trim().length > 0 &&
-            entry.file !== null
-        )
-      );
-    case "links": {
-      const hasLinks =
-        values.socialLinks.length > 0 || values.projectLinks.length > 0;
-      if (!hasLinks) return true;
-      return (
-        !errors.socialLinks &&
-        !errors.projectLinks &&
-        values.socialLinks.every(
-          (link) => link.platform.trim().length > 0 && link.url.trim().length > 0
-        ) &&
-        values.projectLinks.every(
-          (link) => link.title.trim().length > 0 && link.url.trim().length > 0
-        )
-      );
-    }
+      return true;
+    case "links":
+      return true;
     default:
       return false;
   }
