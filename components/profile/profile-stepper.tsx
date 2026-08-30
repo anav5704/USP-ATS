@@ -21,30 +21,11 @@ export function ProfileStepper({
     isSectionComplete(section, values, formState.errors)
   );
 
-  const requiredSections = PROFILE_SECTIONS.filter((section) => !section.optional);
-  const completedRequired = PROFILE_SECTIONS.filter(
-    (section) =>
-      !section.optional &&
-      complete[PROFILE_SECTIONS.indexOf(section)]
-  ).length;
-  const percent = Math.round(
-    (completedRequired / requiredSections.length) * 100
-  );
-
   return (
     <section className="rounded-2xl border border-border bg-surface p-5">
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-foreground">
-          Profile progress
-        </h2>
-        <span className="text-sm font-medium tabular-nums text-foreground">
-          {percent}%
-        </span>
-      </div>
-
       <ol className="flex items-start gap-0">
         {PROFILE_SECTIONS.map((section, index) => {
-          const isComplete = complete[index];
+          const isComplete = complete[index] && index <= maxVisitedIndex;
           const isCurrent = index === currentIndex;
           const isVisited = index <= maxVisitedIndex;
           const isClickable = isVisited && !!onStepClick;
@@ -89,9 +70,7 @@ export function ProfileStepper({
                   className={`max-w-full truncate px-0.5 text-center text-[11px] font-medium ${
                     isCurrent
                       ? "text-foreground"
-                      : isComplete
-                        ? "text-muted"
-                        : "text-muted"
+                      : "text-muted"
                   }`}
                 >
                   {section.shortLabel}
