@@ -146,7 +146,7 @@ export function AppSidebar({
         alt="USP Logo"
         width={110}
         height={110}
-        className="mb-6 mt-4 h-8 w-8 md:h-8 md:w-8 lg:h-12 lg:w-12 2xl:h-16 2xl:w-16"
+        className="mb-7 mt-7 h-8 w-8 md:h-8 md:w-8 lg:h-12 lg:w-12 2xl:h-16 2xl:w-16"
       />
       <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
         {nav.map((item) => renderItem(item))}
