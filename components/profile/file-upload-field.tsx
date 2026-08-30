@@ -76,7 +76,7 @@ export function FileUploadField({
         variant="outline"
         isDisabled={isUploading}
         onPress={() => inputRef.current?.click()}
-        className="w-full border-border bg-surface text-foreground"
+        className="w-full rounded-field border-border bg-surface text-foreground"
       >
         {isUploading ? (
           <LoaderCircleIcon className="size-4 animate-spin" />

@@ -144,7 +144,7 @@ export function AdminJobFilterModal({
             type="button"
             variant="ghost"
             onPress={clearAll}
-            className="text-muted"
+            className="rounded-field text-muted"
           >
             <Trash2Icon className="size-4" />
             Clear All
@@ -154,7 +154,7 @@ export function AdminJobFilterModal({
               type="button"
               variant="ghost"
               onPress={() => onOpenChange(false)}
-              className="text-muted"
+              className="rounded-field text-muted"
             >
               Cancel
             </Button.Root>

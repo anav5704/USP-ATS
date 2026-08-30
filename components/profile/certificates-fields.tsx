@@ -32,6 +32,7 @@ export function CertificatesFields() {
       icon={AwardIcon}
       title="Certificates"
       addLabel="Add certificate"
+      fixed
       onAdd={() =>
         append({
           label: "",
