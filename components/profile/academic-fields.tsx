@@ -35,19 +35,19 @@ export function AcademicFields() {
   return (
     <RepeaterSection
       icon={GraduationCapIcon}
-      title="Degrees"
-      addLabel="Add degree"
+      title="Qualifications"
+      addLabel="Add qualification"
       onAdd={addDegree}
     >
       {fields.length === 0 ? (
         <p className="text-sm text-muted">
-          No degrees yet. Add the degrees you are studying or have completed.
+          No qualifications yet. Add the qualifications you are studying or have completed.
         </p>
       ) : (
         fields.map((field, index) => (
           <RepeaterItem
             key={field.id}
-            title="Degree"
+            title="Qualification"
             index={index}
             canRemove={fields.length > 1}
             onRemove={() => remove(index)}
@@ -55,7 +55,7 @@ export function AcademicFields() {
             <div className="space-y-4">
               <FormField
                 id={`degrees.${index}.name`}
-                label="Degree title"
+                label="Qualification title"
                 error={errors.degrees?.[index]?.name?.message}
               >
                 <Input.Root
@@ -68,7 +68,7 @@ export function AcademicFields() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   id={`degrees.${index}.gpa`}
-                  label="GPA for this degree"
+                  label="GPA"
                   error={errors.degrees?.[index]?.gpa?.message}
                 >
                   <Input.Root

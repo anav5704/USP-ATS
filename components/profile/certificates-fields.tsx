@@ -5,6 +5,7 @@ import { Input } from "@heroui/react";
 import { AwardIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 import { FileUploadField } from "@/components/profile/file-upload-field";
@@ -93,18 +94,19 @@ export function CertificatesFields() {
                     {...register(`certificates.${index}.url`)}
                   />
                 </FormField>
-                <FormField
-                  id={`certificates.${index}.uploadedAt`}
-                  label="Date obtained"
-                  error={errors.certificates?.[index]?.uploadedAt?.message}
-                >
-                  <Input.Root
-                    id={`certificates.${index}.uploadedAt`}
-                    type="date"
-                    fullWidth
-                    {...register(`certificates.${index}.uploadedAt`)}
-                  />
-                </FormField>
+                <Controller
+                  name={`certificates.${index}.uploadedAt`}
+                  control={control}
+                  render={({ field }) => (
+                    <DatePickerField
+                      label="Date obtained"
+                      id={`certificates.${index}.uploadedAt`}
+                      value={field.value}
+                      error={errors.certificates?.[index]?.uploadedAt?.message}
+                      onChange={field.onChange}
+                    />
+                  )}
+                />
               </div>
               <Controller
                 name={`certificates.${index}.file`}

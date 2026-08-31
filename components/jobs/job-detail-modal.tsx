@@ -121,7 +121,7 @@ export function JobDetailModal({
           {job.degree.length > 0 ? (
             <div className="space-y-2">
               <p className="text-sm font-medium text-foreground">
-                Degree requirements
+                Qualification requirements
               </p>
               <RequirementChips items={job.degree} />
             </div>
@@ -139,7 +139,7 @@ export function JobDetailModal({
         <Button.Root
           variant="ghost"
           onPress={() => onOpenChange(false)}
-          className="text-muted"
+          className="rounded-field text-muted"
         >
           Close
         </Button.Root>

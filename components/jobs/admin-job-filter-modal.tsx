@@ -105,12 +105,12 @@ export function AdminJobFilterModal({
             </FormField>
           </div>
 
-          <FormField label="Degree">
+          <FormField label="Qualification">
             <MultiAutocomplete
               value={degrees}
               optionGroups={USP_DEGREES}
-              placeholder="All degrees"
-              searchPlaceholder="Search degrees"
+              placeholder="All qualifications"
+              searchPlaceholder="Search qualifications"
               onChange={setDegrees}
             />
           </FormField>

@@ -34,7 +34,7 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Each degree with its GPA and a transcript or degree upload.",
+    description: "Each qualification with its GPA and a transcript or qualification upload.",
     icon: BookOpenIcon,
     optional: false,
     fields: ["degrees"],

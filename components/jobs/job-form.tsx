@@ -214,8 +214,8 @@ export function JobForm({
                   <JobMultipleAutocomplete
                     value={field.value}
                     options={USP_CAMPUSES_CENTRES}
-                    placeholder="Select one or more campuses or centres"
-                    searchPlaceholder="Search campuses and centres"
+                    placeholder="Select campus or centre"
+                    searchPlaceholder="Search campus or centre"
                     onChange={field.onChange}
                   />
                 )}
@@ -264,7 +264,7 @@ export function JobForm({
             </FormField>
           </div>
 
-          <FormField label="Degree requirement (optional)" error={errors.degree?.message}>
+          <FormField label="Qualification requirement (optional)" error={errors.degree?.message}>
             <Controller
               name="degree"
               control={control}
@@ -272,8 +272,8 @@ export function JobForm({
                 <JobMultipleAutocomplete
                   value={field.value}
                   optionGroups={USP_DEGREES}
-                  placeholder="Select one or more degrees"
-                  searchPlaceholder="Search degrees"
+                  placeholder="Select one or more qualifications"
+                  searchPlaceholder="Search qualifications"
                   onChange={field.onChange}
                 />
               )}

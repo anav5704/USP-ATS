@@ -214,7 +214,7 @@ export function JobFeed() {
                 onJobPress={setSelectedJob}
               />
               <JobFeedSection
-                title="Opportunities Matching Your Degree"
+                title="Opportunities Matching Your Qualification"
                 jobs={degreeMatchedJobs}
                 onJobPress={setSelectedJob}
               />
