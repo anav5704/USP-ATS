@@ -47,8 +47,15 @@ export function AdminJobFilterModal({
   const [degrees, setDegrees] = useState(filters.degrees);
   const [skills, setSkills] = useState(filters.skills);
   const [status, setStatus] = useState(filters.status);
+  const [gpaError, setGpaError] = useState("");
 
   const applyFilters = () => {
+    const gpaValue = gpaMin === "" ? null : Number(gpaMin);
+    if (gpaValue !== null && (Number.isNaN(gpaValue) || gpaValue < 0 || gpaValue > 4.5)) {
+      setGpaError("GPA Required must be between 0 and 4.5");
+      return;
+    }
+    setGpaError("");
     onApply({ jobType, campuses, gpaMin, degrees, skills, status });
     onOpenChange(false);
   };
@@ -60,6 +67,7 @@ export function AdminJobFilterModal({
     setDegrees([]);
     setSkills([]);
     setStatus("");
+    setGpaError("");
   };
 
   return (
@@ -90,6 +98,7 @@ export function AdminJobFilterModal({
             <FormField
               id="gpaMin"
               label="GPA Required"
+              error={gpaError}
             >
               <Input.Root
                 id="gpaMin"
@@ -100,7 +109,10 @@ export function AdminJobFilterModal({
                 fullWidth
                 placeholder="e.g. 3.0"
                 value={gpaMin}
-                onChange={(event) => setGpaMin(event.target.value)}
+                onChange={(event) => {
+                  setGpaMin(event.target.value);
+                  if (gpaError) setGpaError("");
+                }}
               />
             </FormField>
           </div>
