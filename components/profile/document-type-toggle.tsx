@@ -5,7 +5,7 @@ import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 
-const DOCUMENT_TYPE_OPTIONS = ["Transcript", "Qualification"] as const;
+const DOCUMENT_TYPE_OPTIONS = ["Transcript", "Degree"] as const;
 
 export function DocumentTypeField({ index }: { index: number }) {
   const {
@@ -23,12 +23,12 @@ export function DocumentTypeField({ index }: { index: number }) {
         control={control}
         render={({ field }) => (
           <JobSingleAutocomplete
-            value={field.value === "degree" ? "Qualification" : "Transcript"}
+            value={field.value === "degree" ? "Degree" : "Transcript"}
             options={DOCUMENT_TYPE_OPTIONS}
             placeholder="Select document type"
             searchPlaceholder="Search document types"
             onChange={(label) =>
-              field.onChange(label === "Qualification" ? "degree" : "transcript")
+              field.onChange(label === "Degree" ? "degree" : "transcript")
             }
           />
         )}

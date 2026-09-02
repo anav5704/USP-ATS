@@ -9,6 +9,8 @@ import { FileUploadField } from "@/components/profile/file-upload-field";
 import { DocumentTypeField } from "@/components/profile/document-type-toggle";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
+import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
+import { USP_DEGREES } from "@/lib/usp-degrees";
 
 export function AcademicFields() {
   const {
@@ -58,11 +60,18 @@ export function AcademicFields() {
                 label="Qualification title"
                 error={errors.degrees?.[index]?.name?.message}
               >
-                <Input.Root
-                  id={`degrees.${index}.name`}
-                  fullWidth
-                  placeholder="e.g. Bachelor of Science (Computer Science)"
-                  {...register(`degrees.${index}.name`)}
+                <Controller
+                  name={`degrees.${index}.name`}
+                  control={control}
+                  render={({ field }) => (
+                    <JobSingleAutocomplete
+                      value={field.value}
+                      optionGroups={USP_DEGREES}
+                      placeholder="Select a qualification"
+                      searchPlaceholder="Search qualifications"
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
               </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
