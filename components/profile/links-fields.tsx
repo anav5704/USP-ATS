@@ -8,11 +8,6 @@ import { FormField } from "@/components/ui/form-field";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 
-const PLATFORM_PLACEHOLDERS: Record<string, string> = {
-  linkedin: "https://www.linkedin.com/in/username",
-  github: "https://github.com/username",
-};
-
 export function LinksFields() {
   const {
     register,
@@ -24,15 +19,16 @@ export function LinksFields() {
   const project = useFieldArray({ control, name: "projectLinks" });
 
   return (
-    <div className="space-y-4">
+    <div className="flex h-[60vh] min-h-0 flex-col gap-4">
       <RepeaterSection
         icon={Link2Icon}
         title="Social links"
         addLabel="Add link"
+        fill
         onAdd={() => social.append({ platform: "", url: "" })}
       >
         {social.fields.length === 0 ? (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted">
             No social links yet. Add your LinkedIn, GitHub or other profiles.
           </p>
         ) : (
@@ -72,22 +68,17 @@ export function LinksFields() {
             </RepeaterItem>
           ))
         )}
-        {social.fields.length > 0 ? (
-          <p className="text-xs text-zinc-500">
-            Tip: use the URL formats:{" "}
-            {Object.values(PLATFORM_PLACEHOLDERS).join(" · ")}
-          </p>
-        ) : null}
       </RepeaterSection>
 
       <RepeaterSection
         icon={Link2Icon}
         title="Project links"
         addLabel="Add link"
+        fill
         onAdd={() => project.append({ title: "", url: "" })}
       >
         {project.fields.length === 0 ? (
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-muted">
             No project links yet. Share a portfolio, repo, or demo.
           </p>
         ) : (

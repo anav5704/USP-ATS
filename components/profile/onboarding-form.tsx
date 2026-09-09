@@ -16,7 +16,10 @@ import {
 } from "@/lib/profile/profile-schema";
 import { PROFILE_SECTIONS } from "@/components/profile/profile-sections";
 import { ProfileStepper } from "@/components/profile/profile-stepper";
-import { GeneralFields, type GeneralUser } from "@/components/profile/general-fields";
+import {
+  GeneralFields,
+  type GeneralUser,
+} from "@/components/profile/general-fields";
 import { AcademicFields } from "@/components/profile/academic-fields";
 import { CertificatesFields } from "@/components/profile/certificates-fields";
 import { LinksFields } from "@/components/profile/links-fields";
@@ -40,11 +43,7 @@ const EMPTY_PROFILE: ProfileInput = {
   projectLinks: [],
 };
 
-const SECTION_COMPONENTS = [
-  AcademicFields,
-  CertificatesFields,
-  LinksFields,
-];
+const SECTION_COMPONENTS = [AcademicFields, CertificatesFields, LinksFields];
 
 export function OnboardingForm({
   user,
@@ -104,7 +103,12 @@ export function OnboardingForm({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={onSubmit} onKeyDown={handleKeyDown} noValidate className="space-y-6">
+      <form
+        onSubmit={onSubmit}
+        onKeyDown={handleKeyDown}
+        noValidate
+        className="space-y-6"
+      >
         <div className="min-w-0 space-y-4">
           <ProfileStepper
             currentIndex={currentIndex}
@@ -123,7 +127,7 @@ export function OnboardingForm({
             variant="ghost"
             isDisabled={currentIndex === 0 || isPending}
             onPress={goBack}
-            className="text-zinc-600"
+            className="rounded-field text-muted"
           >
             <ArrowLeftIcon className="size-4" />
             Back
@@ -137,7 +141,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={() => void form.handleSubmit(handleSave)()}
-                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
               >
                 {isPending ? (
                   <LoaderCircleIcon className="size-4 animate-spin" />
@@ -151,7 +155,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={advance}
-                className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
               >
                 Next
                 <ChevronRightIcon className="size-4" />

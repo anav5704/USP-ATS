@@ -1,4 +1,4 @@
-export const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+export const MAX_UPLOAD_SIZE = 1 * 1024 * 1024;
 export const MAX_UPLOAD_COUNT = 20;
 
 export const ALLOWED_UPLOAD_MIME_TYPES = [
@@ -40,7 +40,7 @@ export function fileExtensionFor(mimeType: string) {
   return UPLOAD_EXTENSIONS[mimeType] ?? null;
 }
 
-const FORMATTED_MAX = "10 MB";
+const FORMATTED_MAX = "1 MB";
 
 export function validateUploadFile(info: UploadFileInfo): UploadValidation {
   if (!info.name.trim()) {

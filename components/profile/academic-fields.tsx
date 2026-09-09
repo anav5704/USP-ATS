@@ -9,6 +9,8 @@ import { FileUploadField } from "@/components/profile/file-upload-field";
 import { DocumentTypeField } from "@/components/profile/document-type-toggle";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
+import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
+import { USP_DEGREES } from "@/lib/usp-degrees";
 
 export function AcademicFields() {
   const {
@@ -35,19 +37,19 @@ export function AcademicFields() {
   return (
     <RepeaterSection
       icon={GraduationCapIcon}
-      title="Degrees"
-      addLabel="Add degree"
+      title="Qualifications"
+      addLabel="Add qualification"
       onAdd={addDegree}
     >
       {fields.length === 0 ? (
-        <p className="text-sm text-zinc-500">
-          No degrees yet. Add the degrees you are studying or have completed.
+        <p className="text-sm text-muted">
+          No qualifications yet. Add the qualifications you are studying or have completed.
         </p>
       ) : (
         fields.map((field, index) => (
           <RepeaterItem
             key={field.id}
-            title="Degree"
+            title="Qualification"
             index={index}
             canRemove={fields.length > 1}
             onRemove={() => remove(index)}
@@ -55,22 +57,28 @@ export function AcademicFields() {
             <div className="space-y-4">
               <FormField
                 id={`degrees.${index}.name`}
-                label="Degree title"
+                label="Qualification title"
                 error={errors.degrees?.[index]?.name?.message}
               >
-                <Input.Root
-                  id={`degrees.${index}.name`}
-                  fullWidth
-                  placeholder="e.g. Bachelor of Science (Computer Science)"
-                  {...register(`degrees.${index}.name`)}
+                <Controller
+                  name={`degrees.${index}.name`}
+                  control={control}
+                  render={({ field }) => (
+                    <JobSingleAutocomplete
+                      value={field.value}
+                      optionGroups={USP_DEGREES}
+                      placeholder="Select a qualification"
+                      searchPlaceholder="Search qualifications"
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
               </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   id={`degrees.${index}.gpa`}
-                  label="GPA for this degree"
+                  label="GPA"
                   error={errors.degrees?.[index]?.gpa?.message}
-                  hint="Out of 4.5, up to 2 decimal places"
                 >
                   <Input.Root
                     id={`degrees.${index}.gpa`}
@@ -97,7 +105,6 @@ export function AcademicFields() {
                     label="Transcript or degree"
                     value={field.value}
                     error={errors.degrees?.[index]?.document?.message}
-                    hint="Required. PDF preferred, max 10 MB."
                     onChange={field.onChange}
                   />
                 )}

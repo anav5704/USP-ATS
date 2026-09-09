@@ -27,34 +27,34 @@ function SignInForm() {
 
   if (isPending) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100">
-        <Spinner.Root size="lg" className="text-white" />
+      <div className="bg-primary-gradient flex flex-1 items-center justify-center">
+        <Spinner.Root size="lg" className="text-foreground" />
       </div>
     );
   }
 
   if (session) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100">
-        <Spinner.Root size="lg" className="text-white" />
+      <div className="bg-primary-gradient flex flex-1 items-center justify-center">
+        <Spinner.Root size="lg" className="text-foreground" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-100">
-        <main className="w-full max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm">
-          <h1 className="text-xl font-semibold tracking-tight text-black">
+      <div className="bg-primary-gradient flex flex-1 items-center justify-center p-6">
+        <main className="w-full max-w-sm rounded-2xl bg-surface p-8 text-center shadow-overlay">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Sign in failed
           </h1>
-          <p className="mt-2 text-sm text-zinc-600">
+          <p className="mt-2 text-sm text-muted">
             We couldn&apos;t complete the sign-in with your Microsoft account. Please try again.
           </p>
           <button
             type="button"
             onClick={() => signInWithMicrosoft(returnTo)}
-            className="mt-6 w-full rounded-field bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+            className="mt-6 w-full rounded-field bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
           >
             Try Again
           </button>
@@ -64,8 +64,8 @@ function SignInForm() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-zinc-100">
-      <Spinner.Root size="lg" className="text-white" />
+    <div className="bg-primary-gradient flex flex-1 items-center justify-center">
+      <Spinner.Root size="lg" className="text-foreground" />
     </div>
   );
 }
@@ -74,8 +74,8 @@ export default function SignInPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex flex-1 items-center justify-center bg-zinc-100">
-          <Spinner.Root size="lg" className="text-white" />
+        <div className="bg-primary-gradient flex flex-1 items-center justify-center">
+          <Spinner.Root size="lg" className="text-foreground" />
         </div>
       }
     >

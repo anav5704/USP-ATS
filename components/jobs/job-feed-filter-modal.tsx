@@ -42,8 +42,15 @@ export function JobFeedFilterModal({
   const [gpaMin, setGpaMin] = useState(filters.gpaMin);
   const [degrees, setDegrees] = useState(filters.degrees);
   const [skills, setSkills] = useState(filters.skills);
+  const [gpaError, setGpaError] = useState("");
 
   const applyFilters = () => {
+    const gpaValue = gpaMin === "" ? null : Number(gpaMin);
+    if (gpaValue !== null && (Number.isNaN(gpaValue) || gpaValue < 0 || gpaValue > 4.5)) {
+      setGpaError("GPA Required must be between 0 and 4.5");
+      return;
+    }
+    setGpaError("");
     onApply({ jobType, campuses, gpaMin, degrees, skills });
     onOpenChange(false);
   };
@@ -54,6 +61,7 @@ export function JobFeedFilterModal({
     setGpaMin("");
     setDegrees([]);
     setSkills([]);
+    setGpaError("");
   };
 
   return (
@@ -84,6 +92,7 @@ export function JobFeedFilterModal({
             <FormField
               id="gpaMin"
               label="GPA Required"
+              error={gpaError}
             >
               <Input.Root
                 id="gpaMin"
@@ -94,17 +103,20 @@ export function JobFeedFilterModal({
                 fullWidth
                 placeholder="e.g. 3.0"
                 value={gpaMin}
-                onChange={(event) => setGpaMin(event.target.value)}
+                onChange={(event) => {
+                  setGpaMin(event.target.value);
+                  if (gpaError) setGpaError("");
+                }}
               />
             </FormField>
           </div>
 
-          <FormField label="Degree">
+          <FormField label="Qualification">
             <MultiAutocomplete
               value={degrees}
               optionGroups={USP_DEGREES}
-              placeholder="All degrees"
-              searchPlaceholder="Search degrees"
+              placeholder="All qualifications"
+              searchPlaceholder="Search qualifications"
               onChange={setDegrees}
             />
           </FormField>
@@ -128,7 +140,7 @@ export function JobFeedFilterModal({
             type="button"
             variant="ghost"
             onPress={clearAll}
-            className="text-zinc-600"
+            className="rounded-field text-muted"
           >
             <Trash2Icon className="size-4" />
             Clear All
@@ -138,14 +150,14 @@ export function JobFeedFilterModal({
               type="button"
               variant="ghost"
               onPress={() => onOpenChange(false)}
-              className="text-zinc-600"
+              className="rounded-field text-muted"
             >
               Cancel
             </Button.Root>
             <Button.Root
               type="button"
               onPress={applyFilters}
-              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
             >
               Apply Filters
             </Button.Root>

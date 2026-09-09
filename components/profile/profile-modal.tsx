@@ -75,7 +75,7 @@ export function ProfileModal({
               type="button"
               variant="ghost"
               onPress={() => onOpenChange(false)}
-              className="text-zinc-600"
+              className="text-muted"
             >
               Close
             </Button.Root>

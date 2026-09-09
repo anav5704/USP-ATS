@@ -5,6 +5,7 @@ import { Input } from "@heroui/react";
 import { AwardIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { RepeaterItem } from "@/components/profile/repeater-item";
 import { RepeaterSection } from "@/components/profile/repeater-section";
 import { FileUploadField } from "@/components/profile/file-upload-field";
@@ -32,6 +33,7 @@ export function CertificatesFields() {
       icon={AwardIcon}
       title="Certificates"
       addLabel="Add certificate"
+      fixed
       onAdd={() =>
         append({
           label: "",
@@ -43,7 +45,7 @@ export function CertificatesFields() {
       }
     >
       {fields.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted">
           No certificates yet. Add one to show your achievements.
         </p>
       ) : (
@@ -79,45 +81,45 @@ export function CertificatesFields() {
                   {...register(`certificates.${index}.organization`)}
                 />
               </FormField>
-              <FormField
-                id={`certificates.${index}.url`}
-                label="Credential URL (optional)"
-                error={errors.certificates?.[index]?.url?.message}
-              >
-                <Input.Root
-                  id={`certificates.${index}.url`}
-                  fullWidth
-                  placeholder="https://..."
-                  {...register(`certificates.${index}.url`)}
-                />
-              </FormField>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
-                  id={`certificates.${index}.uploadedAt`}
-                  label="Date obtained"
-                  error={errors.certificates?.[index]?.uploadedAt?.message}
+                  id={`certificates.${index}.url`}
+                  label="Credential URL (optional)"
+                  error={errors.certificates?.[index]?.url?.message}
                 >
                   <Input.Root
-                    id={`certificates.${index}.uploadedAt`}
-                    type="date"
+                    id={`certificates.${index}.url`}
                     fullWidth
-                    {...register(`certificates.${index}.uploadedAt`)}
+                    placeholder="https://..."
+                    {...register(`certificates.${index}.url`)}
                   />
                 </FormField>
                 <Controller
-                  name={`certificates.${index}.file`}
+                  name={`certificates.${index}.uploadedAt`}
                   control={control}
                   render={({ field }) => (
-                    <FileUploadField
-                      label="Certificate file"
+                    <DatePickerField
+                      label="Date obtained"
+                      id={`certificates.${index}.uploadedAt`}
                       value={field.value}
-                      error={errors.certificates?.[index]?.file?.message}
-                      hint="PDF or image, max 10 MB"
+                      error={errors.certificates?.[index]?.uploadedAt?.message}
                       onChange={field.onChange}
                     />
                   )}
                 />
               </div>
+              <Controller
+                name={`certificates.${index}.file`}
+                control={control}
+                render={({ field }) => (
+                  <FileUploadField
+                    label="Certificate file"
+                    value={field.value}
+                    error={errors.certificates?.[index]?.file?.message}
+                    onChange={field.onChange}
+                  />
+                )}
+              />
             </div>
           </RepeaterItem>
         ))

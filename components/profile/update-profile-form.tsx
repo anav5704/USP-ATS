@@ -83,45 +83,41 @@ export function UpdateProfileForm({
     <FormProvider {...form}>
       <form onSubmit={onSubmit} noValidate className="mt-5 flex min-h-0 flex-1 flex-col">
         <Modal.Body>
-          <div className="min-w-0">
-            <div className="space-y-4">
-              <Tabs.Root
-                selectedKey={selectedTab}
-                onSelectionChange={(key) => {
-                  if (typeof key === "string") {
-                    setSelectedTab(key as SectionId);
-                  }
-                }}
-              >
-                <Tabs.ListContainer>
-                  <Tabs.List className="w-full">
-                    {PROFILE_SECTIONS.map((section) => (
-                      <Tabs.Tab
-                        key={section.id}
-                        id={section.id}
-                        className="gap-2 data-selected:bg-white data-selected:text-zinc-900"
-                      >
-                        <section.icon className="size-4 shrink-0" />
-                        {section.shortLabel}
-                      </Tabs.Tab>
-                    ))}
-                  </Tabs.List>
-                </Tabs.ListContainer>
-                {PROFILE_SECTIONS.map((section) => {
-                  const Fields = SECTION_COMPONENTS[section.id];
-                  return (
-                    <Tabs.Panel key={section.id} id={section.id}>
-                      {section.id === "general" ? (
-                        <GeneralFields user={user} />
-                      ) : (
-                        <Fields />
-                      )}
-                    </Tabs.Panel>
-                  );
-                })}
-              </Tabs.Root>
-            </div>
-          </div>
+          <Tabs.Root
+            selectedKey={selectedTab}
+            onSelectionChange={(key) => {
+              if (typeof key === "string") {
+                setSelectedTab(key as SectionId);
+              }
+            }}
+          >
+            <Tabs.ListContainer className="sticky top-0 z-10 rounded-field bg-background">
+              <Tabs.List className="w-full">
+                {PROFILE_SECTIONS.map((section) => (
+                  <Tabs.Tab
+                    key={section.id}
+                    id={section.id}
+                    className="gap-2 rounded-field data-selected:bg-surface data-selected:text-foreground"
+                  >
+                    <section.icon className="size-4 shrink-0" />
+                    {section.shortLabel}
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+            </Tabs.ListContainer>
+            {PROFILE_SECTIONS.map((section) => {
+              const Fields = SECTION_COMPONENTS[section.id];
+              return (
+                <Tabs.Panel key={section.id} id={section.id}>
+                  {section.id === "general" ? (
+                    <GeneralFields user={user} />
+                  ) : (
+                    <Fields />
+                  )}
+                </Tabs.Panel>
+              );
+            })}
+          </Tabs.Root>
         </Modal.Body>
         <Modal.Footer>
           <div className="flex w-full items-center justify-end gap-3">
@@ -129,7 +125,7 @@ export function UpdateProfileForm({
               type="button"
               isDisabled={isPending}
               onPress={() => void handleSaveClick()}
-              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />

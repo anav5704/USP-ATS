@@ -39,8 +39,8 @@ function Fact({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon className="size-4 shrink-0 text-zinc-500" />
-      <span className="text-sm text-zinc-600" title={title}>
+      <Icon className="size-4 shrink-0 text-muted" />
+      <span className="text-sm text-muted" title={title}>
         {label}
       </span>
     </div>
@@ -69,13 +69,13 @@ export function JobDetailModal({
       <Modal.Body>
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white">
+            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
               {job.jobType}
             </span>
-            <span className="text-sm text-zinc-500">{job.department}</span>
+            <span className="text-sm text-muted">{job.department}</span>
           </div>
 
-          <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-600">
+          <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
             {job.description}
           </p>
 
@@ -112,16 +112,16 @@ export function JobDetailModal({
           ) : null}
 
           {job.benefit ? (
-            <p className="text-sm text-zinc-600">
-              <span className="font-medium text-zinc-900">Benefit or perk:</span>{" "}
+            <p className="text-sm text-muted">
+              <span className="font-medium text-foreground">Benefit or perk:</span>{" "}
               {job.benefit}
             </p>
           ) : null}
 
           {job.degree.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-zinc-900">
-                Degree requirements
+              <p className="text-sm font-medium text-foreground">
+                Qualification requirements
               </p>
               <RequirementChips items={job.degree} />
             </div>
@@ -129,7 +129,7 @@ export function JobDetailModal({
 
           {job.skills.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-zinc-900">Skills</p>
+              <p className="text-sm font-medium text-foreground">Skills</p>
               <RequirementChips items={job.skills} />
             </div>
           ) : null}
@@ -139,7 +139,7 @@ export function JobDetailModal({
         <Button.Root
           variant="ghost"
           onPress={() => onOpenChange(false)}
-          className="text-zinc-600"
+          className="rounded-field text-muted"
         >
           Close
         </Button.Root>

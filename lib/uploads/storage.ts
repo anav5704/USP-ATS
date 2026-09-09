@@ -1,15 +1,18 @@
-import { mkdir, readdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { isSafeStoredName } from "@/lib/profile/upload";
+import { R2_BUCKET, R2_PUBLIC_URL, r2 } from "./r2";
 
-export const UPLOADS_ROOT = path.join(process.cwd(), "uploads");
-
-export function userUploadDir(userId: string) {
-  return path.join(UPLOADS_ROOT, "profiles", userId);
+function objectKey(userId: string, storedName: string) {
+  return `profiles/${userId}/${storedName}`;
 }
 
-export function storedFilePath(userId: string, storedName: string) {
-  return path.join(userUploadDir(userId), storedName);
+export function getPublicUrl(userId: string, storedName: string) {
+  return `${R2_PUBLIC_URL}/${objectKey(userId, storedName)}`;
 }
 
 export async function saveUploadFile({
@@ -24,27 +27,35 @@ export async function saveUploadFile({
   if (!isSafeStoredName(storedName)) {
     throw new Error("Invalid stored file name");
   }
-  const dir = userUploadDir(userId);
-  await mkdir(dir, { recursive: true });
-  await writeFile(storedFilePath(userId, storedName), buffer);
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: objectKey(userId, storedName),
+      Body: buffer,
+    })
+  );
 }
 
 export async function deleteStoredFile(userId: string, storedName: string) {
   if (!isSafeStoredName(storedName)) return;
-  try {
-    await unlink(storedFilePath(userId, storedName));
-  } catch {
-    // file already gone
-  }
+  await r2.send(
+    new DeleteObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: objectKey(userId, storedName),
+    })
+  );
 }
 
 export async function readStoredFile(userId: string, storedName: string) {
   if (!isSafeStoredName(storedName)) return null;
-  const filePath = storedFilePath(userId, storedName);
   try {
-    return await import("node:fs/promises").then(({ readFile }) =>
-      readFile(filePath)
+    const res = await r2.send(
+      new GetObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: objectKey(userId, storedName),
+      })
     );
+    return res.Body;
   } catch {
     return null;
   }
@@ -52,8 +63,19 @@ export async function readStoredFile(userId: string, storedName: string) {
 
 export async function listStoredFiles(userId: string): Promise<string[]> {
   try {
-    const entries = await readdir(userUploadDir(userId));
-    return entries.filter(isSafeStoredName);
+    const res = await r2.send(
+      new ListObjectsV2Command({
+        Bucket: R2_BUCKET,
+        Prefix: `profiles/${userId}/`,
+      })
+    );
+    return (res.Contents ?? [])
+      .map((obj) => {
+        const key = obj.Key ?? "";
+        const name = key.split("/").pop() ?? "";
+        return name;
+      })
+      .filter(isSafeStoredName);
   } catch {
     return [];
   }

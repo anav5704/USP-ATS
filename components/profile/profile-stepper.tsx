@@ -3,7 +3,10 @@
 import { useFormContext } from "react-hook-form";
 import { CheckIcon } from "lucide-react";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
-import { PROFILE_SECTIONS, isSectionComplete } from "@/components/profile/profile-sections";
+import {
+  PROFILE_SECTIONS,
+  isSectionComplete,
+} from "@/components/profile/profile-sections";
 
 export function ProfileStepper({
   currentIndex,
@@ -21,23 +24,19 @@ export function ProfileStepper({
     isSectionComplete(section, values, formState.errors)
   );
 
-  const requiredSections = PROFILE_SECTIONS.filter((section) => !section.optional);
   const completedRequired = PROFILE_SECTIONS.filter(
-    (section) =>
-      !section.optional &&
-      complete[PROFILE_SECTIONS.indexOf(section)]
+    (s) => !s.optional && complete[PROFILE_SECTIONS.indexOf(s)]
   ).length;
-  const percent = Math.round(
-    (completedRequired / requiredSections.length) * 100
-  );
+  const requiredCount = PROFILE_SECTIONS.filter((s) => !s.optional).length;
+  const percent = Math.round((completedRequired / requiredCount) * 100);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-5">
+    <section className="rounded-2xl border border-border bg-surface p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-sm font-semibold text-zinc-900">
+        <h2 className="text-sm font-semibold text-foreground">
           Profile progress
         </h2>
-        <span className="text-sm font-medium tabular-nums text-zinc-700">
+        <span className="text-sm font-medium tabular-nums text-muted">
           {percent}%
         </span>
       </div>
@@ -45,6 +44,7 @@ export function ProfileStepper({
       <ol className="flex items-start gap-0">
         {PROFILE_SECTIONS.map((section, index) => {
           const isComplete = complete[index];
+          const isChecked = isComplete && index <= currentIndex;
           const isCurrent = index === currentIndex;
           const isVisited = index <= maxVisitedIndex;
           const isClickable = isVisited && !!onStepClick;
@@ -56,9 +56,7 @@ export function ProfileStepper({
                 <span
                   aria-hidden="true"
                   className={`absolute h-0.5 w-full ${
-                    connectorDone
-                      ? "bg-emerald-400"
-                      : "bg-zinc-200"
+                    connectorDone ? "bg-primary-bright" : "bg-border"
                   }`}
                   style={{ left: "-50%", top: "15px" }}
                 />
@@ -69,17 +67,19 @@ export function ProfileStepper({
                   type="button"
                   disabled={!isClickable}
                   aria-current={isCurrent ? "step" : undefined}
-                  aria-label={`${section.label}${isComplete ? " (complete)" : ""}`}
+                  aria-label={`${section.label}${
+                    isChecked ? " (complete)" : ""
+                  }`}
                   onClick={() => isClickable && onStepClick?.(index)}
-                  className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-default ${
-                    isComplete
-                      ? "border-emerald-500 bg-emerald-500 text-white"
+                  className={`relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-bright focus-visible:ring-offset-2 disabled:cursor-default ${
+                    isChecked
+                      ? "border-transparent bg-primary-gradient text-background"
                       : isCurrent
-                        ? "border-zinc-900 bg-zinc-900 text-white"
-                        : "border-zinc-200 bg-zinc-100 text-zinc-400"
+                        ? "border-foreground bg-foreground text-background"
+                        : "border-border bg-surface-secondary text-muted"
                   }`}
                 >
-                  {isComplete ? (
+                  {isChecked ? (
                     <CheckIcon className="size-4" />
                   ) : (
                     <span>{index + 1}</span>
@@ -87,11 +87,7 @@ export function ProfileStepper({
                 </button>
                 <span
                   className={`max-w-full truncate px-0.5 text-center text-[11px] font-medium ${
-                    isCurrent
-                      ? "text-zinc-900"
-                      : isComplete
-                        ? "text-zinc-600"
-                        : "text-zinc-400"
+                    isCurrent ? "text-foreground" : "text-muted"
                   }`}
                 >
                   {section.shortLabel}

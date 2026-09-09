@@ -1,15 +1,10 @@
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiMember } from "@/lib/jobs/require-api";
 import { isSafeStoredName } from "@/lib/profile/upload";
-import { deleteStoredFile, readStoredFile } from "@/lib/uploads/storage";
-
-const CONTENT_TYPES: Record<string, string> = {
-  pdf: "application/pdf",
-  png: "image/png",
-  jpg: "image/jpeg",
-  webp: "image/webp",
-};
+import { deleteStoredFile } from "@/lib/uploads/storage";
+import { R2_BUCKET, r2 } from "@/lib/uploads/r2";
 
 async function ownedStoredNames(userId: string) {
   const profile = await prisma.profile.findUnique({
@@ -48,19 +43,25 @@ export async function GET(
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
 
-  const buffer = await readStoredFile(guard.session.user.id, storedName);
-  if (!buffer) {
+  const key = `profiles/${guard.session.user.id}/${storedName}`;
+  try {
+    const res = await r2.send(
+      new GetObjectCommand({ Bucket: R2_BUCKET, Key: key })
+    );
+    if (!res.Body) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+    const stream = res.Body.transformToWebStream();
+    return new NextResponse(stream, {
+      headers: {
+        "Content-Type": res.ContentType ?? "application/octet-stream",
+        "Content-Disposition": `attachment; filename="${storedName}"`,
+        "Cache-Control": "private, no-store",
+      },
+    });
+  } catch {
     return NextResponse.json({ error: "File not found" }, { status: 404 });
   }
-
-  const extension = storedName.split(".").pop() ?? "";
-  return new NextResponse(buffer, {
-    headers: {
-      "Content-Type": CONTENT_TYPES[extension] ?? "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${storedName}"`,
-      "Cache-Control": "private, no-store",
-    },
-  });
 }
 
 export async function DELETE(

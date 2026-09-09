@@ -34,7 +34,7 @@ export const PROFILE_SECTIONS: ProfileSection[] = [
     id: "academic",
     label: "Academic details",
     shortLabel: "Academic",
-    description: "Each degree with its GPA and a transcript or degree upload.",
+    description: "Each qualification with its GPA and a transcript or qualification upload.",
     icon: BookOpenIcon,
     optional: false,
     fields: ["degrees"],
@@ -94,28 +94,9 @@ export function isSectionComplete(
       );
     }
     case "certificates":
-      return (
-        values.certificates.length > 0 &&
-        !errors.certificates &&
-        values.certificates.every(
-          (entry) =>
-            entry.label.trim().length > 0 &&
-            entry.organization.trim().length > 0 &&
-            entry.file !== null
-        )
-      );
+      return true;
     case "links":
-      return (
-        (values.socialLinks.length > 0 || values.projectLinks.length > 0) &&
-        !errors.socialLinks &&
-        !errors.projectLinks &&
-        values.socialLinks.every(
-          (link) => link.platform.trim().length > 0 && link.url.trim().length > 0
-        ) &&
-        values.projectLinks.every(
-          (link) => link.title.trim().length > 0 && link.url.trim().length > 0
-        )
-      );
+      return true;
     default:
       return false;
   }

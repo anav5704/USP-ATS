@@ -1,16 +1,21 @@
 import { Autocomplete } from "@heroui/react";
-import { AutocompleteContent } from "@/components/ui/autocomplete-content";
+import {
+  AutocompleteContent,
+  type OptionGroup,
+} from "@/components/ui/autocomplete-content";
 
 export function JobSingleAutocomplete({
   value,
   options,
+  optionGroups,
   placeholder,
   searchPlaceholder,
   onChange,
   isDisabled = false,
 }: {
   value: string;
-  options: readonly string[];
+  options?: readonly string[];
+  optionGroups?: readonly OptionGroup[];
   placeholder: string;
   searchPlaceholder: string;
   onChange: (value: string) => void;
@@ -28,6 +33,7 @@ export function JobSingleAutocomplete({
     >
       <AutocompleteContent
         options={options}
+        optionGroups={optionGroups}
         searchPlaceholder={searchPlaceholder}
       />
     </Autocomplete>
