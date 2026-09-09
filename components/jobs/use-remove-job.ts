@@ -49,7 +49,7 @@ export function useRemoveJob() {
     },
     onSettled: () => {
       void queryClient.invalidateQueries({
-        queryKey: jobQueryKeys.adminLists(),
+        queryKey: jobQueryKeys.all,
       });
     },
   });

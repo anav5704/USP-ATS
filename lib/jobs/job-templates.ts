@@ -144,7 +144,9 @@ const EMPTY_TEMPLATE_VALUES: JobTemplateDefaults = {
 };
 
 export function getJobTemplate(title: string): JobTemplateDefaults | undefined {
-  return JOB_TEMPLATES[title as keyof typeof JOB_TEMPLATES];
+  return Object.hasOwn(JOB_TEMPLATES, title)
+    ? JOB_TEMPLATES[title as keyof typeof JOB_TEMPLATES]
+    : undefined;
 }
 
 function valuesMatch(current: JobInput[JobTemplateField], previous: JobInput[JobTemplateField] | undefined) {
@@ -184,7 +186,7 @@ export function getJobTemplateTransition(
     const current = currentValues[field];
     const previous = previousTemplateValues[field];
     const unchangedFromPrevious = previous !== undefined && valuesMatch(current, previous);
-    if (nextTemplate && (isEmpty(current) || unchangedFromPrevious)) {
+    if (nextTemplate && (field === "jobType" || isEmpty(current) || unchangedFromPrevious)) {
       Object.assign(updates, { [field]: nextTemplate[field] });
       Object.assign(applied, { [field]: nextTemplate[field] });
     } else if (!nextTemplate && unchangedFromPrevious) {

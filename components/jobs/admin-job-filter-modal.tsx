@@ -11,6 +11,7 @@ import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { JOB_TYPES, USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
+import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 
 export const ADMIN_STATUS_OPTIONS = ["Active", "Archived", "Expired"] as const;
 
@@ -47,9 +48,12 @@ export function AdminJobFilterModal({
   const [degrees, setDegrees] = useState(filters.degrees);
   const [skills, setSkills] = useState(filters.skills);
   const [status, setStatus] = useState(filters.status);
+  const gpaValidation = gpaFilterSchema.safeParse(gpaMin);
+  const gpaError = gpaValidation.success ? undefined : gpaValidation.error.issues[0]?.message;
 
   const applyFilters = () => {
-    onApply({ jobType, campuses, gpaMin, degrees, skills, status });
+    if (!gpaValidation.success) return;
+    onApply({ jobType, campuses, gpaMin: gpaValidation.data, degrees, skills, status });
     onOpenChange(false);
   };
 
@@ -90,6 +94,7 @@ export function AdminJobFilterModal({
             <FormField
               id="gpaMin"
               label="GPA Required"
+              error={gpaError}
             >
               <Input.Root
                 id="gpaMin"
@@ -105,12 +110,12 @@ export function AdminJobFilterModal({
             </FormField>
           </div>
 
-          <FormField label="Degree">
+          <FormField label="Qualification">
             <MultiAutocomplete
               value={degrees}
               optionGroups={USP_DEGREES}
-              placeholder="All degrees"
-              searchPlaceholder="Search degrees"
+              placeholder="All qualifications"
+              searchPlaceholder="Search qualifications"
               onChange={setDegrees}
             />
           </FormField>
@@ -144,7 +149,7 @@ export function AdminJobFilterModal({
             type="button"
             variant="ghost"
             onPress={clearAll}
-            className="text-zinc-600"
+            className="rounded-field text-muted"
           >
             <Trash2Icon className="size-4" />
             Clear All
@@ -154,14 +159,14 @@ export function AdminJobFilterModal({
               type="button"
               variant="ghost"
               onPress={() => onOpenChange(false)}
-              className="text-zinc-600"
+              className="rounded-field text-muted"
             >
               Cancel
             </Button.Root>
             <Button.Root
               type="button"
               onPress={applyFilters}
-              className="rounded-field bg-zinc-900 px-5 text-sm font-medium text-white hover:bg-zinc-700"
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
             >
               Apply Filters
             </Button.Root>

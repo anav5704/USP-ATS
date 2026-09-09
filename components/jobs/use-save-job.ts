@@ -17,12 +17,12 @@ export function useSaveJob(mode: "create" | "update", jobId?: string) {
     retry: 0,
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: jobQueryKeys.adminLists(),
+        queryKey: jobQueryKeys.all,
       });
       toast.success(
         mode === "create"
-          ? "Job posting created successfully"
-          : "Job posting updated successfully"
+          ? "Job posting submitted for approval"
+          : "Job posting updated successfully."
       );
     },
     onError: (error) => {

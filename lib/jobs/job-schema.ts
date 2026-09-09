@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getJobTemplate } from "@/lib/jobs/job-templates";
 import {
   JOB_TYPES,
   USP_CAMPUSES_CENTRES,
@@ -16,7 +17,7 @@ function isCalendarDate(value: string) {
   );
 }
 
-export const jobInputSchema = z.object({
+const jobInputFields = z.object({
   title: z
     .string()
     .trim()
@@ -54,7 +55,7 @@ export const jobInputSchema = z.object({
     .max(168, "Weekly hours cannot exceed 168"),
   hourlyPay: z
     .number({ error: "Enter the hourly pay" })
-    .min(0, "Hourly pay must be at least 0")
+    .min(0, "Hourly pay cannot be negative.")
     .max(1000000, "Hourly pay is too large"),
   benefit: z.string().trim().max(500, "Benefit or perk is too long"),
   deadline: z
@@ -63,7 +64,25 @@ export const jobInputSchema = z.object({
     .refine(isCalendarDate, "Enter a valid deadline"),
 });
 
-export type JobInput = z.infer<typeof jobInputSchema>;
+export type JobInput = z.infer<typeof jobInputFields>;
+
+const payValidationFields = jobInputFields.pick({ jobType: true, hourlyPay: true });
+
+export const jobInputSchema = jobInputFields.superRefine((job, ctx) => {
+  const template = getJobTemplate(job.title);
+  if (template && job.jobType !== template.jobType) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["jobType"],
+      message: `Job type must be ${template.jobType} for the selected job title.`,
+    });
+  }
+}).refine((job) => job.jobType === "Volunteer" || job.hourlyPay !== 0, {
+  path: ["hourlyPay"],
+  message: "Hourly pay must be greater than 0 for non-volunteer jobs.",
+  // Unfinished, unrelated fields must not suppress live pay validation.
+  when: ({ value }) => payValidationFields.safeParse(value).success,
+});
 
 export type AdminJobListItem = {
   id: string;
@@ -73,7 +92,7 @@ export type AdminJobListItem = {
   jobType: string;
   campus: string[];
   deadline: string;
-  status: "ACTIVE" | "ARCHIVED";
+  status: "PENDING_APPROVAL" | "ACTIVE" | "REJECTED" | "ARCHIVED";
   applicationCount: number;
   createdAt: string;
   hourlyPay: number;
@@ -82,6 +101,20 @@ export type AdminJobListItem = {
   degree: string[];
   skills: string[];
   hours: number;
+  rejectionReason?: string | null;
+};
+
+export type ApprovalJob = AdminJobListItem & {
+  approvedBy: { name: string; email: string } | null;
+  rejectedBy: { name: string; email: string } | null;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  createdById: string;
+  requestedById: string | null;
+  createdBy: { name: string; email: string };
+  requestedBy: { name: string; email: string } | null;
+  requestedAt: string;
+  revision: number;
 };
 
 export type AdminJobDetail = JobInput & {

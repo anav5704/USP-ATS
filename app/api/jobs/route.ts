@@ -9,6 +9,7 @@ import {
   todayInFiji,
 } from "@/lib/jobs/job-dates";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
+import { pendingReviewData } from "@/lib/jobs/approval-schema";
 
 export async function GET() {
   const guard = await requireApiMember();
@@ -99,8 +100,8 @@ export async function POST(request: NextRequest) {
         hourlyPay: parsed.data.hourlyPay,
         benefit: parsed.data.benefit || null,
         deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
-        status: PostingStatus.ACTIVE,
         createdById: guard.session.user.id,
+        ...pendingReviewData(guard.session.user.id),
       },
     });
 

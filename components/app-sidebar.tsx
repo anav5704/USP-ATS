@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Avatar, Dropdown, Separator } from "@heroui/react";
 import {
+  BellIcon,
+  BookmarkIcon,
   BriefcaseIcon,
   ClipboardListIcon,
+  ClipboardCheckIcon,
+  FileTextIcon,
+  HelpCircleIcon,
   LogOutIcon,
-  MoreVerticalIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
@@ -19,44 +23,67 @@ import { ProfileModal } from "@/components/profile/profile-modal";
 type LucideIcon = React.ComponentType<{ className?: string }>;
 
 type NavItem = {
-  href: string;
+  key: string;
   label: string;
   icon: LucideIcon;
-  isActive: (pathname: string) => boolean;
+  href?: string;
+  onClick?: () => void;
+  isActive?: (pathname: string) => boolean;
 };
 
 const studentNav: NavItem[] = [
   {
+    key: "jobs",
     href: "/jobs",
     label: "Job Feed",
     icon: BriefcaseIcon,
     isActive: (p) => p === "/jobs" || p.startsWith("/jobs/"),
   },
   {
+    key: "applications",
     href: "/applications",
     label: "My Applications",
     icon: ClipboardListIcon,
     isActive: (p) => p.startsWith("/applications"),
   },
+  {
+    key: "saved",
+    label: "Saved Jobs",
+    icon: BookmarkIcon,
+  },
+  {
+    key: "notifications",
+    label: "Notifications",
+    icon: BellIcon,
+  },
 ];
 
 const adminNav: NavItem[] = [
   {
+    key: "postings",
     href: "/",
     label: "Job Postings",
     icon: BriefcaseIcon,
     isActive: (p) => p === "/" || p.startsWith("/admin/jobs/"),
   },
+  {
+    key: "approvals",
+    href: "/approvals",
+    label: "Approvals",
+    icon: ClipboardCheckIcon,
+    isActive: (p) => p === "/approvals",
+  },
+  {
+    key: "applications",
+    label: "Applications",
+    icon: ClipboardListIcon,
+  },
+  {
+    key: "reports",
+    label: "Reports",
+    icon: FileTextIcon,
+  },
 ];
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase())
-    .slice(0, 2)
-    .join("");
-}
 
 export function AppSidebar({
   profile,
@@ -76,77 +103,82 @@ export function AppSidebar({
     router.push("/sign-in");
   };
 
+  const renderItem = ({ href, onClick, label, icon: Icon, isActive }: NavItem) => {
+    const active = isActive?.(pathname) ?? false;
+    const itemClass = `group relative flex w-full cursor-pointer items-center justify-center gap-3 py-2 text-sm font-medium text-white transition-opacity lg:justify-start lg:pl-5 lg:pr-3 ${
+      active ? "opacity-100" : "opacity-60 hover:opacity-100"
+    }`;
+
+    const content = (
+      <>
+        <span
+          className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-white transition-transform lg:block ${
+            active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
+          }`}
+        />
+        <Icon className="size-5 shrink-0" />
+        <span className="hidden lg:block">{label}</span>
+      </>
+    );
+
+    if (href) {
+      return (
+        <Link
+          key={href}
+          href={href}
+          title={label}
+          aria-current={active ? "page" : undefined}
+          className={itemClass}
+        >
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        key={`btn-${label}`}
+        type="button"
+        title={label}
+        onClick={onClick}
+        aria-current={active ? "page" : undefined}
+        className={itemClass}
+      >
+        {content}
+      </button>
+    );
+  };
+
   return (
-    <aside className="sticky top-0 flex h-svh w-72 shrink-0 flex-col border-r border-zinc-200 bg-zinc-50">
-      <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {nav.map(({ href, label, icon: Icon, isActive }) => {
-          const active = isActive(pathname);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-zinc-900 text-white"
-                  : "text-zinc-600 hover:bg-zinc-100"
-              }`}
-            >
-              <Icon className="size-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
+    <aside className="flex h-full w-16 shrink-0 flex-col items-center lg:w-56 2xl:w-64">
+      <Image
+        src="/usp-logo.svg"
+        alt="USP Logo"
+        width={110}
+        height={110}
+        className="mb-7 mt-7 h-8 w-8 md:h-8 md:w-8 lg:h-12 lg:w-12 2xl:h-16 2xl:w-16"
+      />
+      <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
+        {nav.map((item) => renderItem(item))}
       </nav>
-      <Separator.Root className="bg-zinc-200" />
-      <div className="flex items-center gap-3 px-4 py-4">
-        <Avatar.Root size="sm">
-          {user?.image ? (
-            <Avatar.Image src={user.image} alt={user.name ?? "User"} />
-          ) : (
-            <Avatar.Fallback>
-              {getInitials(user?.name ?? "?")}
-            </Avatar.Fallback>
-          )}
-        </Avatar.Root>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-zinc-900">
-            {user?.name ?? "User"}
-          </p>
-          <p className="truncate text-xs capitalize text-zinc-500">
-            {role ?? "No role"}
-          </p>
-        </div>
-        <Dropdown.Root>
-          <Dropdown.Trigger
-            aria-label="Account menu"
-            className="rounded-xl p-1.5 text-zinc-500 transition-colors hover:bg-zinc-100"
-          >
-            <MoreVerticalIcon className="size-4" />
-          </Dropdown.Trigger>
-          <Dropdown.Popover placement="right bottom">
-            <Dropdown.Menu>
-              {role !== "admin" ? (
-                <Dropdown.Item
-                  textValue="Profile"
-                  onAction={() => setProfileOpen(true)}
-                  className="flex items-center gap-2"
-                >
-                  <UserRoundIcon className="size-4" />
-                  Profile
-                </Dropdown.Item>
-              ) : null}
-              <Dropdown.Item
-                textValue="Sign Out"
-                onAction={handleSignOut}
-                className="flex items-center gap-2 text-rose-500 hover:bg-rose-50 hover:text-rose-600"
-              >
-                <LogOutIcon className="size-4" />
-                Sign Out
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown.Popover>
-        </Dropdown.Root>
+      <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
+        {renderItem({
+          key: "help",
+          label: "Help & Support",
+          icon: HelpCircleIcon,
+        })}
+        {renderItem({
+          key: "profile",
+          label: "Profile",
+          icon: UserRoundIcon,
+          onClick: () => setProfileOpen(true),
+        })}
+        {renderItem({
+          key: "signout",
+          label: "Sign Out",
+          icon: LogOutIcon,
+          onClick: () => void handleSignOut(),
+        })}
       </div>
       <ProfileModal
         user={user ?? {}}

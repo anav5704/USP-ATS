@@ -4,6 +4,7 @@ import { jobInputSchema } from "@/lib/jobs/job-schema";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
 import { deadlineAtEndOfFijiDay } from "@/lib/jobs/job-dates";
 import { removeJobPostingById } from "@/lib/jobs/remove-job";
+import { jobEditReviewData } from "@/lib/jobs/approval-schema";
 
 export async function PATCH(
   request: NextRequest,
@@ -27,9 +28,15 @@ export async function PATCH(
   }
 
   try {
+    const current = await prisma.jobPosting.findUnique({ where: { id } });
+    if (!current) {
+      return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
+    }
     const result = await prisma.jobPosting.updateMany({
-      where: { id },
+      where: { id, revision: current.revision, status: current.status },
       data: {
+        ...jobEditReviewData(current.status, guard.session.user.id),
+        revision: { increment: 1 },
         title: parsed.data.title,
         description: parsed.data.description,
         department: parsed.data.department,
@@ -46,7 +53,7 @@ export async function PATCH(
     });
 
     if (result.count === 0) {
-      return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
+      return NextResponse.json({ error: "This posting changed. Refresh and try again." }, { status: 409 });
     }
 
     return NextResponse.json({ success: true });
