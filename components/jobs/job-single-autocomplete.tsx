@@ -11,6 +11,7 @@ export function JobSingleAutocomplete({
   placeholder,
   searchPlaceholder,
   onChange,
+  isDisabled = false,
 }: {
   value: string;
   options?: readonly string[];
@@ -18,10 +19,12 @@ export function JobSingleAutocomplete({
   placeholder: string;
   searchPlaceholder: string;
   onChange: (value: string) => void;
+  isDisabled?: boolean;
 }) {
   return (
     <Autocomplete<object, "single">
       selectionMode="single"
+      isDisabled={isDisabled}
       value={value || null}
       onChange={(next) => onChange(next === null ? "" : String(next))}
       placeholder={placeholder}

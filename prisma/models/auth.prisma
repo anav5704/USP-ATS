@@ -13,6 +13,9 @@ model User {
   accounts      Account[]
   profile       Profile?
   postings      JobPosting[]
+  requestedPostings JobPosting[] @relation("JobRequester")
+  approvedPostings JobPosting[] @relation("JobApprover")
+  rejectedPostings JobPosting[] @relation("JobRejecter")
   applications  Application[]
 
   @@unique([email])

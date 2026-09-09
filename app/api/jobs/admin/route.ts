@@ -9,6 +9,13 @@ export async function GET() {
 
   try {
     const postings = await prisma.jobPosting.findMany({
+      where: { OR: [
+        { status: "ACTIVE" },
+        { status: "ARCHIVED", OR: [
+          { approvedAt: { not: null } },
+          { requestedById: null, rejectedAt: null },
+        ] },
+      ] },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -19,6 +26,7 @@ export async function GET() {
         campus: true,
         deadline: true,
         status: true,
+        rejectionReason: true,
         hourlyPay: true,
         benefit: true,
         createdAt: true,
@@ -40,6 +48,7 @@ export async function GET() {
         campus: posting.campus.map(normalizeCampusCentre),
         deadline: posting.deadline.toISOString(),
         status: posting.status,
+        rejectionReason: posting.rejectionReason,
         hourlyPay: Number(posting.hourlyPay),
         benefit: posting.benefit,
         applicationCount: posting._count.applications,

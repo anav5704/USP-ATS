@@ -9,6 +9,7 @@ import {
   BookmarkIcon,
   BriefcaseIcon,
   ClipboardListIcon,
+  ClipboardCheckIcon,
   FileTextIcon,
   HelpCircleIcon,
   LogOutIcon,
@@ -66,6 +67,13 @@ const adminNav: NavItem[] = [
     isActive: (p) => p === "/" || p.startsWith("/admin/jobs/"),
   },
   {
+    key: "approvals",
+    href: "/approvals",
+    label: "Approvals",
+    icon: ClipboardCheckIcon,
+    isActive: (p) => p === "/approvals",
+  },
+  {
     key: "applications",
     label: "Applications",
     icon: ClipboardListIcon,
@@ -118,6 +126,7 @@ export function AppSidebar({
         <Link
           key={href}
           href={href}
+          title={label}
           aria-current={active ? "page" : undefined}
           className={itemClass}
         >
@@ -130,6 +139,7 @@ export function AppSidebar({
       <button
         key={`btn-${label}`}
         type="button"
+        title={label}
         onClick={onClick}
         aria-current={active ? "page" : undefined}
         className={itemClass}

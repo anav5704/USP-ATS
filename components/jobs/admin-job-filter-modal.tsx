@@ -11,6 +11,7 @@ import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import { JOB_TYPES, USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
+import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 
 export const ADMIN_STATUS_OPTIONS = ["Active", "Archived", "Expired"] as const;
 
@@ -47,16 +48,12 @@ export function AdminJobFilterModal({
   const [degrees, setDegrees] = useState(filters.degrees);
   const [skills, setSkills] = useState(filters.skills);
   const [status, setStatus] = useState(filters.status);
-  const [gpaError, setGpaError] = useState("");
+  const gpaValidation = gpaFilterSchema.safeParse(gpaMin);
+  const gpaError = gpaValidation.success ? undefined : gpaValidation.error.issues[0]?.message;
 
   const applyFilters = () => {
-    const gpaValue = gpaMin === "" ? null : Number(gpaMin);
-    if (gpaValue !== null && (Number.isNaN(gpaValue) || gpaValue < 0 || gpaValue > 4.5)) {
-      setGpaError("GPA Required must be between 0 and 4.5");
-      return;
-    }
-    setGpaError("");
-    onApply({ jobType, campuses, gpaMin, degrees, skills, status });
+    if (!gpaValidation.success) return;
+    onApply({ jobType, campuses, gpaMin: gpaValidation.data, degrees, skills, status });
     onOpenChange(false);
   };
 
@@ -67,7 +64,6 @@ export function AdminJobFilterModal({
     setDegrees([]);
     setSkills([]);
     setStatus("");
-    setGpaError("");
   };
 
   return (
@@ -109,10 +105,7 @@ export function AdminJobFilterModal({
                 fullWidth
                 placeholder="e.g. 3.0"
                 value={gpaMin}
-                onChange={(event) => {
-                  setGpaMin(event.target.value);
-                  if (gpaError) setGpaError("");
-                }}
+                onChange={(event) => setGpaMin(event.target.value)}
               />
             </FormField>
           </div>

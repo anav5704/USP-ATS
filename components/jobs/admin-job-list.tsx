@@ -24,6 +24,8 @@ import {
   type AdminJobFilters,
 } from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
+import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
+import { JobStatusBadge, JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
 import {
   JOB_DATE_TIME_ZONE,
   deadlineRemainingLabel,
@@ -105,9 +107,9 @@ export function AdminJobList() {
         filters.status === "" ||
         (filters.status === "Active"
           ? job.status === "ACTIVE" && !expired
-          : filters.status === "Archived"
-            ? job.status === "ARCHIVED"
-            : expired);
+          : filters.status === "Expired"
+            ? expired
+            : JOB_STATUS_LABELS[job.status] === filters.status);
 
       return (
         matchesSearch &&
@@ -253,31 +255,10 @@ export function AdminJobList() {
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        {(() => {
-                          const isExpired =
-                            job.status === "ACTIVE" &&
-                            deadlineRemainingLabel(
-                              new Date(job.deadline),
-                            ).expired;
-                          const label = isExpired
-                            ? "Expired"
-                            : job.status === "ACTIVE"
-                              ? "Active"
-                              : "Archived";
-                          return (
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                                isExpired
-                                  ? "bg-warning-soft text-warning-soft-foreground"
-                                  : job.status === "ACTIVE"
-                                    ? "bg-success-soft text-success-soft-foreground"
-                                    : "bg-surface-secondary text-foreground"
-                              }`}
-                            >
-                              {label}
-                            </span>
-                          );
-                        })()}
+                        <JobStatusBadge status={job.status} expired={jobIsExpired(job)} />
+                        {job.status === "REJECTED" && job.rejectionReason ? (
+                          <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
+                        ) : null}
                       </Table.Cell>
                       <Table.Cell>{job.applicationCount}</Table.Cell>
                       <Table.Cell>
@@ -298,7 +279,7 @@ export function AdminJobList() {
                                 <PencilIcon className="size-4" />
                                 Edit
                               </Dropdown.Item>
-                              {job.status === "ACTIVE" ? (
+                              {job.status !== "ARCHIVED" ? (
                                 <Dropdown.Item
                                   textValue={
                                     job.applicationCount === 0
@@ -371,7 +352,10 @@ export function AdminJobList() {
       {filtersOpen ? (
         <AdminJobFilterModal
           filters={filters}
-          onApply={setFilters}
+          onApply={(nextFilters) => {
+            const gpa = gpaFilterSchema.safeParse(nextFilters.gpaMin);
+            if (gpa.success) setFilters({ ...nextFilters, gpaMin: gpa.data });
+          }}
           onOpenChange={setFiltersOpen}
         />
       ) : null}

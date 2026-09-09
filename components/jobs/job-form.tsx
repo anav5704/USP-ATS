@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input, Modal, TextArea } from "@heroui/react";
 import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
@@ -21,6 +21,7 @@ import { JobDeadlineField } from "@/components/jobs/job-deadline-field";
 import { SkillAutocomplete } from "@/components/ui/skill-autocomplete";
 import {
   getMatchingJobTemplateValues,
+  getJobTemplate,
   getJobTemplateTransition,
   JOB_TITLES,
   JOB_TEMPLATE_FIELDS,
@@ -61,11 +62,22 @@ export function JobForm({
     getValues,
     handleSubmit,
     reset,
+    trigger,
     formState: { errors },
   } = useForm<JobInput>({
     resolver: zodResolver(jobInputSchema),
-    defaultValues: initialData ?? EMPTY_JOB,
+    mode: "onChange",
+    reValidateMode: "onChange",
+    defaultValues: initialData
+      ? {
+          ...initialData,
+          jobType: getJobTemplate(initialData.title)?.jobType ?? initialData.jobType,
+        }
+      : EMPTY_JOB,
   });
+  const title = useWatch({ control, name: "title" });
+  const jobType = useWatch({ control, name: "jobType" });
+  const selectedTemplate = getJobTemplate(title);
   const initialTemplateValues = initialData
     ? (Object.fromEntries(
         JOB_TEMPLATE_FIELDS.map((field) => [field, initialData[field]])
@@ -106,6 +118,8 @@ export function JobForm({
       { keepErrors: true, keepTouched: true }
     );
     lastAppliedTemplate.current = applied;
+    // reset does not validate the title or the values changed by its template.
+    void trigger(["title", ...JOB_TEMPLATE_FIELDS]);
   };
 
   return (
@@ -138,7 +152,11 @@ export function JobForm({
                     options={JOB_TYPES}
                     placeholder="Select a job type"
                     searchPlaceholder="Search job types"
-                    onChange={field.onChange}
+                    isDisabled={!!selectedTemplate}
+                    onChange={(value) => {
+                      field.onChange(value);
+                      void trigger("hourlyPay");
+                    }}
                   />
                 )}
               />
@@ -253,7 +271,7 @@ export function JobForm({
               <Input.Root
                 id="hourlyPay"
                 type="number"
-                min={0}
+                min={jobType === "Volunteer" ? 0 : 0.01}
                 step="0.01"
                 fullWidth
                 placeholder="e.g. 12.50"
@@ -313,7 +331,7 @@ export function JobForm({
             ) : (
               <SaveIcon className="size-4" />
             )}
-            {mode === "create" ? "Create Posting" : "Save Changes"}
+            {mode === "create" ? "Request Approval" : "Save Changes"}
           </Button.Root>
         </div>
       </Modal.Footer>

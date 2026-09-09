@@ -5,11 +5,13 @@ export function FormField({
   label,
   id,
   error,
+  hint,
   children,
 }: {
   label: string;
   id?: string;
   error?: string;
+  hint?: string;
   children: ReactNode;
 }) {
   return (
@@ -21,6 +23,9 @@ export function FormField({
         {label}
       </Label>
       {children}
+      {hint && !error ? (
+        <p className="text-xs text-muted">{hint}</p>
+      ) : null}
       {error ? (
         <p className="field-error" data-visible aria-live="polite">
           {error}

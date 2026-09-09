@@ -12,9 +12,20 @@ model JobPosting {
   hourlyPay    Decimal       @default(0) @db.Decimal(10, 2)
   benefit      String?
   deadline     DateTime
-  status       PostingStatus @default(ACTIVE)
+  status       PostingStatus @default(PENDING_APPROVAL)
   createdById  String
   createdBy    User          @relation(fields: [createdById], references: [id])
+  requestedById String?
+  requestedBy   User? @relation("JobRequester", fields: [requestedById], references: [id])
+  requestedAt   DateTime @default(now())
+  approvedById  String?
+  approvedBy    User? @relation("JobApprover", fields: [approvedById], references: [id])
+  approvedAt    DateTime?
+  rejectedById  String?
+  rejectedBy    User? @relation("JobRejecter", fields: [rejectedById], references: [id])
+  rejectedAt    DateTime?
+  rejectionReason String?
+  revision      Int @default(0)
   applications Application[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -24,6 +35,8 @@ model JobPosting {
 }
 
 enum PostingStatus {
+  PENDING_APPROVAL
   ACTIVE
+  REJECTED
   ARCHIVED
 }
