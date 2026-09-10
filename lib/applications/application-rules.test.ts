@@ -5,7 +5,9 @@ import {
   type ApplicationStatus,
 } from "@/lib/applications/application-schema";
 import {
+  allowedAdminStatusTargets,
   blocksReapplication,
+  canAdminChangeStatus,
   canWithdraw,
   isJobOpenForApplication,
 } from "@/lib/applications/application-rules";
@@ -108,4 +110,26 @@ test("string deadlines are accepted", () => {
     ),
     false
   );
+});
+
+test("admin status transitions preserve final application states", () => {
+  assert.deepEqual(allowedAdminStatusTargets("APPLIED"), [
+    "SHORTLISTED",
+    "ACCEPTED",
+    "DECLINED",
+  ]);
+  assert.deepEqual(allowedAdminStatusTargets("SHORTLISTED"), [
+    "ACCEPTED",
+    "DECLINED",
+  ]);
+
+  for (const status of ["ACCEPTED", "DECLINED", "WITHDRAWN"] as const) {
+    assert.deepEqual(allowedAdminStatusTargets(status), []);
+  }
+
+  assert.equal(canAdminChangeStatus("APPLIED", "SHORTLISTED"), true);
+  assert.equal(canAdminChangeStatus("SHORTLISTED", "ACCEPTED"), true);
+  assert.equal(canAdminChangeStatus("SHORTLISTED", "DECLINED"), true);
+  assert.equal(canAdminChangeStatus("ACCEPTED", "DECLINED"), false);
+  assert.equal(canAdminChangeStatus("WITHDRAWN", "SHORTLISTED"), false);
 });

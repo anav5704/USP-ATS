@@ -74,11 +74,6 @@ const adminNav: NavItem[] = [
     isActive: (p) => p === "/approvals",
   },
   {
-    key: "applications",
-    label: "Applications",
-    icon: ClipboardListIcon,
-  },
-  {
     key: "reports",
     label: "Reports",
     icon: FileTextIcon,

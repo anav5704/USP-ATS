@@ -12,7 +12,9 @@ import {
   SearchXIcon,
   SlidersHorizontalIcon,
   Trash2Icon,
+  UsersRoundIcon,
 } from "lucide-react";
+import { AdminApplicantsModal } from "@/components/applications/admin-applicants-modal";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useRemoveJob } from "@/components/jobs/use-remove-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
@@ -52,6 +54,8 @@ export function AdminJobList() {
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
+  const [applicantsJob, setApplicantsJob] =
+    useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
@@ -240,7 +244,13 @@ export function AdminJobList() {
                     <Table.Row id={job.id}>
                       <Table.Cell>
                         <div>
-                          <p className="font-medium text-foreground">{job.title}</p>
+                          <Button.Root
+                            variant="ghost"
+                            onPress={() => setApplicantsJob(job)}
+                            className="h-auto justify-start p-0 font-medium text-foreground hover:underline"
+                          >
+                            {job.title}
+                          </Button.Root>
                           <p className="text-xs text-muted">{job.department}</p>
                         </div>
                       </Table.Cell>
@@ -271,6 +281,14 @@ export function AdminJobList() {
                           </Dropdown.Trigger>
                           <Dropdown.Popover placement="right">
                             <Dropdown.Menu>
+                              <Dropdown.Item
+                                textValue="View applicants"
+                                onAction={() => setApplicantsJob(job)}
+                                className="flex items-center gap-2"
+                              >
+                                <UsersRoundIcon className="size-4" />
+                                View applicants
+                              </Dropdown.Item>
                               <Dropdown.Item
                                 textValue="Edit"
                                 onAction={() => setEditingJob(job)}
@@ -346,6 +364,15 @@ export function AdminJobList() {
           isOpen
           onOpenChange={(open) => {
             if (!open) setEditingJob(null);
+          }}
+        />
+      ) : null}
+      {applicantsJob ? (
+        <AdminApplicantsModal
+          job={applicantsJob}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setApplicantsJob(null);
           }}
         />
       ) : null}

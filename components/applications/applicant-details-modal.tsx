@@ -1,0 +1,321 @@
+"use client";
+
+import { Button, Modal, Spinner } from "@heroui/react";
+import {
+  AwardIcon,
+  CalendarDaysIcon,
+  CircleAlertIcon,
+  ExternalLinkIcon,
+  FileTextIcon,
+  GraduationCapIcon,
+  LinkIcon,
+  MailIcon,
+  MapPinIcon,
+  PhoneIcon,
+  UserRoundIcon,
+  WrenchIcon,
+} from "lucide-react";
+import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
+import { useAdminApplicantDetail } from "@/components/applications/use-admin-applicants";
+import { FormModal } from "@/components/ui/form-modal";
+import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
+
+const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: JOB_DATE_TIME_ZONE,
+});
+
+function fileSizeLabel(size: number) {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function ApplicantDetailsModal({
+  jobId,
+  applicationId,
+  isOpen,
+  onOpenChange,
+}: {
+  jobId: string;
+  applicationId: string;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { data, isPending, isError, refetch } = useAdminApplicantDetail(
+    jobId,
+    applicationId
+  );
+  const profile = data?.applicant.profile;
+
+  return (
+    <FormModal
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      title="Applicant Details"
+      size="lg"
+    >
+      <Modal.Body>
+        {isPending ? (
+          <div className="flex min-h-64 items-center justify-center">
+            <Spinner.Root size="lg" className="text-foreground" />
+          </div>
+        ) : isError || !data ? (
+          <div className="flex min-h-64 flex-col items-center justify-center p-6 text-center">
+            <CircleAlertIcon className="size-10 text-danger" />
+            <h3 className="mt-4 text-lg font-semibold text-foreground">
+              Applicant details could not be loaded
+            </h3>
+            <p className="mt-1 text-sm text-muted">Please try again.</p>
+            <Button.Root className="mt-5" onPress={() => void refetch()}>
+              Try Again
+            </Button.Root>
+          </div>
+        ) : (
+          <div className="space-y-6 pb-2">
+            <div className="rounded-2xl border border-border bg-surface-secondary p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <UserRoundIcon className="size-5 text-muted" />
+                    <h3 className="text-lg font-semibold text-foreground">
+                      {data.applicant.name}
+                    </h3>
+                  </div>
+                  <p className="mt-1 text-sm text-muted">
+                    Application for {data.job.title}
+                  </p>
+                </div>
+                <ApplicationStatusBadge status={data.status} />
+              </div>
+              <div className="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-2">
+                <span className="flex min-w-0 items-start gap-2">
+                  <MailIcon className="size-4 shrink-0" />
+                  <span className="min-w-0 break-words">
+                    {data.applicant.email}
+                  </span>
+                </span>
+                <span className="flex min-w-0 items-start gap-2">
+                  <CalendarDaysIcon className="size-4 shrink-0" />
+                  <span className="min-w-0">
+                    Applied {dateFormatter.format(new Date(data.createdAt))}
+                  </span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <MapPinIcon className="size-4 shrink-0" />
+                  {profile?.campuses.length
+                    ? profile.campuses.join(", ")
+                    : "Campus/Centre not provided"}
+                </span>
+                <span className="flex items-center gap-2">
+                  <PhoneIcon className="size-4 shrink-0" />
+                  {profile?.phone || "Phone not provided"}
+                </span>
+              </div>
+            </div>
+
+            {!profile ? (
+              <div className="flex flex-col items-center rounded-2xl border border-dashed border-border p-6 text-center">
+                <CircleAlertIcon className="size-8 text-muted" />
+                <p className="mt-3 font-medium text-foreground">
+                  Profile information is unavailable
+                </p>
+                <p className="mt-1 text-sm text-muted">
+                  This applicant does not currently have a stored profile.
+                </p>
+              </div>
+            ) : (
+              <>
+                {profile.bio ? (
+                  <section>
+                    <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                      <UserRoundIcon className="size-4" /> General
+                    </h4>
+                    <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">
+                      {profile.bio}
+                    </p>
+                  </section>
+                ) : null}
+
+                <section>
+                  <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                    <GraduationCapIcon className="size-4" /> Academic
+                  </h4>
+                  {profile.degrees.length > 0 ? (
+                    <div className="mt-3 space-y-3">
+                      {profile.degrees.map((degree, index) => (
+                        <div
+                          key={`${degree.name}-${index}`}
+                          className="rounded-2xl border border-border p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {degree.name}
+                              </p>
+                              <p className="text-sm text-muted">
+                                GPA {degree.gpa.toFixed(2)} / 4.50
+                              </p>
+                            </div>
+                            <a
+                              href={degree.document.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-field border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-secondary"
+                            >
+                              <FileTextIcon className="size-3.5" />
+                              {degree.documentType === "DEGREE"
+                                ? "Degree document"
+                                : "Transcript"}
+                              <ExternalLinkIcon className="size-3" />
+                            </a>
+                          </div>
+                          <p className="mt-2 text-xs text-muted">
+                            {degree.document.name} ({fileSizeLabel(degree.document.size)})
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted">No degrees provided.</p>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                    <WrenchIcon className="size-4" /> Skills
+                  </h4>
+                  {profile.skills.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {profile.skills.map((skill) => (
+                        <span
+                          key={skill}
+                          className="rounded-full bg-surface-secondary px-3 py-1 text-xs text-foreground"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted">No skills provided.</p>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                    <AwardIcon className="size-4" /> Certificates
+                  </h4>
+                  {profile.certificates.length > 0 ? (
+                    <div className="mt-3 space-y-3">
+                      {profile.certificates.map((certificate, index) => (
+                        <div
+                          key={`${certificate.label}-${index}`}
+                          className="rounded-2xl border border-border p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <p className="font-medium text-foreground">
+                                {certificate.label}
+                              </p>
+                              <p className="text-sm text-muted">
+                                {certificate.organization || "Organization not provided"}
+                              </p>
+                            </div>
+                            <a
+                              href={certificate.file.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-field border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-secondary"
+                            >
+                              <FileTextIcon className="size-3.5" /> View file
+                              <ExternalLinkIcon className="size-3" />
+                            </a>
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+                            <span>{certificate.file.name}</span>
+                            <span>
+                              Uploaded {dateFormatter.format(new Date(certificate.uploadedAt))}
+                            </span>
+                            {certificate.url ? (
+                              <a
+                                href={certificate.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-foreground underline underline-offset-2"
+                              >
+                                Credential link
+                              </a>
+                            ) : null}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted">
+                      No certificates provided.
+                    </p>
+                  )}
+                </section>
+
+                <section>
+                  <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                    <LinkIcon className="size-4" /> Links
+                  </h4>
+                  {profile.socialLinks.length > 0 ||
+                  profile.profileLinks.length > 0 ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {profile.socialLinks.map((link, index) => (
+                        <a
+                          key={`${link.platform}-${index}`}
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                        >
+                          {link.platform}
+                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                        </a>
+                      ))}
+                      {profile.profileLinks.map((link, index) => (
+                        <a
+                          key={`${link.title}-${index}`}
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                        >
+                          {link.title}
+                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted">No links provided.</p>
+                  )}
+                </section>
+              </>
+            )}
+
+            <section>
+              <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                <FileTextIcon className="size-4" /> Cover Letter
+              </h4>
+              <div className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-4">
+                <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                  {data.coverLetter}
+                </p>
+              </div>
+            </section>
+          </div>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button.Root variant="ghost" onPress={() => onOpenChange(false)}>
+          Close
+        </Button.Root>
+      </Modal.Footer>
+    </FormModal>
+  );
+}
