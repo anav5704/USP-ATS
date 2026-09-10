@@ -11,6 +11,9 @@ import {
 import { useJobFeed } from "@/components/jobs/use-job-feed";
 import { JobFeedSection } from "@/components/jobs/job-feed-section";
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
+import { ApplyModal } from "@/components/applications/apply-modal";
+import { useMyApplications } from "@/components/applications/use-my-applications";
+import { blocksReapplication } from "@/lib/applications/application-rules";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import { useProfile } from "@/components/profile/use-profile";
 import {
@@ -21,7 +24,9 @@ import {
 export function JobFeed() {
   const { data: jobs, isPending, isError, refetch } = useJobFeed();
   const { data: profile } = useProfile();
+  const { data: applications } = useMyApplications();
   const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
+  const [applyJob, setApplyJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
@@ -29,6 +34,16 @@ export function JobFeed() {
   const [degrees, setDegrees] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const appliedJobIds = useMemo(
+    () =>
+      new Set(
+        (applications ?? [])
+          .filter((application) => blocksReapplication(application.status))
+          .map((application) => application.job.id)
+      ),
+    [applications]
+  );
 
   const hasFilters =
     search.trim() !== "" ||
@@ -240,6 +255,20 @@ export function JobFeed() {
           isOpen
           onOpenChange={(open) => {
             if (!open) setSelectedJob(null);
+          }}
+          hasApplied={appliedJobIds.has(selectedJob.id)}
+          onApply={() => {
+            setApplyJob(selectedJob);
+            setSelectedJob(null);
+          }}
+        />
+      ) : null}
+      {applyJob ? (
+        <ApplyModal
+          job={applyJob}
+          isOpen
+          onOpenChange={(open) => {
+            if (!open) setApplyJob(null);
           }}
         />
       ) : null}
