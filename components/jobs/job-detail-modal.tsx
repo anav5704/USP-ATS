@@ -4,9 +4,11 @@ import { Button, Modal } from "@heroui/react";
 import {
   BanknoteIcon,
   CalendarDaysIcon,
+  CheckIcon,
   ClockIcon,
   GraduationCapIcon,
   MapPinIcon,
+  SendIcon,
 } from "lucide-react";
 import { FormModal } from "@/components/ui/form-modal";
 import { RequirementChips } from "@/components/jobs/job-feed-card";
@@ -51,10 +53,14 @@ export function JobDetailModal({
   job,
   isOpen,
   onOpenChange,
+  hasApplied,
+  onApply,
 }: {
   job: StudentJobListItem;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  hasApplied: boolean;
+  onApply: () => void;
 }) {
   const deadline = dateFormatter.format(new Date(job.deadline));
   const deadlineStatus = deadlineRemainingLabel(new Date(job.deadline));
@@ -136,13 +142,32 @@ export function JobDetailModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button.Root
-          variant="ghost"
-          onPress={() => onOpenChange(false)}
-          className="rounded-field text-muted"
-        >
-          Close
-        </Button.Root>
+        <div className="flex w-full justify-end gap-3">
+          <Button.Root
+            variant="ghost"
+            onPress={() => onOpenChange(false)}
+            className="rounded-field text-muted"
+          >
+            Close
+          </Button.Root>
+          {hasApplied ? (
+            <Button.Root
+              isDisabled
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background"
+            >
+              <CheckIcon className="size-4" />
+              Applied
+            </Button.Root>
+          ) : (
+            <Button.Root
+              onPress={onApply}
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            >
+              <SendIcon className="size-4" />
+              Apply Now
+            </Button.Root>
+          )}
+        </div>
       </Modal.Footer>
     </FormModal>
   );
