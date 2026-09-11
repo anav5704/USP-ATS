@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { tasks } from "@trigger.dev/sdk";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { requireApiMember } from "@/lib/jobs/require-api";
@@ -8,6 +9,7 @@ import {
   SubmitApplicationError,
 } from "@/lib/applications/submit-application";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
+import type { scoreApplication } from "@/trigger/score-application";
 
 export async function GET() {
   const guard = await requireApiMember();
@@ -92,12 +94,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await submitApplication(
+    const { applicationId } = await submitApplication(
       prisma.application,
       prisma.jobPosting,
       guard.session.user.id,
       parsed.data
     );
+
+    void tasks.trigger<typeof scoreApplication>("score-application", applicationId)
+      .catch((error) => {
+        console.error("Failed to enqueue scoring task", { applicationId, error });
+      });
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
