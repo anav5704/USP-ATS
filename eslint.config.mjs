@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // trigger.dev dev server build output
+    ".trigger/**",
   ]),
 ]);
 

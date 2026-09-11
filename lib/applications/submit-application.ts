@@ -8,13 +8,18 @@ export class SubmitApplicationError extends Error {
   }
 }
 
+export type SubmitApplicationResult = {
+  outcome: "created" | "reapplied";
+  applicationId: string;
+};
+
 // The caller supplies the authenticated member ID, never a client-provided ID.
 export async function submitApplication(
   applications: Pick<PrismaClient["application"], "findUnique" | "create" | "updateMany">,
   jobs: Pick<PrismaClient["jobPosting"], "findUnique">,
   userId: string,
   input: CreateApplicationInput,
-): Promise<"created" | "reapplied"> {
+): Promise<SubmitApplicationResult> {
   const parsed = createApplicationSchema.parse(input);
   const job = await jobs.findUnique({
     where: { id: parsed.jobId },
@@ -31,7 +36,7 @@ export async function submitApplication(
   });
 
   if (!existing) {
-    await applications.create({
+    const created = await applications.create({
       data: {
         jobId: parsed.jobId,
         studentId: userId,
@@ -39,7 +44,7 @@ export async function submitApplication(
         status: "APPLIED",
       },
     });
-    return "created";
+    return { outcome: "created", applicationId: created.id };
   }
 
   if (blocksReapplication(existing.status)) {
@@ -53,5 +58,5 @@ export async function submitApplication(
   if (result.count !== 1) {
     throw new SubmitApplicationError(409, "This application changed. Refresh and try again.");
   }
-  return "reapplied";
+  return { outcome: "reapplied", applicationId: existing.id };
 }

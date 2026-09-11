@@ -26,7 +26,8 @@ test("application submit lifecycle: create once, withdraw, reapply reuses the re
       } });
 
       const first = await submitApplication(tx.application, tx.jobPosting, member, { jobId: posting.id, coverLetter: "First letter" });
-      assert.equal(first, "created");
+      assert.equal(first.outcome, "created");
+      assert.ok(first.applicationId);
       let record = await tx.application.findUniqueOrThrow({ where: { jobId_studentId: { jobId: posting.id, studentId: member } } });
       assert.equal(record.status, "APPLIED");
       assert.equal(record.coverLetter, "First letter");
@@ -39,7 +40,8 @@ test("application submit lifecycle: create once, withdraw, reapply reuses the re
       await tx.application.updateMany({ where: { id: record.id, studentId: member, status: "APPLIED" }, data: { status: "WITHDRAWN" } });
       const originalId = record.id;
       const reapplied = await submitApplication(tx.application, tx.jobPosting, member, { jobId: posting.id, coverLetter: "Second letter" });
-      assert.equal(reapplied, "reapplied");
+      assert.equal(reapplied.outcome, "reapplied");
+      assert.equal(reapplied.applicationId, originalId);
       record = await tx.application.findUniqueOrThrow({ where: { jobId_studentId: { jobId: posting.id, studentId: member } } });
       assert.equal(record.id, originalId);
       assert.equal(record.status, "APPLIED");
