@@ -46,3 +46,6 @@ generated
 
 # local file uploads
 /uploads
+
+# trigger.dev
+.trigger

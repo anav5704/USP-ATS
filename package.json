@@ -23,6 +23,7 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@tanstack/react-query": "^5.101.4",
+    "@trigger.dev/sdk": "^4.5.16",
     "better-auth": "^1.6.25",
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@trigger.dev/build": "^4.5.16",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
