@@ -13,10 +13,39 @@ export type SubmitApplicationResult = {
   applicationId: string;
 };
 
+// PENDING row so the admin table can render a scoring state immediately.
+// The scoring task overwrites this row with COMPLETE or FAILED.
+async function resetPendingScore(
+  scores: Pick<PrismaClient["scoreResult"], "upsert">,
+  applicationId: string
+) {
+  try {
+    await scores.upsert({
+      where: { applicationId },
+      update: {
+        status: "PENDING",
+        matchScore: null,
+        skillsScore: null,
+        educationScore: null,
+        motivationScore: null,
+        eligible: null,
+        qualificationFit: null,
+        motivationFit: null,
+        missingRequirements: [],
+      },
+      create: { applicationId, status: "PENDING", missingRequirements: [] },
+    });
+  } catch (error) {
+    // Non-fatal: the scoring task upserts the row on its own run.
+    console.warn("Failed to reset pending score", { applicationId, error });
+  }
+}
+
 // The caller supplies the authenticated member ID, never a client-provided ID.
 export async function submitApplication(
   applications: Pick<PrismaClient["application"], "findUnique" | "create" | "updateMany">,
   jobs: Pick<PrismaClient["jobPosting"], "findUnique">,
+  scores: Pick<PrismaClient["scoreResult"], "upsert">,
   userId: string,
   input: CreateApplicationInput,
 ): Promise<SubmitApplicationResult> {
@@ -44,6 +73,7 @@ export async function submitApplication(
         status: "APPLIED",
       },
     });
+    await resetPendingScore(scores, created.id);
     return { outcome: "created", applicationId: created.id };
   }
 
@@ -58,5 +88,7 @@ export async function submitApplication(
   if (result.count !== 1) {
     throw new SubmitApplicationError(409, "This application changed. Refresh and try again.");
   }
+  // New cover letter means the old score is stale: reset and rescore.
+  await resetPendingScore(scores, existing.id);
   return { outcome: "reapplied", applicationId: existing.id };
 }
