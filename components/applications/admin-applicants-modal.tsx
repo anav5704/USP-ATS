@@ -10,6 +10,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { ApplicantDetailsModal } from "@/components/applications/applicant-details-modal";
+import { ApplicationScoreCell } from "@/components/applications/application-score-cell";
 import { ApplicationStatusBadge, APPLICATION_STATUS_LABELS } from "@/components/applications/application-status-badge";
 import { ChangeStatusMenu } from "@/components/applications/change-status-menu";
 import { useAdminApplicants } from "@/components/applications/use-admin-applicants";
@@ -122,6 +123,7 @@ export function AdminApplicantsModal({
                     <Table.Column isRowHeader>Applicant</Table.Column>
                     <Table.Column>Campus/Centre</Table.Column>
                     <Table.Column>Applied On</Table.Column>
+                    <Table.Column>AI Score</Table.Column>
                     <Table.Column>Status</Table.Column>
                     <Table.Column>Actions</Table.Column>
                   </Table.Header>
@@ -140,6 +142,9 @@ export function AdminApplicantsModal({
                         </Table.Cell>
                         <Table.Cell>
                           {dateFormatter.format(new Date(application.createdAt))}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <ApplicationScoreCell score={application.score} />
                         </Table.Cell>
                         <Table.Cell>
                           <ApplicationStatusBadge status={application.status} />
