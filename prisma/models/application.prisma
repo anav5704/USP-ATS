@@ -20,6 +20,9 @@ model ScoreResult {
   applicationId       String      @id
   application         Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   matchScore          Int?
+  skillsScore         Int?
+  educationScore      Int?
+  motivationScore     Int?
   eligible            Boolean?
   qualificationFit    String?
   motivationFit       String?

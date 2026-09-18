@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
     const { applicationId } = await submitApplication(
       prisma.application,
       prisma.jobPosting,
+      prisma.scoreResult,
       guard.session.user.id,
       parsed.data
     );

@@ -14,6 +14,7 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.69",
     "@aws-sdk/client-s3": "^3.1121.0",
     "@better-auth/prisma-adapter": "^1.6.25",
     "@heroui/react": "^3.2.3",
@@ -23,7 +24,8 @@
     "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@tanstack/react-query": "^5.101.4",
-    "@trigger.dev/sdk": "^4.5.16",
+    "@trigger.dev/sdk": "4.6.1",
+    "ai": "^7.0.100",
     "better-auth": "^1.6.25",
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
@@ -34,7 +36,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@trigger.dev/build": "^4.5.16",
+    "@trigger.dev/build": "4.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
