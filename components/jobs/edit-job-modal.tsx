@@ -39,7 +39,7 @@ export function EditJobModal({
       onOpenChange={(open) => {
         if (!open && !isSaving) onOpenChange(open);
       }}
-      title="Edit job posting"
+      title="Modify job posting"
       size="lg"
       closeDisabled={isSaving}
     >

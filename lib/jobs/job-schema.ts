@@ -17,7 +17,7 @@ function isCalendarDate(value: string) {
   );
 }
 
-const jobInputFields = z.object({
+export const jobSnapshotSchema = z.object({
   title: z
     .string()
     .trim()
@@ -64,11 +64,11 @@ const jobInputFields = z.object({
     .refine(isCalendarDate, "Enter a valid deadline"),
 });
 
-export type JobInput = z.infer<typeof jobInputFields>;
+export type JobInput = z.infer<typeof jobSnapshotSchema>;
 
-const payValidationFields = jobInputFields.pick({ jobType: true, hourlyPay: true });
+const payValidationFields = jobSnapshotSchema.pick({ jobType: true, hourlyPay: true });
 
-export const jobInputSchema = jobInputFields.superRefine((job, ctx) => {
+export const jobInputSchema = jobSnapshotSchema.superRefine((job, ctx) => {
   const template = getJobTemplate(job.title);
   if (template && job.jobType !== template.jobType) {
     ctx.addIssue({
@@ -105,6 +105,11 @@ export type AdminJobListItem = {
 };
 
 export type ApprovalJob = AdminJobListItem & {
+  approvalId: string;
+  jobId: string;
+  requestType: "NEW_JOB" | "MODIFICATION";
+  approvalStatus: "Pending Approval" | "Approved" | "Rejected";
+  originalJob: JobInput | null;
   approvedBy: { name: string; email: string } | null;
   rejectedBy: { name: string; email: string } | null;
   approvedAt: string | null;

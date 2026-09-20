@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { jobInputSchema } from "@/lib/jobs/job-schema";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
-import { deadlineAtEndOfFijiDay } from "@/lib/jobs/job-dates";
-import { removeJobPostingById } from "@/lib/jobs/remove-job";
-import { jobEditReviewData } from "@/lib/jobs/approval-schema";
+import {
+  removeJobPostingById,
+  RemoveJobError,
+} from "@/lib/jobs/remove-job";
+import {
+  JobModificationError,
+  requestJobModification,
+} from "@/lib/jobs/job-modification";
 
 export async function PATCH(
   request: NextRequest,
@@ -28,39 +33,25 @@ export async function PATCH(
   }
 
   try {
-    const current = await prisma.jobPosting.findUnique({ where: { id } });
-    if (!current) {
-      return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
+    const modification = await requestJobModification(
+      prisma,
+      id,
+      guard.session.user.id,
+      parsed.data
+    );
+    return NextResponse.json({ success: true, requestId: modification.id });
+  } catch (error) {
+    if (!(error instanceof JobModificationError)) {
+      console.error("Unable to submit job modification", error);
     }
-    const result = await prisma.jobPosting.updateMany({
-      where: { id, revision: current.revision, status: current.status },
-      data: {
-        ...jobEditReviewData(current.status, guard.session.user.id),
-        revision: { increment: 1 },
-        title: parsed.data.title,
-        description: parsed.data.description,
-        department: parsed.data.department,
-        jobType: parsed.data.jobType,
-        campus: parsed.data.campus,
-        gpaMin: parsed.data.gpaMin,
-        degree: parsed.data.degree,
-        skills: parsed.data.skills,
-        hours: parsed.data.hours,
-        hourlyPay: parsed.data.hourlyPay,
-        benefit: parsed.data.benefit || null,
-        deadline: deadlineAtEndOfFijiDay(parsed.data.deadline),
-      },
-    });
-
-    if (result.count === 0) {
-      return NextResponse.json({ error: "This posting changed. Refresh and try again." }, { status: 409 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch {
     return NextResponse.json(
-      { error: "Unable to update the job posting" },
-      { status: 500 }
+      {
+        error:
+          error instanceof JobModificationError
+            ? error.message
+            : "Unable to submit the job modification",
+      },
+      { status: error instanceof JobModificationError ? error.status : 500 }
     );
   }
 }
@@ -83,10 +74,15 @@ export async function DELETE(
       return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
     }
     return NextResponse.json({ outcome });
-  } catch {
+  } catch (error) {
     return NextResponse.json(
-      { error: "Unable to remove the job posting" },
-      { status: 500 }
+      {
+        error:
+          error instanceof RemoveJobError
+            ? error.message
+            : "Unable to remove the job posting",
+      },
+      { status: error instanceof RemoveJobError ? error.status : 500 }
     );
   }
 }

@@ -22,7 +22,7 @@ export function useSaveJob(mode: "create" | "update", jobId?: string) {
       toast.success(
         mode === "create"
           ? "Job posting submitted for approval"
-          : "Job posting updated successfully."
+          : "Job modification submitted for approval"
       );
     },
     onError: (error) => {

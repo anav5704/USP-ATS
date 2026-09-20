@@ -5,7 +5,9 @@ export function getApprovalStatus(job: {
   approvedAt: Date | string | null;
   rejectedAt: Date | string | null;
   requestedById: string | null;
+  approvalStatus?: "Pending Approval" | "Approved" | "Rejected";
 }) {
+  if (job.approvalStatus) return job.approvalStatus;
   if (job.approvedAt || job.status === "ACTIVE") return "Approved";
   if (job.rejectedAt || job.status === "REJECTED") return "Rejected";
   if (job.status === "PENDING_APPROVAL") return "Pending Approval";

@@ -16,14 +16,30 @@ export function useApprovals() {
   });
 }
 
-export function useReviewJob(id: string) {
+export function useReviewJob(job: ApprovalJob) {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (input: ApprovalInput) => api.post(`/api/jobs/${id}/review`, input),
+    mutationFn: (input: ApprovalInput) =>
+      api.post(
+        job.requestType === "MODIFICATION"
+          ? `/api/jobs/${job.jobId}/modifications/${job.approvalId}/review`
+          : `/api/jobs/${job.jobId}/review`,
+        input
+      ),
     retry: 0,
     onSuccess: async (_data, input) => {
       await client.invalidateQueries({ queryKey: jobQueryKeys.all });
-      toast.success(input.decision === "withdraw" ? "Approval request withdrawn" : input.decision === "approve" ? "Job posting approved and active" : "Job posting rejected");
+      toast.success(
+        input.decision === "withdraw"
+          ? "Approval request withdrawn"
+          : input.decision === "approve"
+            ? job.requestType === "MODIFICATION"
+              ? "Job modification approved and applied"
+              : "Job posting approved and active"
+            : job.requestType === "MODIFICATION"
+              ? "Job modification rejected; approved values were preserved"
+              : "Job posting rejected"
+      );
     },
     onError: async () => {
       await client.invalidateQueries({ queryKey: jobQueryKeys.all });

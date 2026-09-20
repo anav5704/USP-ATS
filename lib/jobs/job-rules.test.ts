@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { JOB_TYPES, USP_CAMPUSES_CENTRES, USP_DEPARTMENTS } from "@/lib/jobs/job-constants";
 import { jobInputSchema, type JobInput } from "@/lib/jobs/job-schema";
-import { getJobTemplate, getJobTemplateTransition, JOB_TEMPLATES } from "@/lib/jobs/job-templates";
+import {
+  getJobTemplate,
+  getJobTemplateTransition,
+  JOB_TEMPLATES,
+  JOB_TITLES,
+} from "@/lib/jobs/job-templates";
 
 const job: JobInput = {
   title: "Custom role",
@@ -90,4 +95,10 @@ test("custom titles, including object property names, have no forced type", () =
     assert.equal(getJobTemplate(title), undefined);
     assert.equal(jobInputSchema.safeParse({ ...job, title }).success, true);
   }
+});
+
+test("Intern is not a predefined title while Internship remains a job type", () => {
+  assert.equal((JOB_TITLES as readonly string[]).includes("Intern"), false);
+  assert.equal(getJobTemplate("Intern"), undefined);
+  assert.equal(JOB_TYPES.includes("Internship"), true);
 });

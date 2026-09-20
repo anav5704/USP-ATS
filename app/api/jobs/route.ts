@@ -19,6 +19,7 @@ export async function GET() {
     const postings = await prisma.jobPosting.findMany({
       where: {
         status: PostingStatus.ACTIVE,
+        pendingModificationId: null,
         deadline: { gte: startOfFijiDay(todayInFiji()) },
       },
       orderBy: { createdAt: "desc" },

@@ -18,7 +18,7 @@ const reasonSchema = approvalInputSchema.pick({ rejectionReason: true });
 
 export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: ApprovalJob; onClose: () => void; withdraw?: boolean }) {
   const { data: session } = useAuth();
-  const review = useReviewJob(job.id);
+  const review = useReviewJob(job);
   const [decision, setDecision] = useState<ApprovalInput["decision"] | null>(withdraw ? "withdraw" : null);
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<{ rejectionReason?: string }>({
     resolver: zodResolver(reasonSchema),
@@ -26,8 +26,8 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
     defaultValues: { rejectionReason: "" },
   });
   const ownRequest = isOwnApprovalRequest(job, session?.user.id ?? "");
-  const canReview = !!session && !ownRequest && job.status === "PENDING_APPROVAL";
-  const canWithdraw = !!session && ownRequest && job.status === "PENDING_APPROVAL";
+  const canReview = !!session && !ownRequest && job.approvalStatus === "Pending Approval";
+  const canWithdraw = !!session && ownRequest && job.approvalStatus === "Pending Approval";
   const confirm = async () => {
     if (!decision) return;
     try {
@@ -42,7 +42,7 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
   };
   return <>
     <FormModal isOpen onOpenChange={(open) => { if (!open && !review.isPending) onClose(); }}
-      title="Review job posting" closeDisabled={review.isPending}>
+      title={job.requestType === "MODIFICATION" ? "Review job modification" : "Review job posting"} closeDisabled={review.isPending}>
       <form className="mt-5 flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit(() => { if (canReview) setDecision("reject"); })}>
         <Modal.Body>
           <ApprovalDetails job={job} />
@@ -75,8 +75,18 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
       </form>
     </FormModal>
     <ConfirmModal isOpen={decision !== null} onOpenChange={(open) => { if (!open && !review.isPending) setDecision(null); }}
-      title={decision === "withdraw" ? "Withdraw approval request?" : decision === "approve" ? "Approve job posting?" : "Reject job posting?"}
-      message={decision === "withdraw" ? "This pending request will be cancelled and archived, preserving its data." : decision === "approve" ? "This posting will become active and visible to students." : "This posting will be rejected and remain hidden from students."}
+      title={decision === "withdraw" ? "Withdraw approval request?" : decision === "approve" ? `Approve job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?` : `Reject job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?`}
+      message={decision === "withdraw"
+        ? job.requestType === "MODIFICATION"
+          ? "This modification request will be cancelled. The approved posting will remain unchanged."
+          : "This pending request will be cancelled and archived, preserving its data."
+        : decision === "approve"
+          ? job.requestType === "MODIFICATION"
+            ? "The proposed values will be applied to the existing posting without changing its job ID or applications."
+            : "This posting will become active and visible to applicants."
+          : job.requestType === "MODIFICATION"
+            ? "The proposed values will be discarded and the approved posting will remain unchanged."
+            : "This posting will be rejected and remain hidden from applicants."}
       confirmLabel={decision === "withdraw" ? "Withdraw Request" : decision === "approve" ? "Approve" : "Reject"}
       icon={decision === "approve" ? CheckIcon : XIcon} danger={decision !== "approve"}
       isPending={review.isPending} onConfirm={confirm} />

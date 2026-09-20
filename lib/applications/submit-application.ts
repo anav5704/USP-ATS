@@ -52,7 +52,12 @@ export async function submitApplication(
   const parsed = createApplicationSchema.parse(input);
   const job = await jobs.findUnique({
     where: { id: parsed.jobId },
-    select: { id: true, status: true, deadline: true },
+    select: {
+      id: true,
+      status: true,
+      deadline: true,
+      pendingModificationId: true,
+    },
   });
   if (!job) throw new SubmitApplicationError(404, "Job posting not found");
   if (!isJobOpenForApplication(job)) {

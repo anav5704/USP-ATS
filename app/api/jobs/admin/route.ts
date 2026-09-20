@@ -9,13 +9,19 @@ export async function GET() {
 
   try {
     const postings = await prisma.jobPosting.findMany({
-      where: { OR: [
-        { status: "ACTIVE" },
-        { status: "ARCHIVED", OR: [
-          { approvedAt: { not: null } },
-          { requestedById: null, rejectedAt: null },
-        ] },
-      ] },
+      where: {
+        pendingModificationId: null,
+        OR: [
+          { status: "ACTIVE" },
+          {
+            status: "ARCHIVED",
+            OR: [
+              { approvedAt: { not: null } },
+              { requestedById: null, rejectedAt: null },
+            ],
+          },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,

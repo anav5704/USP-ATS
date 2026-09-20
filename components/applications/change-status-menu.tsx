@@ -2,7 +2,10 @@
 
 import { Dropdown } from "@heroui/react";
 import { ChevronDownIcon } from "lucide-react";
-import { APPLICATION_STATUS_LABELS } from "@/components/applications/application-status-badge";
+import {
+  ApplicationStatusBadge,
+  APPLICATION_STATUS_LABELS,
+} from "@/components/applications/application-status-badge";
 import { allowedAdminStatusTargets } from "@/lib/applications/application-rules";
 import type {
   AdminApplicationStatus,
@@ -20,13 +23,18 @@ export function ChangeStatusMenu({
 }) {
   const targets = allowedAdminStatusTargets(status);
 
+  if (targets.length === 0) {
+    return <ApplicationStatusBadge status={status} />;
+  }
+
   return (
     <Dropdown.Root>
       <Dropdown.Trigger
-        isDisabled={isDisabled || targets.length === 0}
-        className="flex items-center gap-1 rounded-field border border-border px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50"
+        aria-label={`Change status from ${APPLICATION_STATUS_LABELS[status]}`}
+        isDisabled={isDisabled}
+        className="flex items-center gap-1 rounded-field transition-opacity hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        Change Status
+        <ApplicationStatusBadge status={status} />
         <ChevronDownIcon className="size-3.5" />
       </Dropdown.Trigger>
       <Dropdown.Popover placement="bottom end">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Modal, Spinner } from "@heroui/react";
+import { Button, Modal } from "@heroui/react";
 import {
   AwardIcon,
   CalendarDaysIcon,
@@ -16,8 +16,11 @@ import {
   WrenchIcon,
 } from "lucide-react";
 import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
-import { useAdminApplicantDetail } from "@/components/applications/use-admin-applicants";
 import { FormModal } from "@/components/ui/form-modal";
+import type {
+  AdminApplicantListItem,
+  AdminApplicantsResponse,
+} from "@/lib/applications/application-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
@@ -34,21 +37,17 @@ function fileSizeLabel(size: number) {
 }
 
 export function ApplicantDetailsModal({
-  jobId,
-  applicationId,
+  job,
+  application,
   isOpen,
   onOpenChange,
 }: {
-  jobId: string;
-  applicationId: string;
+  job: AdminApplicantsResponse["job"];
+  application: AdminApplicantListItem;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const { data, isPending, isError, refetch } = useAdminApplicantDetail(
-    jobId,
-    applicationId
-  );
-  const profile = data?.applicant.profile;
+  const profile = application.applicant.profile;
 
   return (
     <FormModal
@@ -58,49 +57,33 @@ export function ApplicantDetailsModal({
       size="lg"
     >
       <Modal.Body>
-        {isPending ? (
-          <div className="flex min-h-64 items-center justify-center">
-            <Spinner.Root size="lg" className="text-foreground" />
-          </div>
-        ) : isError || !data ? (
-          <div className="flex min-h-64 flex-col items-center justify-center p-6 text-center">
-            <CircleAlertIcon className="size-10 text-danger" />
-            <h3 className="mt-4 text-lg font-semibold text-foreground">
-              Applicant details could not be loaded
-            </h3>
-            <p className="mt-1 text-sm text-muted">Please try again.</p>
-            <Button.Root className="mt-5" onPress={() => void refetch()}>
-              Try Again
-            </Button.Root>
-          </div>
-        ) : (
-          <div className="space-y-6 pb-2">
+        <div className="space-y-6 pb-2">
             <div className="rounded-2xl border border-border bg-surface-secondary p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <UserRoundIcon className="size-5 text-muted" />
                     <h3 className="text-lg font-semibold text-foreground">
-                      {data.applicant.name}
+                      {application.applicant.name}
                     </h3>
                   </div>
                   <p className="mt-1 text-sm text-muted">
-                    Application for {data.job.title}
+                    Application for {job.title}
                   </p>
                 </div>
-                <ApplicationStatusBadge status={data.status} />
+                <ApplicationStatusBadge status={application.status} />
               </div>
               <div className="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-2">
                 <span className="flex min-w-0 items-start gap-2">
                   <MailIcon className="size-4 shrink-0" />
                   <span className="min-w-0 break-words">
-                    {data.applicant.email}
+                    {application.applicant.email}
                   </span>
                 </span>
                 <span className="flex min-w-0 items-start gap-2">
                   <CalendarDaysIcon className="size-4 shrink-0" />
                   <span className="min-w-0">
-                    Applied {dateFormatter.format(new Date(data.createdAt))}
+                    Applied {dateFormatter.format(new Date(application.createdAt))}
                   </span>
                 </span>
                 <span className="flex items-center gap-2">
@@ -304,12 +287,11 @@ export function ApplicantDetailsModal({
               </h4>
               <div className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-4">
                 <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
-                  {data.coverLetter}
+                  {application.coverLetter}
                 </p>
               </div>
             </section>
-          </div>
-        )}
+        </div>
       </Modal.Body>
       <Modal.Footer>
         <Button.Root variant="ghost" onPress={() => onOpenChange(false)}>

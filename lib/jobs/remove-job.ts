@@ -1,6 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import { PostingStatus, Prisma } from "@/generated/prisma/client";
 
+export class RemoveJobError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+  }
+}
+
 async function decideRemoval(id: string) {
   return prisma.$transaction(
     async (transaction) => {
@@ -8,11 +14,18 @@ async function decideRemoval(id: string) {
         where: { id },
         select: {
           id: true,
+          pendingModificationId: true,
           _count: { select: { applications: true } },
         },
       });
 
       if (!posting) return null;
+      if (posting.pendingModificationId) {
+        throw new RemoveJobError(
+          409,
+          "A posting with a pending modification cannot be removed."
+        );
+      }
 
       if (posting._count.applications === 0) {
         await transaction.jobPosting.delete({ where: { id } });
