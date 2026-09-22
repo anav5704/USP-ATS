@@ -71,6 +71,7 @@ export function ApplicationDetailModal({
     try {
       await withdrawAsync(application.id);
       setConfirmOpen(false);
+      onOpenChange(false);
     } catch {
       // error toast is shown by useWithdraw
     }
