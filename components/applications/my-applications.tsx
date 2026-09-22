@@ -1,16 +1,32 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Spinner } from "@heroui/react";
-import { CircleAlertIcon, ClipboardListIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Button, SearchField, Spinner } from "@heroui/react";
+import {
+  CircleAlertIcon,
+  ClipboardListIcon,
+  SearchXIcon,
+  SlidersHorizontalIcon,
+} from "lucide-react";
 import { useMyApplications } from "@/components/applications/use-my-applications";
 import { ApplicationCard } from "@/components/applications/application-card";
 import { ApplicationDetailModal } from "@/components/applications/application-detail-modal";
+import {
+  ApplicationFilterModal,
+  EMPTY_APPLICATION_FILTERS,
+  type ApplicationFilters,
+} from "@/components/applications/application-filter-modal";
+import { APPLICATION_STATUS_LABELS } from "@/components/applications/application-status-badge";
 import type { ApplicationListItem } from "@/lib/applications/application-schema";
 
 export function MyApplications() {
   const { data: applications, isPending, isError, refetch } = useMyApplications();
   const [selected, setSelected] = useState<ApplicationListItem | null>(null);
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<ApplicationFilters>(
+    EMPTY_APPLICATION_FILTERS
+  );
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const selectedApplication = selected
     ? (applications ?? []).find(
@@ -18,12 +34,68 @@ export function MyApplications() {
       ) ?? selected
     : null;
 
+  const hasFilters =
+    search.trim() !== "" || filters.status !== "";
+
+  const activeFilterCount = filters.status !== "" ? 1 : 0;
+
+  const visibleApplications = useMemo(() => {
+    if (!applications) return applications;
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return applications.filter((application) => {
+      const matchesSearch =
+        normalizedSearch === "" ||
+        application.job.title.toLowerCase().includes(normalizedSearch) ||
+        application.job.department.toLowerCase().includes(normalizedSearch) ||
+        application.job.campus
+          .join(", ")
+          .toLowerCase()
+          .includes(normalizedSearch) ||
+        application.coverLetter.toLowerCase().includes(normalizedSearch);
+      const matchesStatus =
+        filters.status === "" ||
+        APPLICATION_STATUS_LABELS[application.status] === filters.status;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [applications, search, filters.status]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilters(EMPTY_APPLICATION_FILTERS);
+  };
+
   return (
     <div className="p-3">
       <div className="mx-auto max-w-none">
         <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
-          <ClipboardListIcon className="size-5" />
-          <h1 className="text-xl font-semibold text-foreground">My Applications</h1>
+          <div className="min-w-0 flex-1">
+            <SearchField
+              fullWidth
+              value={search}
+              onChange={setSearch}
+              aria-label="Search applications"
+            >
+              <SearchField.Group className="border-border">
+                <SearchField.SearchIcon />
+                <SearchField.Input placeholder="Search by job title, department or campus" />
+                <SearchField.ClearButton />
+              </SearchField.Group>
+            </SearchField>
+          </div>
+          <Button.Root
+            onPress={() => setFiltersOpen(true)}
+            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+          >
+            <SlidersHorizontalIcon className="size-4" />
+            Filters
+            {activeFilterCount > 0 ? (
+              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </Button.Root>
         </div>
 
         {isPending ? (
@@ -51,15 +123,39 @@ export function MyApplications() {
               Apply to jobs from the Job Feed and they will appear here.
             </p>
           </div>
+        ) : visibleApplications && visibleApplications.length === 0 ? (
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+            <SearchXIcon className="size-10 text-muted" />
+            <h2 className="mt-4 text-xl font-semibold text-foreground">
+              No applications match your filters
+            </h2>
+            <p className="mt-1 max-w-sm text-sm text-muted">
+              Try adjusting your search or clearing the filters.
+            </p>
+            <Button.Root
+              className="mt-5 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+              onPress={clearFilters}
+            >
+              Clear Filters
+            </Button.Root>
+          </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {(applications ?? []).map((application) => (
-              <ApplicationCard
-                key={application.id}
-                application={application}
-                onPress={() => setSelected(application)}
-              />
-            ))}
+          <div>
+            {applications && applications.length > 0 && hasFilters ? (
+              <p className="mb-3 text-sm text-muted">
+                Showing {visibleApplications?.length} of {applications.length}{" "}
+                applications
+              </p>
+            ) : null}
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {(visibleApplications ?? []).map((application) => (
+                <ApplicationCard
+                  key={application.id}
+                  application={application}
+                  onPress={() => setSelected(application)}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -70,6 +166,13 @@ export function MyApplications() {
           onOpenChange={(open) => {
             if (!open) setSelected(null);
           }}
+        />
+      ) : null}
+      {filtersOpen ? (
+        <ApplicationFilterModal
+          filters={filters}
+          onApply={setFilters}
+          onOpenChange={setFiltersOpen}
         />
       ) : null}
     </div>
