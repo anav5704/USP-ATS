@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Prisma, type JobPosting } from "@/generated/prisma/client";
 import { reviewJob, ReviewError } from "@/lib/jobs/review-job";
-import { approvalInputSchema, isOwnApprovalRequest, pendingReviewData, jobEditReviewData } from "@/lib/jobs/approval-schema";
+import { approvalInputSchema, isOwnApprovalRequest, pendingReviewData } from "@/lib/jobs/approval-schema";
 import { JOB_TEMPLATES } from "@/lib/jobs/job-templates";
 import { USP_CAMPUSES_CENTRES, USP_DEPARTMENTS } from "@/lib/jobs/job-constants";
 
@@ -12,7 +12,8 @@ function pendingJob(): JobPosting {
     department: USP_DEPARTMENTS[0], campus: [USP_CAMPUSES_CENTRES[0]], degree: [],
     gpaMin: new Prisma.Decimal(3.5), hourlyPay: new Prisma.Decimal(15), benefit: "Lunch",
     deadline: new Date("2099-12-31T11:59:59Z"), createdById: "admin-a",
-    ...pendingReviewData("admin-a"), revision: 0, createdAt: new Date(), updatedAt: new Date(),
+    ...pendingReviewData("admin-a"), pendingModificationId: null,
+    revision: 0, createdAt: new Date(), updatedAt: new Date(),
   };
 }
 
@@ -30,20 +31,17 @@ function repository(posting: JobPosting | null, count = 1) {
 
 const approve = { decision: "approve", revision: 0 } as const;
 
-test("pending edits preserve creator identity; active edits preserve approval", () => {
-  const prior = pendingJob();
-  const edited = { ...prior, ...jobEditReviewData(prior.status, "admin-c") };
-  assert.equal(edited.status, "PENDING_APPROVAL");
-  assert.equal(edited.createdById, "admin-a");
-  assert.equal(edited.requestedById, "admin-c");
-  assert.equal(edited.approvedById, null);
-  assert.equal(edited.approvedAt, null);
-  assert.equal(isOwnApprovalRequest(edited, "admin-a"), true);
-  assert.equal(isOwnApprovalRequest(edited, "admin-c"), true);
-  assert.equal(isOwnApprovalRequest(edited, "admin-b"), false);
-  for (const status of ["ACTIVE", "ARCHIVED", "REJECTED"]) {
-    assert.deepEqual(jobEditReviewData(status, "admin-c"), {});
-  }
+test("ownership distinguishes new postings from modification requests", () => {
+  const pending = pendingJob();
+  assert.equal(isOwnApprovalRequest(pending, "admin-a"), true);
+  assert.equal(isOwnApprovalRequest(pending, "admin-b"), false);
+  const modification = {
+    createdById: "admin-a",
+    requestedById: "admin-c",
+    requestType: "MODIFICATION" as const,
+  };
+  assert.equal(isOwnApprovalRequest(modification, "admin-a"), false);
+  assert.equal(isOwnApprovalRequest(modification, "admin-c"), true);
 });
 
 test("creator and latest editor cannot approve or reject, even via direct service call", async () => {

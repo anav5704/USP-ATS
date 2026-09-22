@@ -55,12 +55,14 @@ export function JobDetailModal({
   onOpenChange,
   hasApplied,
   onApply,
+  readOnly = false,
 }: {
   job: StudentJobListItem;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  hasApplied: boolean;
-  onApply: () => void;
+  hasApplied?: boolean;
+  onApply?: () => void;
+  readOnly?: boolean;
 }) {
   const deadline = dateFormatter.format(new Date(job.deadline));
   const deadlineStatus = deadlineRemainingLabel(new Date(job.deadline));
@@ -150,7 +152,7 @@ export function JobDetailModal({
           >
             Close
           </Button.Root>
-          {hasApplied ? (
+          {readOnly ? null : hasApplied ? (
             <Button.Root
               isDisabled
               className="rounded-field bg-foreground px-5 text-sm font-medium text-background"

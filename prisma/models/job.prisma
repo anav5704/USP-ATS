@@ -1,37 +1,65 @@
 model JobPosting {
-  id           String        @id @default(cuid())
-  title        String
-  description  String        @default("")
-  department   String
-  jobType      String
-  campus       String[]
-  gpaMin       Decimal?      @db.Decimal(3, 2)
-  degree       String[]
-  skills       String[]
-  hours        Int?
-  hourlyPay    Decimal       @default(0) @db.Decimal(10, 2)
-  benefit      String?
-  deadline     DateTime
-  status       PostingStatus @default(PENDING_APPROVAL)
-  createdById  String
-  createdBy    User          @relation(fields: [createdById], references: [id])
-  requestedById String?
-  requestedBy   User? @relation("JobRequester", fields: [requestedById], references: [id])
-  requestedAt   DateTime @default(now())
-  approvedById  String?
-  approvedBy    User? @relation("JobApprover", fields: [approvedById], references: [id])
-  approvedAt    DateTime?
-  rejectedById  String?
-  rejectedBy    User? @relation("JobRejecter", fields: [rejectedById], references: [id])
-  rejectedAt    DateTime?
-  rejectionReason String?
-  revision      Int @default(0)
-  applications Application[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                    String                   @id @default(cuid())
+  title                 String
+  description           String                   @default("")
+  department            String
+  jobType               String
+  campus                String[]
+  gpaMin                Decimal?                 @db.Decimal(3, 2)
+  degree                String[]
+  skills                String[]
+  hours                 Int?
+  hourlyPay             Decimal                  @default(0) @db.Decimal(10, 2)
+  benefit               String?
+  deadline              DateTime
+  status                PostingStatus            @default(PENDING_APPROVAL)
+  createdById           String
+  createdBy             User                     @relation(fields: [createdById], references: [id])
+  requestedById         String?
+  requestedBy           User?                    @relation("JobRequester", fields: [requestedById], references: [id])
+  requestedAt           DateTime                 @default(now())
+  approvedById          String?
+  approvedBy            User?                    @relation("JobApprover", fields: [approvedById], references: [id])
+  approvedAt            DateTime?
+  rejectedById          String?
+  rejectedBy            User?                    @relation("JobRejecter", fields: [rejectedById], references: [id])
+  rejectedAt            DateTime?
+  rejectionReason       String?
+  revision              Int                      @default(0)
+  pendingModificationId String?
+  modificationRequests  JobModificationRequest[] @relation("JobModificationHistory")
+  applications          Application[]
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
 
   @@index([status, createdAt])
+  @@index([pendingModificationId])
   @@map("job_posting")
+}
+
+model JobModificationRequest {
+  id              String                       @id @default(cuid())
+  jobId           String
+  job             JobPosting                   @relation("JobModificationHistory", fields: [jobId], references: [id], onDelete: Cascade)
+  previousData    Json
+  proposedData    Json
+  jobRevision     Int
+  revision        Int                          @default(0)
+  status          JobModificationRequestStatus @default(PENDING)
+  requestedById   String
+  requestedBy     User                         @relation("JobModificationRequester", fields: [requestedById], references: [id])
+  reviewedById    String?
+  reviewedBy      User?                        @relation("JobModificationReviewer", fields: [reviewedById], references: [id])
+  requestedAt     DateTime                     @default(now())
+  reviewedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+
+  @@index([jobId, requestedAt])
+  @@index([status, requestedAt])
+  @@index([requestedById])
+  @@map("job_modification_request")
 }
 
 enum PostingStatus {
@@ -39,4 +67,11 @@ enum PostingStatus {
   ACTIVE
   REJECTED
   ARCHIVED
+}
+
+enum JobModificationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
 }

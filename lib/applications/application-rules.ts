@@ -32,9 +32,14 @@ export function canAdminChangeStatus(
 }
 
 export function isJobOpenForApplication(
-  job: { status: string; deadline: Date | string },
+  job: {
+    status: string;
+    deadline: Date | string;
+    pendingModificationId?: string | null;
+  },
   todayFijiDate: string = todayInFiji()
 ): boolean {
   if (job.status !== "ACTIVE") return false;
+  if (job.pendingModificationId) return false;
   return new Date(job.deadline) >= startOfFijiDay(todayFijiDate);
 }

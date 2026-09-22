@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, Dropdown, SearchField, Spinner, Table } from "@heroui/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button, SearchField, Spinner, Table } from "@heroui/react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArchiveIcon,
   BriefcaseBusinessIcon,
   CircleAlertIcon,
-  MoreVerticalIcon,
   PencilIcon,
   PlusIcon,
   SearchXIcon,
@@ -14,12 +16,12 @@ import {
   Trash2Icon,
   UsersRoundIcon,
 } from "lucide-react";
-import { AdminApplicantsModal } from "@/components/applications/admin-applicants-modal";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useRemoveJob } from "@/components/jobs/use-remove-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
 import { EditJobModal } from "@/components/jobs/edit-job-modal";
+import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import {
   AdminJobFilterModal,
   EMPTY_ADMIN_FILTERS,
@@ -27,10 +29,14 @@ import {
 } from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
-import { JobStatusBadge, JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
+import { JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
+import { JobStatusMenu } from "@/components/jobs/job-status-menu";
+import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
 import {
   JOB_DATE_TIME_ZONE,
   deadlineRemainingLabel,
+  todayInFiji,
+  toFijiDate,
 } from "@/lib/jobs/job-dates";
 
 const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
@@ -40,22 +46,58 @@ const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
   timeZone: JOB_DATE_TIME_ZONE,
 });
 
-const payFormatter = new Intl.NumberFormat("en-FJ", {
+const wholePayFormatter = new Intl.NumberFormat("en-FJ", {
   style: "currency",
   currency: "FJD",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+});
+
+const decimalPayFormatter = new Intl.NumberFormat("en-FJ", {
+  style: "currency",
+  currency: "FJD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
 function jobIsExpired(job: AdminJobListItem) {
   return job.status === "ACTIVE" && new Date(job.deadline).getTime() < Date.now();
 }
 
+function hourlyPayLabel(hourlyPay: number) {
+  const formatter = Number.isInteger(hourlyPay)
+    ? wholePayFormatter
+    : decimalPayFormatter;
+  return `${formatter.format(hourlyPay)}/hr`;
+}
+
+function adminDeadlineLabel(deadline: string) {
+  const deadlineDate = new Date(deadline);
+  const status = deadlineRemainingLabel(deadlineDate);
+  if (!status.expired) return status.label;
+
+  const deadlineYear = toFijiDate(deadlineDate).slice(0, 4);
+  const currentYear = todayInFiji().slice(0, 4);
+  const dateParts = Object.fromEntries(
+    dateFormatter
+      .formatToParts(deadlineDate)
+      .map((part) => [part.type, part.value])
+  );
+  const formattedDate = `${dateParts.month} ${dateParts.day}${
+    deadlineYear === currentYear ? "" : `, ${dateParts.year}`
+  }`;
+
+  return `Closed ${formattedDate}`;
+}
+
 export function AdminJobList() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: jobs, isPending, isError, refetch } = useAdminJobs();
   const { isPending: isRemoving, removeAsync } = useRemoveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
-  const [applicantsJob, setApplicantsJob] =
-    useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
@@ -89,7 +131,10 @@ export function AdminJobList() {
         normalizedSearch === "" ||
         job.title.toLowerCase().includes(normalizedSearch) ||
         job.description.toLowerCase().includes(normalizedSearch) ||
-        job.department.toLowerCase().includes(normalizedSearch);
+        job.department.toLowerCase().includes(normalizedSearch) ||
+        job.campus.some((campus) =>
+          campus.toLowerCase().includes(normalizedSearch)
+        );
       const matchesType = filters.jobType === "" || job.jobType === filters.jobType;
       const matchesCampus =
         filters.campuses.length === 0 ||
@@ -139,6 +184,12 @@ export function AdminJobList() {
     void removeAsync(jobId);
   };
 
+  const prefetchApplicants = (jobId: string) => {
+    const href = `/admin/jobs/${encodeURIComponent(jobId)}/applicants`;
+    router.prefetch(href);
+    void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId));
+  };
+
   return (
     <div className="p-3">
       <div className="mx-auto max-w-none">
@@ -152,7 +203,7 @@ export function AdminJobList() {
             >
               <SearchField.Group className="border-border">
                 <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search by title, description or department" />
+                <SearchField.Input placeholder="Search by title, department or campus..." />
                 <SearchField.ClearButton />
               </SearchField.Group>
             </SearchField>
@@ -230,96 +281,85 @@ export function AdminJobList() {
             <Table.ScrollContainer>
               <Table.Content aria-label="Job postings">
                 <Table.Header>
-                  <Table.Column isRowHeader>Job</Table.Column>
-                  <Table.Column>Type</Table.Column>
+                  <Table.Column isRowHeader>Job Posting</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
-                  <Table.Column>Hourly pay</Table.Column>
+                  <Table.Column>Pay</Table.Column>
                   <Table.Column>Deadline</Table.Column>
+                  <Table.Column>Applicants</Table.Column>
                   <Table.Column>Status</Table.Column>
-                  <Table.Column>Applications</Table.Column>
-                  <Table.Column>Actions</Table.Column>
+                  <Table.Column>Manage</Table.Column>
                 </Table.Header>
                   <Table.Body items={visibleJobs}>
                   {(job) => (
                     <Table.Row id={job.id}>
                       <Table.Cell>
-                        <div>
+                        <div className="min-w-52">
                           <Button.Root
                             variant="ghost"
-                            onPress={() => setApplicantsJob(job)}
-                            className="h-auto justify-start p-0 font-medium text-foreground hover:underline"
+                            onPress={() => setViewingJob(job)}
+                            aria-label={`View job posting details for ${job.title}`}
+                            className="h-auto min-w-0 justify-start p-0 text-left font-semibold text-foreground hover:underline focus-visible:underline"
                           >
                             {job.title}
                           </Button.Root>
-                          <p className="text-xs text-muted">{job.department}</p>
+                          <p className="mt-0.5 text-xs text-muted">
+                            {job.department} · {job.jobType}
+                          </p>
                         </div>
                       </Table.Cell>
-                      <Table.Cell>{job.jobType}</Table.Cell>
-                      <Table.Cell>{job.campus.join(", ")}</Table.Cell>
-                      <Table.Cell>{payFormatter.format(job.hourlyPay)}</Table.Cell>
                       <Table.Cell>
                         <span
-                          title={dateFormatter.format(new Date(job.deadline))}
+                          className="block min-w-40 max-w-64 whitespace-normal break-words"
+                          title={job.campus.join(", ")}
                         >
-                          {deadlineRemainingLabel(new Date(job.deadline)).label}
+                          {job.campus.join(", ")}
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        <JobStatusBadge status={job.status} expired={jobIsExpired(job)} />
+                        <span className="whitespace-nowrap font-medium text-foreground">
+                          {hourlyPayLabel(job.hourlyPay)}
+                        </span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span
+                          className="whitespace-nowrap"
+                          title={dateFormatter.format(new Date(job.deadline))}
+                        >
+                          {adminDeadlineLabel(job.deadline)}
+                        </span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Link
+                          href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
+                          prefetch={false}
+                          onMouseEnter={() => prefetchApplicants(job.id)}
+                          onFocus={() => prefetchApplicants(job.id)}
+                          aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
+                          className="inline-flex h-auto min-w-0 cursor-pointer items-center gap-1.5 rounded-field px-2 py-1 font-medium text-foreground hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+                        >
+                          <UsersRoundIcon className="size-4 text-muted" />
+                          {job.applicationCount}
+                        </Link>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <JobStatusMenu
+                          job={job}
+                          expired={jobIsExpired(job)}
+                          onRemove={() => setSelectedJob(job)}
+                        />
                         {job.status === "REJECTED" && job.rejectionReason ? (
                           <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
                         ) : null}
                       </Table.Cell>
-                      <Table.Cell>{job.applicationCount}</Table.Cell>
                       <Table.Cell>
-                        <Dropdown.Root>
-                          <Dropdown.Trigger
-                            aria-label={`Actions for ${job.title}`}
-                            className="rounded-xl p-1.5 text-muted transition-colors hover:bg-surface-secondary"
-                          >
-                            <MoreVerticalIcon className="size-4" />
-                          </Dropdown.Trigger>
-                          <Dropdown.Popover placement="right">
-                            <Dropdown.Menu>
-                              <Dropdown.Item
-                                textValue="View applicants"
-                                onAction={() => setApplicantsJob(job)}
-                                className="flex items-center gap-2"
-                              >
-                                <UsersRoundIcon className="size-4" />
-                                View applicants
-                              </Dropdown.Item>
-                              <Dropdown.Item
-                                textValue="Edit"
-                                onAction={() => setEditingJob(job)}
-                                className="flex items-center gap-2"
-                              >
-                                <PencilIcon className="size-4" />
-                                Edit
-                              </Dropdown.Item>
-                              {job.status !== "ARCHIVED" ? (
-                                <Dropdown.Item
-                                  textValue={
-                                    job.applicationCount === 0
-                                      ? "Delete"
-                                      : "Archive"
-                                  }
-                                  onAction={() => setSelectedJob(job)}
-                                  className="flex items-center gap-2 text-danger hover:bg-danger-soft hover:text-danger"
-                                >
-                                  {job.applicationCount === 0 ? (
-                                    <Trash2Icon className="size-4" />
-                                  ) : (
-                                    <ArchiveIcon className="size-4" />
-                                  )}
-                                  {job.applicationCount === 0
-                                    ? "Delete"
-                                    : "Archive"}
-                                </Dropdown.Item>
-                              ) : null}
-                            </Dropdown.Menu>
-                          </Dropdown.Popover>
-                        </Dropdown.Root>
+                        <Button.Root
+                          variant="ghost"
+                          onPress={() => setEditingJob(job)}
+                          className="h-auto gap-2 rounded-field px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-secondary"
+                        >
+                          <PencilIcon className="size-4" />
+                          Modify
+                        </Button.Root>
                       </Table.Cell>
                     </Table.Row>
                   )}
@@ -367,12 +407,13 @@ export function AdminJobList() {
           }}
         />
       ) : null}
-      {applicantsJob ? (
-        <AdminApplicantsModal
-          job={applicantsJob}
+      {viewingJob ? (
+        <JobDetailModal
+          job={viewingJob}
           isOpen
+          readOnly
           onOpenChange={(open) => {
-            if (!open) setApplicantsJob(null);
+            if (!open) setViewingJob(null);
           }}
         />
       ) : null}

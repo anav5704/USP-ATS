@@ -1,17 +1,17 @@
 model Profile {
-  id           String       @id @default(cuid())
-  userId       String       @unique
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   phone        String?
   bio          String?
   skills       String[]
-  campuses     String[]     @default([])
+  campuses     String[]      @default([])
   degrees      Degree[]
   certificates Certificate[]
   socialLinks  SocialLink[]
   profileLinks ProfileLink[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@map("profile")
 }

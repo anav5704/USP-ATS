@@ -9,9 +9,16 @@ export const approvalInputSchema = z.object({
 export type ApprovalInput = z.infer<typeof approvalInputSchema>;
 
 export function isOwnApprovalRequest(
-  posting: { createdById: string; requestedById: string | null },
+  posting: {
+    createdById: string;
+    requestedById: string | null;
+    requestType?: "NEW_JOB" | "MODIFICATION";
+  },
   adminId: string,
 ) {
+  if (posting.requestType === "MODIFICATION") {
+    return posting.requestedById === adminId;
+  }
   return posting.createdById === adminId || posting.requestedById === adminId;
 }
 
@@ -25,6 +32,3 @@ export const pendingReviewData = (adminId: string) => ({
   rejectedAt: null,
   rejectionReason: null,
 });
-
-export const jobEditReviewData = (status: string, adminId: string) =>
-  status === "PENDING_APPROVAL" ? pendingReviewData(adminId) : {};

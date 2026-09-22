@@ -26,6 +26,10 @@ export function ApplicationScoreCell({
     );
   }
 
+  if (score.matchScore === null) {
+    return <span className="text-muted">-</span>;
+  }
+
   return (
     <span className="inline-flex items-baseline gap-1 font-medium text-foreground">
       {score.matchScore}

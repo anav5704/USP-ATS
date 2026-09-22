@@ -51,12 +51,56 @@ export type ApplicationListItem = {
   job: StudentJobListItem;
 };
 
-const adminApplicantListItemSchema = z.object({
-  id: z.string(),
+const adminProfileFileSchema = z.object({
   name: z.string(),
-  campuses: z.array(z.string()),
-  createdAt: z.string(),
+  type: z.string(),
+  size: z.number().int(),
+  url: z.string(),
+});
+
+const adminApplicantProfileSchema = z
+  .object({
+    phone: z.string().nullable(),
+    bio: z.string().nullable(),
+    campuses: z.array(z.string()),
+    skills: z.array(z.string()),
+    degrees: z.array(
+      z.object({
+        name: z.string(),
+        gpa: z.number(),
+        documentType: z.enum(["TRANSCRIPT", "DEGREE"]),
+        document: adminProfileFileSchema,
+      })
+    ),
+    certificates: z.array(
+      z.object({
+        label: z.string(),
+        organization: z.string().nullable(),
+        url: z.string().nullable(),
+        uploadedAt: z.string(),
+        file: adminProfileFileSchema,
+      })
+    ),
+    socialLinks: z.array(
+      z.object({ platform: z.string(), url: z.string() })
+    ),
+    profileLinks: z.array(z.object({ title: z.string(), url: z.string() })),
+  })
+  .nullable();
+
+const adminApplicantDataSchema = z.object({
+  id: z.string(),
   status: z.enum(APPLICATION_STATUSES),
+  createdAt: z.string(),
+  coverLetter: z.string(),
+  applicant: z.object({
+    name: z.string(),
+    email: z.string(),
+    profile: adminApplicantProfileSchema,
+  }),
+});
+
+const adminApplicantListItemSchema = adminApplicantDataSchema.extend({
   score: z
     .object({
       matchScore: z.number().int().nullable(),
@@ -66,7 +110,12 @@ const adminApplicantListItemSchema = z.object({
 });
 
 export const adminApplicantsResponseSchema = z.object({
-  job: z.object({ id: z.string(), title: z.string() }),
+  job: z.object({
+    id: z.string(),
+    title: z.string(),
+    department: z.string(),
+    campus: z.array(z.string()),
+  }),
   applications: z.array(adminApplicantListItemSchema),
 });
 
@@ -75,56 +124,4 @@ export type AdminApplicantListItem = z.infer<
 >;
 export type AdminApplicantsResponse = z.infer<
   typeof adminApplicantsResponseSchema
->;
-
-const adminProfileFileSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  size: z.number().int(),
-  url: z.string(),
-});
-
-export const adminApplicantDetailSchema = z.object({
-  id: z.string(),
-  status: z.enum(APPLICATION_STATUSES),
-  createdAt: z.string(),
-  coverLetter: z.string(),
-  job: z.object({ id: z.string(), title: z.string() }),
-  applicant: z.object({
-    name: z.string(),
-    email: z.string(),
-    profile: z
-      .object({
-        phone: z.string().nullable(),
-        bio: z.string().nullable(),
-        campuses: z.array(z.string()),
-        skills: z.array(z.string()),
-        degrees: z.array(
-          z.object({
-            name: z.string(),
-            gpa: z.number(),
-            documentType: z.enum(["TRANSCRIPT", "DEGREE"]),
-            document: adminProfileFileSchema,
-          })
-        ),
-        certificates: z.array(
-          z.object({
-            label: z.string(),
-            organization: z.string().nullable(),
-            url: z.string().nullable(),
-            uploadedAt: z.string(),
-            file: adminProfileFileSchema,
-          })
-        ),
-        socialLinks: z.array(
-          z.object({ platform: z.string(), url: z.string() })
-        ),
-        profileLinks: z.array(z.object({ title: z.string(), url: z.string() })),
-      })
-      .nullable(),
-  }),
-});
-
-export type AdminApplicantDetail = z.infer<
-  typeof adminApplicantDetailSchema
 >;

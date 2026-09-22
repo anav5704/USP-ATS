@@ -56,10 +56,6 @@ const ARCHETYPES = {
     jobType: "Part Time", gpaMin: 3, hourlyPay: 12, hours: 15,
     skills: ["Customer Service", "Organization", "Communication"],
   },
-  internship: {
-    jobType: "Internship", gpaMin: 3, hourlyPay: 10, hours: 20,
-    skills: ["Teamwork", "Communication", "Initiative"],
-  },
   specialist: {
     jobType: "Full Time", gpaMin: 3.5, hourlyPay: 22, hours: 40,
     skills: ["Training and Development", "Communication", "Problem Solving"],
@@ -99,7 +95,6 @@ export const JOB_TEMPLATES = {
   Tutor: template("Provide individual or small-group learning support and help students understand course concepts and study practices.", ARCHETYPES.academicSupport),
   Marker: template("Mark assigned coursework against supplied criteria and provide accurate, consistent, and timely feedback.", ARCHETYPES.academicSupport),
   "Lab Demonstrator": template("Assist supervised laboratory sessions, demonstrate standard procedures, and support a safe learning environment.", ARCHETYPES.academicSupport),
-  Intern: template("Complete supervised project and team activities while developing practical experience in a professional environment.", ARCHETYPES.internship),
   "Project Partner": template("Work with project stakeholders to coordinate activities, share expertise, and support agreed project outcomes.", ARCHETYPES.coordinator),
   "Student Learning Specialist": template("Develop and deliver learning support that helps students strengthen academic skills and study practices.", ARCHETYPES.specialist),
   "PASS Leader": template("Facilitate peer-assisted study sessions and help students engage with course concepts and effective study strategies.", ARCHETYPES.academicSupport),

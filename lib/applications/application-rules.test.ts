@@ -82,6 +82,20 @@ test("active jobs with a past deadline are closed", () => {
   );
 });
 
+test("jobs awaiting modification approval are closed", () => {
+  assert.equal(
+    isJobOpenForApplication(
+      {
+        status: "ACTIVE",
+        deadline: deadlineAtEndOfFijiDay("2027-02-01"),
+        pendingModificationId: "request-1",
+      },
+      TODAY
+    ),
+    false
+  );
+});
+
 test("non-active jobs are closed regardless of deadline", () => {
   for (const status of ["PENDING_APPROVAL", "REJECTED", "ARCHIVED"]) {
     assert.equal(

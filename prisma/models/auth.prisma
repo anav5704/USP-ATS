@@ -1,22 +1,24 @@
 model User {
-  id            String        @id
-  name          String
-  firstName     String?
-  lastName      String?
-  email         String
-  emailVerified Boolean       @default(false)
-  image         String?
-  role          String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  profile       Profile?
-  postings      JobPosting[]
-  requestedPostings JobPosting[] @relation("JobRequester")
-  approvedPostings JobPosting[] @relation("JobApprover")
-  rejectedPostings JobPosting[] @relation("JobRejecter")
-  applications  Application[]
+  id                        String                   @id
+  name                      String
+  firstName                 String?
+  lastName                  String?
+  email                     String
+  emailVerified             Boolean                  @default(false)
+  image                     String?
+  role                      String?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  sessions                  Session[]
+  accounts                  Account[]
+  profile                   Profile?
+  postings                  JobPosting[]
+  requestedPostings         JobPosting[]             @relation("JobRequester")
+  approvedPostings          JobPosting[]             @relation("JobApprover")
+  rejectedPostings          JobPosting[]             @relation("JobRejecter")
+  requestedJobModifications JobModificationRequest[] @relation("JobModificationRequester")
+  reviewedJobModifications  JobModificationRequest[] @relation("JobModificationReviewer")
+  applications              Application[]
 
   @@unique([email])
   @@map("user")

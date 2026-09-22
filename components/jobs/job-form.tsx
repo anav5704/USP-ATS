@@ -3,8 +3,8 @@
 import { useEffect, useRef } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Modal, TextArea } from "@heroui/react";
-import { LoaderCircleIcon, PlusIcon, SaveIcon } from "lucide-react";
+import { Button, Input, Modal, TextArea, toast } from "@heroui/react";
+import { LoaderCircleIcon, PlusIcon, SendIcon } from "lucide-react";
 import { FormField } from "@/components/ui/form-field";
 import {
   JOB_TYPES,
@@ -93,14 +93,19 @@ export function JobForm({
     onPendingChange?.(isPending);
   }, [isPending, onPendingChange]);
 
-  const submit = handleSubmit(async (values) => {
-    try {
-      await saveAsync(values);
-      onSuccess();
-    } catch {
-      // error toast is shown by useSaveJob
+  const submit = handleSubmit(
+    async (values) => {
+      try {
+        await saveAsync(values);
+        onSuccess();
+      } catch {
+        // error toast is shown by useSaveJob
+      }
+    },
+    () => {
+      toast.danger("Review the highlighted fields before requesting approval.");
     }
-  });
+  );
 
   const applyTitleTemplate = (title: string) => {
     const currentForm = getValues();
@@ -329,9 +334,9 @@ export function JobForm({
             ) : mode === "create" ? (
               <PlusIcon className="size-4" />
             ) : (
-              <SaveIcon className="size-4" />
+              <SendIcon className="size-4" />
             )}
-            {mode === "create" ? "Request Approval" : "Save Changes"}
+            Request Approval
           </Button.Root>
         </div>
       </Modal.Footer>
