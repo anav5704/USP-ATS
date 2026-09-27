@@ -3,10 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { jobInputSchema } from "@/lib/jobs/job-schema";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
 import {
-  removeJobPostingById,
-  RemoveJobError,
-} from "@/lib/jobs/remove-job";
-import {
   JobModificationError,
   requestJobModification,
 } from "@/lib/jobs/job-modification";
@@ -52,37 +48,6 @@ export async function PATCH(
             : "Unable to submit the job modification",
       },
       { status: error instanceof JobModificationError ? error.status : 500 }
-    );
-  }
-}
-
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const guard = await requireApiAdmin();
-  if (!guard.ok) return guard.response;
-
-  const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
-  }
-
-  try {
-    const outcome = await removeJobPostingById(id);
-    if (!outcome) {
-      return NextResponse.json({ error: "Job posting not found" }, { status: 404 });
-    }
-    return NextResponse.json({ outcome });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof RemoveJobError
-            ? error.message
-            : "Unable to remove the job posting",
-      },
-      { status: error instanceof RemoveJobError ? error.status : 500 }
     );
   }
 }

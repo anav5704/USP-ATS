@@ -6,14 +6,14 @@ import { api, ApiError } from "@/lib/api";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 
-type RemoveOutcome = { outcome: "deleted" | "archived" };
+type ArchiveOutcome = { outcome: "archived" };
 
-export function useRemoveJob() {
+export function useArchiveJob() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: (jobId: string) =>
-      api.delete<RemoveOutcome>(`/api/jobs/${jobId}`),
+      api.post<ArchiveOutcome>(`/api/jobs/${jobId}/archive`),
     retry: 0,
     onMutate: async (jobId) => {
       await queryClient.cancelQueries({
@@ -25,7 +25,9 @@ export function useRemoveJob() {
       if (previous) {
         queryClient.setQueryData(
           jobQueryKeys.adminLists(),
-          previous.filter((job) => job.id !== jobId)
+          previous.map((job) =>
+            job.id === jobId ? { ...job, status: "ARCHIVED" as const } : job
+          )
         );
       }
       return { previous };
@@ -40,12 +42,8 @@ export function useRemoveJob() {
           : "Something went wrong. Please try again."
       );
     },
-    onSuccess: (result) => {
-      toast.success(
-        result.outcome === "deleted"
-          ? "Job posting permanently deleted"
-          : "Job posting archived. Applications and scores were preserved."
-      );
+    onSuccess: () => {
+      toast.success("Job posting archived. Applications and scores were preserved.");
     },
     onSettled: () => {
       void queryClient.invalidateQueries({
@@ -56,6 +54,6 @@ export function useRemoveJob() {
 
   return {
     isPending: mutation.isPending,
-    removeAsync: mutation.mutateAsync,
+    archiveAsync: mutation.mutateAsync,
   };
 }
