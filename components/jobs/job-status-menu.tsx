@@ -1,25 +1,23 @@
 "use client";
 
 import { Dropdown } from "@heroui/react";
-import { ArchiveIcon, ChevronDownIcon, Trash2Icon } from "lucide-react";
+import { ArchiveIcon, ChevronDownIcon } from "lucide-react";
 import { JobStatusBadge } from "@/components/jobs/job-status-badge";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
+import { effectiveJobStatus } from "@/lib/jobs/job-lifecycle";
 
 export function JobStatusMenu({
   job,
-  expired,
-  onRemove,
+  onArchive,
 }: {
   job: AdminJobListItem;
-  expired: boolean;
-  onRemove: () => void;
+  onArchive: () => void;
 }) {
-  if (job.status === "ARCHIVED") {
-    return <JobStatusBadge status={job.status} expired={expired} />;
-  }
+  const status = effectiveJobStatus(job);
 
-  const willDelete = job.applicationCount === 0;
-  const actionLabel = willDelete ? "Delete posting" : "Archive posting";
+  if (status === "ARCHIVED") {
+    return <JobStatusBadge status={status} />;
+  }
 
   return (
     <Dropdown.Root>
@@ -27,22 +25,18 @@ export function JobStatusMenu({
         aria-label={`Change status for ${job.title}`}
         className="inline-flex items-center gap-1 rounded-full transition-opacity hover:opacity-75"
       >
-        <JobStatusBadge status={job.status} expired={expired} />
+        <JobStatusBadge status={status} />
         <ChevronDownIcon className="size-3.5 text-muted" />
       </Dropdown.Trigger>
       <Dropdown.Popover placement="bottom start">
         <Dropdown.Menu>
           <Dropdown.Item
-            textValue={actionLabel}
-            onAction={onRemove}
-            className="flex items-center gap-2 text-danger hover:bg-danger-soft hover:text-danger"
+            textValue="Archive posting"
+            onAction={onArchive}
+            className="flex items-center gap-2"
           >
-            {willDelete ? (
-              <Trash2Icon className="size-4" />
-            ) : (
-              <ArchiveIcon className="size-4" />
-            )}
-            {actionLabel}
+            <ArchiveIcon className="size-4" />
+            Archive posting
           </Dropdown.Item>
         </Dropdown.Menu>
       </Dropdown.Popover>

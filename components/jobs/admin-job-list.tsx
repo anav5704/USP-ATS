@@ -13,11 +13,10 @@ import {
   PlusIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
-  Trash2Icon,
   UsersRoundIcon,
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
-import { useRemoveJob } from "@/components/jobs/use-remove-job";
+import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
 import { EditJobModal } from "@/components/jobs/edit-job-modal";
@@ -32,6 +31,7 @@ import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 import { JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
 import { JobStatusMenu } from "@/components/jobs/job-status-menu";
 import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
+import { effectiveJobStatus } from "@/lib/jobs/job-lifecycle";
 import {
   JOB_DATE_TIME_ZONE,
   deadlineRemainingLabel,
@@ -59,10 +59,6 @@ const decimalPayFormatter = new Intl.NumberFormat("en-FJ", {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-
-function jobIsExpired(job: AdminJobListItem) {
-  return job.status === "ACTIVE" && new Date(job.deadline).getTime() < Date.now();
-}
 
 function hourlyPayLabel(hourlyPay: number) {
   const formatter = Number.isInteger(hourlyPay)
@@ -94,7 +90,7 @@ export function AdminJobList() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: jobs, isPending, isError, refetch } = useAdminJobs();
-  const { isPending: isRemoving, removeAsync } = useRemoveJob();
+  const { isPending: isArchiving, archiveAsync } = useArchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
@@ -126,7 +122,7 @@ export function AdminJobList() {
     const gpaValue = Number(filters.gpaMin);
 
     return jobs.filter((job) => {
-      const expired = jobIsExpired(job);
+      const effectiveStatus = effectiveJobStatus(job);
       const matchesSearch =
         normalizedSearch === "" ||
         job.title.toLowerCase().includes(normalizedSearch) ||
@@ -154,11 +150,7 @@ export function AdminJobList() {
         job.skills.some((skill) => filters.skills.includes(skill));
       const matchesStatus =
         filters.status === "" ||
-        (filters.status === "Active"
-          ? job.status === "ACTIVE" && !expired
-          : filters.status === "Expired"
-            ? expired
-            : JOB_STATUS_LABELS[job.status] === filters.status);
+        JOB_STATUS_LABELS[effectiveStatus] === filters.status;
 
       return (
         matchesSearch &&
@@ -177,11 +169,11 @@ export function AdminJobList() {
     setFilters(EMPTY_ADMIN_FILTERS);
   };
 
-  const confirmRemoval = () => {
+  const confirmArchive = () => {
     if (!selectedJob) return;
     const jobId = selectedJob.id;
     setSelectedJob(null);
-    void removeAsync(jobId);
+    void archiveAsync(jobId);
   };
 
   const prefetchApplicants = (jobId: string) => {
@@ -344,8 +336,7 @@ export function AdminJobList() {
                       <Table.Cell>
                         <JobStatusMenu
                           job={job}
-                          expired={jobIsExpired(job)}
-                          onRemove={() => setSelectedJob(job)}
+                          onArchive={() => setSelectedJob(job)}
                         />
                         {job.status === "REJECTED" && job.rejectionReason ? (
                           <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
@@ -373,27 +364,14 @@ export function AdminJobList() {
       <ConfirmModal
         isOpen={selectedJob !== null}
         onOpenChange={(open) => {
-          if (!open && !isRemoving) setSelectedJob(null);
+          if (!open && !isArchiving) setSelectedJob(null);
         }}
-        title={
-          selectedJob?.applicationCount === 0
-            ? "Delete job posting?"
-            : "Archive job posting?"
-        }
-        message={
-          selectedJob?.applicationCount === 0
-            ? "This posting currently has no applications and will be permanently deleted. The server will verify this again before deleting."
-            : "This posting has applications and will be archived. All applications and AI scores will be preserved."
-        }
-        confirmLabel={
-          selectedJob?.applicationCount === 0
-            ? "Delete posting"
-            : "Archive posting"
-        }
-        icon={selectedJob?.applicationCount === 0 ? Trash2Icon : ArchiveIcon}
-        danger={selectedJob?.applicationCount === 0}
-        isPending={isRemoving}
-        onConfirm={confirmRemoval}
+        title="Archive job posting?"
+        message="This posting will be archived and will no longer accept applications. The posting, applications, applicant details, scores, and approval history will be preserved."
+        confirmLabel="Archive posting"
+        icon={ArchiveIcon}
+        isPending={isArchiving}
+        onConfirm={confirmArchive}
       />
       {createOpen ? (
         <CreateJobModal isOpen onOpenChange={setCreateOpen} />

@@ -13,7 +13,7 @@ import { USP_DEGREES } from "@/lib/usp-degrees";
 import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 
-export const ADMIN_STATUS_OPTIONS = ["Active", "Archived", "Expired"] as const;
+export const ADMIN_STATUS_OPTIONS = ["Active", "Archived"] as const;
 
 export type AdminJobFilters = {
   jobType: string;
