@@ -1,10 +1,19 @@
-import { CircleAlertIcon, LoaderCircleIcon } from "lucide-react";
+import { Button } from "@heroui/react";
+import {
+  CircleAlertIcon,
+  LoaderCircleIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import type { AdminApplicantListItem } from "@/lib/applications/application-schema";
 
 export function ApplicationScoreCell({
   score,
+  onRescore,
+  isRescoring = false,
 }: {
   score: AdminApplicantListItem["score"];
+  onRescore?: () => void;
+  isRescoring?: boolean;
 }) {
   if (score === null) {
     return <span className="text-muted">-</span>;
@@ -20,8 +29,26 @@ export function ApplicationScoreCell({
 
   if (score.status === "FAILED") {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-danger">
-        <CircleAlertIcon className="size-3.5" /> Failed
+      <span className="inline-flex items-center gap-2 text-xs text-danger">
+        <span className="inline-flex items-center gap-1.5">
+          <CircleAlertIcon className="size-3.5" /> Failed
+        </span>
+        {onRescore ? (
+          <Button.Root
+            size="sm"
+            variant="ghost"
+            isDisabled={isRescoring}
+            onPress={onRescore}
+            className="text-xs text-muted hover:text-foreground"
+          >
+            {isRescoring ? (
+              <LoaderCircleIcon className="size-3.5 animate-spin" />
+            ) : (
+              <RefreshCwIcon className="size-3.5" />
+            )}
+            Re-score
+          </Button.Root>
+        ) : null}
       </span>
     );
   }

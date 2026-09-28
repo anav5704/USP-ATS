@@ -18,6 +18,7 @@ import {
 } from "@/components/applications/application-status-badge";
 import { ChangeStatusMenu } from "@/components/applications/change-status-menu";
 import { useAdminApplicants } from "@/components/applications/use-admin-applicants";
+import { useRescoreApplication } from "@/components/applications/use-rescore-application";
 import { useUpdateApplicationStatus } from "@/components/applications/use-update-application-status";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import type {
@@ -41,6 +42,7 @@ type PendingStatusChange = {
 export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   const { data, isPending, isError, refetch } = useAdminApplicants(jobId);
   const updateStatus = useUpdateApplicationStatus(jobId);
+  const rescore = useRescoreApplication(jobId);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
     string | null
   >(null);
@@ -154,7 +156,22 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                         {dateFormatter.format(new Date(application.createdAt))}
                       </Table.Cell>
                       <Table.Cell>
-                        <ApplicationScoreCell score={application.score} />
+                        <div
+                          className="inline-flex"
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onPointerUp={(event) => event.stopPropagation()}
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                        >
+                          <ApplicationScoreCell
+                            score={application.score}
+                            onRescore={() => rescore.mutate(application.id)}
+                            isRescoring={
+                              rescore.isPending &&
+                              rescore.variables === application.id
+                            }
+                          />
+                        </div>
                       </Table.Cell>
                       <Table.Cell>
                         <div

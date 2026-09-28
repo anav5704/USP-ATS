@@ -1,5 +1,5 @@
 import { logger, task } from "@trigger.dev/sdk";
-import { generateObject } from "ai";
+import { APICallError, generateObject } from "ai";
 import { google } from "@ai-sdk/google";
 import { prisma } from "@/lib/prisma";
 import {
@@ -8,6 +8,124 @@ import {
   scoreModelSchema,
 } from "@/lib/applications/score-schema";
 import { buildScorePrompt } from "@/lib/applications/score-prompt";
+
+const SCORING_MODELS = [
+  "gemini-3.6-flash",
+  "gemini-2.5-flash",
+  "gemini-flash-latest",
+];
+const ATTEMPTS_PER_MODEL = 3;
+const BASE_DELAY_MS = 2_000;
+const TRANSIENT_STATUS_CODES = new Set([408, 409, 425, 429, 500, 502, 503, 504]);
+const TRANSIENT_MESSAGE =
+  /high demand|overload|capacity|rate.?limit|too many requests|resource.?exhausted|unavailable|try again later|temporar|timeout|timed out|fetch failed|econnreset|socket hang up|internal error/i;
+
+function hasTransientMarker(error: unknown, depth = 0): boolean {
+  if (depth > 5 || error == null) return false;
+  if (typeof error === "string") return TRANSIENT_MESSAGE.test(error);
+  if (error instanceof APICallError) {
+    if (
+      error.statusCode !== undefined &&
+      TRANSIENT_STATUS_CODES.has(error.statusCode)
+    ) {
+      return true;
+    }
+    if (error.isRetryable) return true;
+    if (TRANSIENT_MESSAGE.test(error.message)) return true;
+    return hasTransientMarker(error.responseBody, depth + 1);
+  }
+  if (error instanceof Error) {
+    if (TRANSIENT_MESSAGE.test(error.message)) return true;
+    if (
+      "errors" in error &&
+      Array.isArray((error as { errors: unknown[] }).errors)
+    ) {
+      return (error as { errors: unknown[] }).errors.some((inner) =>
+        hasTransientMarker(inner, depth + 1)
+      );
+    }
+    return hasTransientMarker(error.cause, depth + 1);
+  }
+  if (typeof error === "object") {
+    const record = error as Record<string, unknown>;
+    if (
+      typeof record.message === "string" &&
+      TRANSIENT_MESSAGE.test(record.message)
+    ) {
+      return true;
+    }
+    if (
+      typeof record.statusCode === "number" &&
+      TRANSIENT_STATUS_CODES.has(record.statusCode)
+    ) {
+      return true;
+    }
+    return hasTransientMarker(record.cause, depth + 1);
+  }
+  return false;
+}
+
+function isTransientScoringError(error: unknown): boolean {
+  return hasTransientMarker(error, 0);
+}
+
+function backoffDelayMs(attempt: number): number {
+  return BASE_DELAY_MS * 2 ** attempt + Math.random() * BASE_DELAY_MS;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function generateScoreObject(
+  applicationId: string,
+  system: string,
+  prompt: string
+) {
+  let lastError: unknown;
+
+  for (let modelIndex = 0; modelIndex < SCORING_MODELS.length; modelIndex += 1) {
+    const model = SCORING_MODELS[modelIndex] as string;
+    const isLastModel = modelIndex === SCORING_MODELS.length - 1;
+
+    for (let attempt = 0; attempt < ATTEMPTS_PER_MODEL; attempt += 1) {
+      try {
+        const { object } = await generateObject({
+          model: google(model),
+          schema: scoreModelSchema,
+          temperature: 0,
+          system,
+          prompt,
+          maxRetries: 0,
+        });
+        return { object, model };
+      } catch (error) {
+        lastError = error;
+        const transient = isTransientScoringError(error);
+        const willRetry = transient && attempt < ATTEMPTS_PER_MODEL - 1;
+        const willFallback = transient && !willRetry && !isLastModel;
+
+        logger.warn("Scoring attempt failed", {
+          applicationId,
+          model,
+          attempt: attempt + 1,
+          willRetry,
+          willFallback,
+          error: error instanceof Error ? error.message : error,
+        });
+
+        if (willRetry) {
+          await sleep(backoffDelayMs(attempt));
+          continue;
+        }
+        if (transient && !isLastModel) break;
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
 
 async function markScoreFailed(applicationId: string) {
   await prisma.scoreResult.upsert({
@@ -29,17 +147,12 @@ async function markScoreFailed(applicationId: string) {
 
 export const scoreApplication = task({
   id: "score-application",
-  // No automatic retries (per PRD): a failure writes FAILED for the admin
-  // table to render. Retrying blind would burn API tokens on errors that
-  // cannot succeed on a second attempt (bad request, retired model, auth).
   retry: {
     maxAttempts: 1,
   },
-  // Score at most 2 applications at once. Deadline rushes queue up instead
-  // of hitting Gemini all at once and tripping rate limits.
   queue: {
     name: "ai-scoring",
-    concurrencyLimit: 2,
+    concurrencyLimit: 1,
   },
   run: async (applicationId: string) => {
     const application = await prisma.application.findUnique({
@@ -83,7 +196,6 @@ export const scoreApplication = task({
       },
     });
 
-    // The posting may have been deleted (cascade) after the task was queued.
     if (!application) {
       logger.warn("Skipping scoring for missing application", { applicationId });
       return { applicationId, skipped: "not-found" };
@@ -143,14 +255,11 @@ export const scoreApplication = task({
         facts
       );
 
-      const { object } = await generateObject({
-        model: google("gemini-3.6-flash"),
-        schema: scoreModelSchema,
-        // Zero randomness: the same application always scores the same way.
-        temperature: 0,
+      const { object, model } = await generateScoreObject(
+        applicationId,
         system,
-        prompt,
-      });
+        prompt
+      );
 
       const result = computeScoreResult(object, facts);
       await prisma.scoreResult.upsert({
@@ -182,18 +291,17 @@ export const scoreApplication = task({
 
       logger.info("Scoring complete", {
         applicationId,
+        model,
         matchScore: result.matchScore,
         eligible: result.eligible,
       });
       return {
         applicationId,
+        model,
         matchScore: result.matchScore,
         eligible: result.eligible,
       };
     } catch (error) {
-      // Persist the failure so the admin table shows an error state, then
-      // rethrow so the failure is visible in the trigger.dev dashboard.
-      // maxAttempts is 1, so this never retries.
       logger.error("Scoring failed", { applicationId, error });
       await markScoreFailed(applicationId);
       throw error;
