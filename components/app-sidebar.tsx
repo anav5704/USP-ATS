@@ -16,7 +16,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { useAuth } from "@/lib/use-auth";
+import { useSessionContext } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
@@ -80,7 +80,7 @@ const adminNav: NavItem[] = [
 ];
 
 export function AppSidebar() {
-  const { data: session } = useAuth();
+  const session = useSessionContext();
   const pathname = usePathname();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);

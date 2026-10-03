@@ -21,7 +21,7 @@ import { getApprovalStatus } from "@/lib/jobs/approval-status";
 import { isOwnApprovalRequest } from "@/lib/jobs/approval-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 import type { ApprovalJob } from "@/lib/jobs/job-schema";
-import { useAuth } from "@/lib/use-auth";
+import { useSessionContext } from "@/lib/use-auth";
 
 const payFormatter = new Intl.NumberFormat("en-FJ", {
   style: "currency",
@@ -59,7 +59,7 @@ function matchesFilters(job: ApprovalJob, filters: ApprovalFilters) {
 
 export function ApprovalList() {
   const { data: jobs, isPending, isError, refetch } = useApprovals();
-  const { data: session } = useAuth();
+  const session = useSessionContext();
   const [reviewing, setReviewing] = useState<ApprovalJob | null>(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<ApprovalFilters>(

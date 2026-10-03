@@ -3,10 +3,10 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Spinner } from "@heroui/react";
-import { signInWithMicrosoft, useAuth } from "@/lib/use-auth";
+import { signInWithMicrosoft, useLiveSession } from "@/lib/use-auth";
 
 function SignInForm() {
-  const { data: session, isPending } = useAuth();
+  const { data: session, isPending } = useLiveSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo") ?? "/";
