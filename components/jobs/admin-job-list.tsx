@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button, SearchField, Spinner, Table } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -86,7 +85,6 @@ function adminDeadlineLabel(deadline: string) {
 }
 
 export function AdminJobList() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
@@ -135,8 +133,6 @@ export function AdminJobList() {
   };
 
   const prefetchApplicants = (jobId: string) => {
-    const href = `/admin/jobs/${encodeURIComponent(jobId)}/applicants`;
-    router.prefetch(href);
     void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId));
   };
 
@@ -281,7 +277,6 @@ export function AdminJobList() {
                       <Table.Cell>
                         <Link
                           href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
-                          prefetch={false}
                           onMouseEnter={() => prefetchApplicants(job.id)}
                           onFocus={() => prefetchApplicants(job.id)}
                           aria-label={`View ${job.applicationCount} applicants for ${job.title}`}

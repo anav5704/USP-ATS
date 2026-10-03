@@ -18,7 +18,6 @@ export function useJobFeed(filters: StudentJobFilters) {
         { signal }
       ),
     staleTime: 60_000,
-    refetchInterval: 60_000,
     placeholderData: keepPreviousData,
     retry: 1,
   });

@@ -12,7 +12,7 @@ export function useApprovals() {
     queryKey: jobQueryKeys.approvals(),
     queryFn: ({ signal }) => api.get<ApprovalJob[]>("/api/jobs/approvals", { signal }),
     staleTime: 30_000,
-    refetchInterval: 30_000,
+    refetchInterval: 5 * 60_000,
   });
 }
 
