@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCachedSession } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
-import { toProfileModel } from "@/lib/profile/to-profile-input";
 import { AuthProvider } from "@/components/auth-provider";
 import { RequireAuth } from "@/lib/require-auth";
 import { AppShell } from "@/components/app-shell";
@@ -19,27 +18,23 @@ export default async function AppLayout({
     redirect("/access-denied");
   }
 
-  let profile: ReturnType<typeof toProfileModel> | null = null;
+  // Gate only: existence check for the onboarding redirect. Full profile
+  // is lazy-loaded client-side (ProfileModal via useProfile) so navigation
+  // never blocks on degrees/certificates/links joins.
   if (session && session.user.role !== "admin") {
-    const result = await prisma.profile.findUnique({
+    const existing = await prisma.profile.findUnique({
       where: { userId: session.user.id },
-      include: {
-        degrees: { orderBy: { uploadedAt: "asc" } },
-        certificates: true,
-        socialLinks: true,
-        profileLinks: true,
-      },
+      select: { id: true },
     });
-    if (!result) {
+    if (!existing) {
       redirect("/onboarding");
     }
-    profile = toProfileModel(result);
   }
 
   return (
     <AuthProvider session={session}>
       <RequireAuth>
-        <AppShell profile={profile}>{children}</AppShell>
+        <AppShell>{children}</AppShell>
       </RequireAuth>
     </AuthProvider>
   );

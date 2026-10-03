@@ -16,7 +16,6 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import type { ProfileModel } from "@/lib/profile/to-profile-input";
 import { useAuth } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
 
@@ -80,11 +79,7 @@ const adminNav: NavItem[] = [
   },
 ];
 
-export function AppSidebar({
-  profile,
-}: {
-  profile: ProfileModel | null;
-}) {
+export function AppSidebar() {
   const { data: session } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
@@ -177,7 +172,6 @@ export function AppSidebar({
       </div>
       <ProfileModal
         user={user ?? {}}
-        profile={profile}
         isOpen={profileOpen}
         onOpenChange={setProfileOpen}
       />
