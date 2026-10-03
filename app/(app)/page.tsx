@@ -5,6 +5,7 @@ import { AdminJobList } from "@/components/jobs/admin-job-list";
 import { getQueryClient } from "@/lib/get-query-client";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 import { getAdminJobList } from "@/lib/jobs/job-list-queries";
+import { EMPTY_ADMIN_JOB_FILTERS } from "@/lib/jobs/job-filters";
 
 export default async function HomePage() {
   const session = await getCachedSession();
@@ -13,8 +14,8 @@ export default async function HomePage() {
     const queryClient = getQueryClient();
 
     await queryClient.prefetchQuery({
-      queryKey: jobQueryKeys.adminLists(),
-      queryFn: getAdminJobList,
+      queryKey: jobQueryKeys.adminList(EMPTY_ADMIN_JOB_FILTERS),
+      queryFn: () => getAdminJobList(EMPTY_ADMIN_JOB_FILTERS),
       staleTime: 30_000,
     });
 

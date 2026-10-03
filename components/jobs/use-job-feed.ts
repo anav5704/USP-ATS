@@ -1,17 +1,25 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { StudentJobListItem } from "@/lib/jobs/job-schema";
+import type { JobFeedSections } from "@/lib/jobs/job-schema";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
+import {
+  jobFiltersToSearchParams,
+  type StudentJobFilters,
+} from "@/lib/jobs/job-filters";
 
-export function useJobFeed() {
+export function useJobFeed(filters: StudentJobFilters) {
   return useQuery({
-    queryKey: jobQueryKeys.feed(),
+    queryKey: jobQueryKeys.feedSections(filters),
     queryFn: ({ signal }) =>
-      api.get<StudentJobListItem[]>("/api/jobs", { signal }),
+      api.get<JobFeedSections>(
+        `/api/jobs?grouped=1&${jobFiltersToSearchParams(filters)}`,
+        { signal }
+      ),
     staleTime: 60_000,
     refetchInterval: 60_000,
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 }

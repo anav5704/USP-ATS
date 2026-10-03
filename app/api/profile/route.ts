@@ -7,6 +7,7 @@ import {
   firstProfileError,
   referencedStoredFiles,
 } from "@/lib/profile/profile-data";
+import { getProfileModel } from "@/lib/profile/profile-queries";
 import { toProfileModel } from "@/lib/profile/to-profile-input";
 import { pruneStoredFiles } from "@/lib/uploads/storage";
 
@@ -22,16 +23,13 @@ export async function GET() {
   if (!guard.ok) return guard.response;
 
   try {
-    const result = await prisma.profile.findUnique({
-      where: { userId: guard.session.user.id },
-      include: PROFILE_INCLUDE,
-    });
+    const profile = await getProfileModel(guard.session.user.id);
 
-    if (!result) {
+    if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    return NextResponse.json(toProfileModel(result));
+    return NextResponse.json(profile);
   } catch {
     return NextResponse.json({ error: "Unable to load profile" }, { status: 500 });
   }

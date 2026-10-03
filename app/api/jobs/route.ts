@@ -6,15 +6,23 @@ import {
   deadlineAtEndOfFijiDay,
   todayInFiji,
 } from "@/lib/jobs/job-dates";
-import { getStudentJobFeed } from "@/lib/jobs/job-list-queries";
+import { getStudentJobFeed, getStudentJobSections } from "@/lib/jobs/job-list-queries";
+import { searchParamsToStudentJobFilters } from "@/lib/jobs/job-filters";
 import { pendingReviewData } from "@/lib/jobs/approval-schema";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const guard = await requireApiMember();
   if (!guard.ok) return guard.response;
 
   try {
-    return NextResponse.json(await getStudentJobFeed());
+    const params = request.nextUrl.searchParams;
+    const filters = searchParamsToStudentJobFilters(params);
+    if (params.get("grouped") === "1") {
+      return NextResponse.json(
+        await getStudentJobSections(guard.session.user.id, filters)
+      );
+    }
+    return NextResponse.json(await getStudentJobFeed(filters));
   } catch {
     return NextResponse.json(
       { error: "Unable to load job postings" },

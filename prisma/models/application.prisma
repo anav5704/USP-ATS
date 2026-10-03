@@ -13,6 +13,8 @@ model Application {
   @@unique([jobId, studentId])
   @@index([studentId])
   @@index([status])
+  @@index([studentId, createdAt])
+  @@index([jobId, createdAt])
   @@map("application")
 }
 

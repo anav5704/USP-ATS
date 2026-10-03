@@ -16,6 +16,7 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
+import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
@@ -28,10 +29,8 @@ import {
 } from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
-import { JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
 import { JobStatusMenu } from "@/components/jobs/job-status-menu";
 import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
-import { effectiveJobStatus } from "@/lib/jobs/job-lifecycle";
 import {
   JOB_DATE_TIME_ZONE,
   deadlineRemainingLabel,
@@ -89,14 +88,19 @@ function adminDeadlineLabel(deadline: string) {
 export function AdminJobList() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: jobs, isPending, isError, refetch } = useAdminJobs();
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const serverFilters = useMemo(
+    () => ({ ...filters, search: debouncedSearch.trim() }),
+    [filters, debouncedSearch]
+  );
+  const { data: jobs, isPending, isError, refetch } = useAdminJobs(serverFilters);
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const hasFilters =
@@ -116,53 +120,7 @@ export function AdminJobList() {
     (filters.skills.length > 0 ? 1 : 0) +
     (filters.status !== "" ? 1 : 0);
 
-  const visibleJobs = useMemo(() => {
-    if (!jobs) return jobs;
-    const normalizedSearch = search.trim().toLowerCase();
-    const gpaValue = Number(filters.gpaMin);
-
-    return jobs.filter((job) => {
-      const effectiveStatus = effectiveJobStatus(job);
-      const matchesSearch =
-        normalizedSearch === "" ||
-        job.title.toLowerCase().includes(normalizedSearch) ||
-        job.description.toLowerCase().includes(normalizedSearch) ||
-        job.department.toLowerCase().includes(normalizedSearch) ||
-        job.campus.some((campus) =>
-          campus.toLowerCase().includes(normalizedSearch)
-        );
-      const matchesType = filters.jobType === "" || job.jobType === filters.jobType;
-      const matchesCampus =
-        filters.campuses.length === 0 ||
-        job.campus.some((campus) => filters.campuses.includes(campus));
-      const matchesGpa =
-        filters.gpaMin === "" ||
-        Number.isNaN(gpaValue) ||
-        job.gpaMin === null ||
-        job.gpaMin <= gpaValue;
-      const matchesDegree =
-        filters.degrees.length === 0 ||
-        job.degree.length === 0 ||
-        job.degree.some((degree) => filters.degrees.includes(degree));
-      const matchesSkills =
-        filters.skills.length === 0 ||
-        job.skills.length === 0 ||
-        job.skills.some((skill) => filters.skills.includes(skill));
-      const matchesStatus =
-        filters.status === "" ||
-        JOB_STATUS_LABELS[effectiveStatus] === filters.status;
-
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesCampus &&
-        matchesGpa &&
-        matchesDegree &&
-        matchesSkills &&
-        matchesStatus
-      );
-    });
-  }, [jobs, search, filters]);
+  const visibleJobs = jobs;
 
   const clearFilters = () => {
     setSearch("");
@@ -236,7 +194,7 @@ export function AdminJobList() {
               Try Again
             </Button.Root>
           </div>
-        ) : jobs?.length === 0 ? (
+        ) : jobs?.length === 0 && !hasFilters ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <BriefcaseBusinessIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -246,7 +204,7 @@ export function AdminJobList() {
               Create the first posting to make it immediately available to students.
             </p>
           </div>
-        ) : visibleJobs && visibleJobs.length === 0 ? (
+        ) : jobs?.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <SearchXIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -266,7 +224,7 @@ export function AdminJobList() {
           <div>
             {jobs && jobs.length > 0 && hasFilters ? (
               <p className="mb-3 text-sm text-muted">
-                Showing {visibleJobs?.length} of {jobs.length} jobs
+                Showing {jobs.length} jobs
               </p>
             ) : null}
             <Table.Root className="rounded-2xl border border-border bg-surface">

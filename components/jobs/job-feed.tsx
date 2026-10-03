@@ -9,31 +9,56 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
+import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { JobFeedSection } from "@/components/jobs/job-feed-section";
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { ApplyModal } from "@/components/applications/apply-modal";
 import { useMyApplications } from "@/components/applications/use-my-applications";
 import { blocksReapplication } from "@/lib/applications/application-rules";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
-import { useProfile } from "@/components/profile/use-profile";
 import {
   JobFeedFilterModal,
   type JobFeedFilters,
 } from "@/components/jobs/job-feed-filter-modal";
 
 export function JobFeed() {
-  const { data: jobs, isPending, isError, refetch } = useJobFeed();
-  const { data: profile } = useProfile();
-  const { data: applications } = useMyApplications();
-  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
-  const [applyJob, setApplyJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
   const [gpaMin, setGpaMin] = useState("");
   const [degrees, setDegrees] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const filters = useMemo(
+    () => ({
+      search: debouncedSearch.trim(),
+      jobType,
+      campuses,
+      gpaMin,
+      degrees,
+      skills,
+    }),
+    [debouncedSearch, jobType, campuses, gpaMin, degrees, skills]
+  );
+  const { data: sections, isPending, isError, refetch } = useJobFeed(filters);
+  const { data: applications } = useMyApplications();
+  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
+  const [applyJob, setApplyJob] = useState<StudentJobListItem | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const { campusMatchedJobs, degreeMatchedJobs, otherJobs, allJobs } = useMemo(() => {
+    const campusMatchedJobs = sections?.campusMatchedJobs ?? [];
+    const degreeMatchedJobs = sections?.degreeMatchedJobs ?? [];
+    const otherJobs = sections?.otherJobs ?? [];
+    const seen = new Set<string>();
+    const allJobs: StudentJobListItem[] = [];
+    for (const job of [...campusMatchedJobs, ...degreeMatchedJobs, ...otherJobs]) {
+      if (seen.has(job.id)) continue;
+      seen.add(job.id);
+      allJobs.push(job);
+    }
+    return { campusMatchedJobs, degreeMatchedJobs, otherJobs, allJobs };
+  }, [sections]);
 
   const appliedJobIds = useMemo(
     () =>
@@ -59,71 +84,6 @@ export function JobFeed() {
     (gpaMin !== "" ? 1 : 0) +
     (degrees.length > 0 ? 1 : 0) +
     (skills.length > 0 ? 1 : 0);
-
-  const visibleJobs = useMemo(() => {
-    if (!jobs) return jobs;
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return jobs.filter((job) => {
-      const matchesSearch =
-        normalizedSearch === "" ||
-        job.title.toLowerCase().includes(normalizedSearch) ||
-        job.description.toLowerCase().includes(normalizedSearch);
-      const matchesType = jobType === "" || job.jobType === jobType;
-      const matchesCampus =
-        campuses.length === 0 || job.campus.some((campus) => campuses.includes(campus));
-      const gpaValue = Number(gpaMin);
-      const matchesGpa =
-        gpaMin === "" ||
-        Number.isNaN(gpaValue) ||
-        job.gpaMin === null ||
-        job.gpaMin <= gpaValue;
-      const matchesDegree =
-        degrees.length === 0 ||
-        job.degree.length === 0 ||
-        job.degree.some((degree) => degrees.includes(degree));
-      const matchesSkills =
-        skills.length === 0 ||
-        job.skills.length === 0 ||
-        job.skills.some((skill) => skills.includes(skill));
-
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesCampus &&
-        matchesGpa &&
-        matchesDegree &&
-        matchesSkills
-      );
-    });
-  }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
-
-  const { campusMatchedJobs, degreeMatchedJobs, otherJobs } = useMemo(() => {
-    const studentCampuses = profile?.campuses ?? [];
-    const studentDegrees =
-      profile?.degrees.map((degree) => degree.name.trim().toLowerCase()) ?? [];
-
-    const campusMatchedJobs: StudentJobListItem[] = [];
-    const degreeMatchedJobs: StudentJobListItem[] = [];
-    const otherJobs: StudentJobListItem[] = [];
-
-    for (const job of visibleJobs ?? []) {
-      const matchesCampus =
-        studentCampuses.length > 0 &&
-        job.campus.some((campus) => studentCampuses.includes(campus));
-      const matchesDegree =
-        studentDegrees.length > 0 &&
-        job.degree.some((degree) =>
-          studentDegrees.includes(degree.trim().toLowerCase())
-        );
-
-      if (matchesCampus) campusMatchedJobs.push(job);
-      if (matchesDegree) degreeMatchedJobs.push(job);
-      if (!matchesCampus && !matchesDegree) otherJobs.push(job);
-    }
-
-    return { campusMatchedJobs, degreeMatchedJobs, otherJobs };
-  }, [visibleJobs, profile]);
 
   const clearFilters = () => {
     setSearch("");
@@ -189,7 +149,7 @@ export function JobFeed() {
               Try Again
             </Button.Root>
           </div>
-        ) : jobs?.length === 0 ? (
+        ) : allJobs.length === 0 && !hasFilters ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <BriefcaseBusinessIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -199,7 +159,7 @@ export function JobFeed() {
               Check back later for new postings.
             </p>
           </div>
-        ) : visibleJobs && visibleJobs.length === 0 ? (
+        ) : allJobs.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <SearchXIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -217,9 +177,9 @@ export function JobFeed() {
           </div>
         ) : (
           <div>
-            {jobs?.length && jobs.length > 0 && hasFilters ? (
+            {allJobs.length > 0 && hasFilters ? (
               <p className="mb-3 text-sm text-muted">
-                Showing {visibleJobs?.length} of {jobs.length} jobs
+                Showing {allJobs.length} jobs
               </p>
             ) : null}
             <div className="space-y-8">

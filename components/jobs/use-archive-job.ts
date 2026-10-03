@@ -19,23 +19,22 @@ export function useArchiveJob() {
       await queryClient.cancelQueries({
         queryKey: jobQueryKeys.adminLists(),
       });
-      const previous = queryClient.getQueryData<AdminJobListItem[]>(
-        jobQueryKeys.adminLists()
-      );
-      if (previous) {
-        queryClient.setQueryData(
-          jobQueryKeys.adminLists(),
-          previous.map((job) =>
+      const previous = queryClient.getQueriesData<AdminJobListItem[]>({
+        queryKey: jobQueryKeys.adminLists(),
+      });
+      queryClient.setQueriesData<AdminJobListItem[]>(
+        { queryKey: jobQueryKeys.adminLists() },
+        (old) =>
+          old?.map((job) =>
             job.id === jobId ? { ...job, status: "ARCHIVED" as const } : job
           )
-        );
-      }
+      );
       return { previous };
     },
     onError: (error, _jobId, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(jobQueryKeys.adminLists(), context.previous);
-      }
+      context?.previous.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
       toast.danger(
         error instanceof ApiError
           ? error.message
