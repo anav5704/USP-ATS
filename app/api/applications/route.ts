@@ -5,18 +5,29 @@ import { Prisma } from "@/generated/prisma/client";
 import { requireApiMember } from "@/lib/jobs/require-api";
 import { createApplicationSchema } from "@/lib/applications/application-schema";
 import { getMyApplications } from "@/lib/applications/application-list-queries";
+import { searchParamsToMyApplicationFilters } from "@/lib/applications/application-filters";
+import { parsePageParams, FEED_PAGE_SIZE } from "@/lib/pagination";
 import {
   submitApplication,
   SubmitApplicationError,
 } from "@/lib/applications/submit-application";
 import type { scoreApplication } from "@/trigger/score-application";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const guard = await requireApiMember();
   if (!guard.ok) return guard.response;
 
   try {
-    return NextResponse.json(await getMyApplications(guard.session.user.id));
+    const params = request.nextUrl.searchParams;
+    const { page, pageSize } = parsePageParams(params, FEED_PAGE_SIZE);
+    return NextResponse.json(
+      await getMyApplications(
+        guard.session.user.id,
+        searchParamsToMyApplicationFilters(params),
+        page,
+        pageSize
+      )
+    );
   } catch {
     return NextResponse.json(
       { error: "Unable to load applications" },

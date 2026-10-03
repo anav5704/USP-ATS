@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
 import {
   AdminApplicantsNotFoundError,
   getAdminApplicants,
 } from "@/lib/applications/admin-applicants-queries";
+import { parsePageParams, ADMIN_PAGE_SIZE } from "@/lib/pagination";
 
 export async function GET(
-  _request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const guard = await requireApiAdmin();
@@ -15,7 +16,11 @@ export async function GET(
   const { id } = await params;
 
   try {
-    return NextResponse.json(await getAdminApplicants(id));
+    const { page, pageSize } = parsePageParams(
+      request.nextUrl.searchParams,
+      ADMIN_PAGE_SIZE
+    );
+    return NextResponse.json(await getAdminApplicants(id, page, pageSize));
   } catch (error) {
     if (error instanceof AdminApplicantsNotFoundError) {
       return NextResponse.json(

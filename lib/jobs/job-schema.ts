@@ -142,9 +142,3 @@ export type StudentJobListItem = {
   deadline: string;
   createdAt: string;
 };
-
-export type JobFeedSections = {
-  campusMatchedJobs: StudentJobListItem[];
-  degreeMatchedJobs: StudentJobListItem[];
-  otherJobs: StudentJobListItem[];
-};

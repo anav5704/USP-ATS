@@ -1,9 +1,10 @@
 import { rankApplicantsByScore } from "@/lib/applications/applicant-ranking";
 import { prisma } from "@/lib/prisma";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
+import { pagedResult } from "@/lib/pagination";
 import type {
   AdminApplicantListItem,
-  AdminApplicantsTableResponse,
+  AdminApplicantsTablePage,
 } from "@/lib/applications/application-schema";
 
 function applicantName(student: {
@@ -32,8 +33,10 @@ function documentUrl(
 export class AdminApplicantsNotFoundError extends Error {}
 
 export async function getAdminApplicants(
-  jobId: string
-): Promise<AdminApplicantsTableResponse> {
+  jobId: string,
+  page: number,
+  pageSize: number
+): Promise<AdminApplicantsTablePage> {
   const job = await prisma.jobPosting.findUnique({
     where: { id: jobId },
     select: {
@@ -67,15 +70,10 @@ export async function getAdminApplicants(
   }
 
   const rankedApplications = rankApplicantsByScore(job.applications);
-
-  return {
-    job: {
-      id: job.id,
-      title: job.title,
-      department: job.department,
-      campus: job.campus.map(normalizeCampusCentre),
-    },
-    applications: rankedApplications.map((application) => ({
+  const total = rankedApplications.length;
+  const items = rankedApplications
+    .slice((page - 1) * pageSize, page * pageSize)
+    .map((application) => ({
       id: application.id,
       status: application.status,
       createdAt: application.createdAt.toISOString(),
@@ -86,7 +84,16 @@ export async function getAdminApplicants(
           normalizeCampusCentre
         ),
       },
-    })),
+    }));
+
+  return {
+    job: {
+      id: job.id,
+      title: job.title,
+      department: job.department,
+      campus: job.campus.map(normalizeCampusCentre),
+    },
+    ...pagedResult(items, total, page, pageSize),
   };
 }
 

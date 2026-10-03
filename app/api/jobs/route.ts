@@ -6,8 +6,9 @@ import {
   deadlineAtEndOfFijiDay,
   todayInFiji,
 } from "@/lib/jobs/job-dates";
-import { getStudentJobFeed, getStudentJobSections } from "@/lib/jobs/job-list-queries";
+import { getStudentJobSections, type FeedGroup } from "@/lib/jobs/job-list-queries";
 import { searchParamsToStudentJobFilters } from "@/lib/jobs/job-filters";
+import { parsePageParams, FEED_PAGE_SIZE } from "@/lib/pagination";
 import { pendingReviewData } from "@/lib/jobs/approval-schema";
 
 export async function GET(request: NextRequest) {
@@ -17,12 +18,19 @@ export async function GET(request: NextRequest) {
   try {
     const params = request.nextUrl.searchParams;
     const filters = searchParamsToStudentJobFilters(params);
-    if (params.get("grouped") === "1") {
-      return NextResponse.json(
-        await getStudentJobSections(guard.session.user.id, filters)
-      );
-    }
-    return NextResponse.json(await getStudentJobFeed(filters));
+    const groupParam = params.get("group");
+    const group: FeedGroup =
+      groupParam === "degree" || groupParam === "other" ? groupParam : "campus";
+    const { page, pageSize } = parsePageParams(params, FEED_PAGE_SIZE);
+    return NextResponse.json(
+      await getStudentJobSections(
+        guard.session.user.id,
+        filters,
+        group,
+        page,
+        pageSize
+      )
+    );
   } catch {
     return NextResponse.json(
       { error: "Unable to load job postings" },

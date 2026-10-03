@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Button, Modal, Spinner, Table } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,6 +27,7 @@ import { useRescoreApplication } from "@/components/applications/use-rescore-app
 import { useUpdateApplicationStatus } from "@/components/applications/use-update-application-status";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { FormModal } from "@/components/ui/form-modal";
+import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
 import type {
   AdminApplicantTableItem,
   AdminApplicationStatus,
@@ -47,7 +48,15 @@ type PendingStatusChange = {
 
 export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   const queryClient = useQueryClient();
-  const { data, isPending, isError, refetch } = useAdminApplicants(jobId);
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminApplicants(jobId);
   const updateStatus = useUpdateApplicationStatus(jobId);
   const rescore = useRescoreApplication(jobId);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
@@ -81,6 +90,18 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
     );
   };
 
+  const applications = useMemo(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
+  );
+  const job = data?.pages[0]?.job;
+  const total = data?.pages[0]?.total ?? 0;
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage: () => void fetchNextPage(),
+  });
+
   const openApplicant = (applicationId: string) => {
     setSelectedApplicationId(applicationId);
   };
@@ -102,13 +123,13 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             <h1 className="text-2xl font-semibold text-foreground">
               Applicants
             </h1>
-            {data ? (
+            {job ? (
               <>
                 <h2 className="mt-2 text-lg font-semibold text-foreground">
-                  {data.job.title}
+                  {job.title}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  {data.job.department} · {data.job.campus.join(", ")}
+                  {job.department} · {job.campus.join(", ")}
                 </p>
               </>
             ) : null}
@@ -126,7 +147,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
               Try Again
             </Button.Root>
           </div>
-        ) : data.applications.length === 0 ? (
+        ) : applications.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
             <UsersRoundIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -137,9 +158,13 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             </p>
           </div>
         ) : (
-          <Table.Root className="rounded-2xl border border-border bg-surface">
+          <div>
+            <p className="mb-3 text-sm text-muted">
+              Showing {applications.length} of {total} applicants
+            </p>
+            <Table.Root className="rounded-2xl border border-border bg-surface">
             <Table.ScrollContainer>
-              <Table.Content aria-label={`Applicants for ${data.job.title}`}>
+              <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`}>
                 <Table.Header>
                   <Table.Column isRowHeader>Applicant</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
@@ -147,7 +172,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                   <Table.Column>AI Score</Table.Column>
                   <Table.Column>Status</Table.Column>
                 </Table.Header>
-                <Table.Body items={data.applications}>
+                <Table.Body items={applications}>
                   {(application) => (
                     <Table.Row
                       id={application.id}
@@ -210,13 +235,20 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
               </Table.Content>
             </Table.ScrollContainer>
           </Table.Root>
+          <div ref={sentinelRef} aria-hidden="true" />
+          {isFetchingNextPage ? (
+            <div className="flex items-center justify-center py-4">
+              <Spinner.Root size="lg" className="text-foreground" />
+            </div>
+          ) : null}
+          </div>
         )}
       </div>
 
-      {selectedApplicationId && data ? (
+      {selectedApplicationId && job ? (
         selectedApplication ? (
           <ApplicantDetailsModal
-            job={data.job}
+            job={job}
             application={selectedApplication}
             isOpen
             onOpenChange={(open) => {
@@ -273,7 +305,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         message={
           pendingChange
             ? `${pendingChange.application.applicant.name}'s application for "${
-                data?.job.title ?? "this job"
+                job?.title ?? "this job"
               }" will be marked ${APPLICATION_STATUS_LABELS[
                 pendingChange.target
               ].toLowerCase()}. ${

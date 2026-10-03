@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
+import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
@@ -93,7 +94,25 @@ export function AdminJobList() {
     () => ({ ...filters, search: debouncedSearch.trim() }),
     [filters, debouncedSearch]
   );
-  const { data: jobs, isPending, isError, refetch } = useAdminJobs(serverFilters);
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useAdminJobs(serverFilters);
+  const jobs = useMemo(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
+  );
+  const total = data?.pages[0]?.total ?? 0;
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage: () => void fetchNextPage(),
+  });
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
@@ -133,7 +152,7 @@ export function AdminJobList() {
   };
 
   const prefetchApplicants = (jobId: string) => {
-    void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId));
+    void queryClient.prefetchInfiniteQuery(adminApplicantsQueryOptions(jobId));
   };
 
   return (
@@ -218,9 +237,9 @@ export function AdminJobList() {
           </div>
         ) : (
           <div>
-            {jobs && jobs.length > 0 && hasFilters ? (
+            {jobs.length > 0 ? (
               <p className="mb-3 text-sm text-muted">
-                Showing {jobs.length} jobs
+                Showing {jobs.length} of {total} jobs
               </p>
             ) : null}
             <Table.Root className="rounded-2xl border border-border bg-surface">
@@ -311,6 +330,12 @@ export function AdminJobList() {
               </Table.Content>
             </Table.ScrollContainer>
             </Table.Root>
+            <div ref={sentinelRef} aria-hidden="true" />
+            {isFetchingNextPage ? (
+              <div className="flex items-center justify-center py-4">
+                <Spinner.Root size="lg" className="text-foreground" />
+              </div>
+            ) : null}
           </div>
         )}
       </div>

@@ -11,6 +11,14 @@ export const APPLICATION_STATUSES = [
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
 
+export const APPLICATION_STATUS_LABELS = {
+  APPLIED: "Applied",
+  SHORTLISTED: "Shortlisted",
+  ACCEPTED: "Accepted",
+  DECLINED: "Declined",
+  WITHDRAWN: "Withdrawn",
+} as const;
+
 export const ADMIN_APPLICATION_STATUSES = [
   "SHORTLISTED",
   "ACCEPTED",
@@ -109,16 +117,6 @@ const adminApplicantListItemSchema = adminApplicantDataSchema.extend({
     .nullable(),
 });
 
-export const adminApplicantsResponseSchema = z.object({
-  job: z.object({
-    id: z.string(),
-    title: z.string(),
-    department: z.string(),
-    campus: z.array(z.string()),
-  }),
-  applications: z.array(adminApplicantListItemSchema),
-});
-
 const adminApplicantTableItemSchema = z.object({
   id: z.string(),
   status: z.enum(APPLICATION_STATUSES),
@@ -135,25 +133,24 @@ const adminApplicantTableItemSchema = z.object({
   }),
 });
 
-export const adminApplicantsTableResponseSchema = z.object({
-  job: z.object({
-    id: z.string(),
-    title: z.string(),
-    department: z.string(),
-    campus: z.array(z.string()),
-  }),
-  applications: z.array(adminApplicantTableItemSchema),
+const adminApplicantsJobSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  department: z.string(),
+  campus: z.array(z.string()),
 });
 
 export type AdminApplicantListItem = z.infer<
   typeof adminApplicantListItemSchema
 >;
-export type AdminApplicantsResponse = z.infer<
-  typeof adminApplicantsResponseSchema
->;
 export type AdminApplicantTableItem = z.infer<
   typeof adminApplicantTableItemSchema
 >;
-export type AdminApplicantsTableResponse = z.infer<
-  typeof adminApplicantsTableResponseSchema
->;
+
+export type AdminApplicantsTablePage = {
+  job: z.infer<typeof adminApplicantsJobSchema>;
+  items: AdminApplicantTableItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};

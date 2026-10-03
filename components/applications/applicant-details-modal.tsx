@@ -19,7 +19,7 @@ import { ApplicationStatusBadge } from "@/components/applications/application-st
 import { FormModal } from "@/components/ui/form-modal";
 import type {
   AdminApplicantListItem,
-  AdminApplicantsResponse,
+  AdminApplicantsTablePage,
 } from "@/lib/applications/application-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 
@@ -42,7 +42,7 @@ export function ApplicantDetailsModal({
   isOpen,
   onOpenChange,
 }: {
-  job: AdminApplicantsResponse["job"];
+  job: AdminApplicantsTablePage["job"];
   application: AdminApplicantListItem;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;

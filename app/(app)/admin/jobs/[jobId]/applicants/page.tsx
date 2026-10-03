@@ -3,11 +3,12 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { AdminApplicantsPage } from "@/components/applications/admin-applicants-page";
 import { getCachedSession } from "@/lib/auth-session";
 import { getQueryClient } from "@/lib/get-query-client";
-import { applicationQueryKeys } from "@/lib/applications/query-keys";
+import { adminApplicantsInfiniteOptions } from "@/lib/applications/application-query-options";
 import {
   AdminApplicantsNotFoundError,
   getAdminApplicants,
 } from "@/lib/applications/admin-applicants-queries";
+import { ADMIN_PAGE_SIZE } from "@/lib/pagination";
 
 export default async function ApplicantsPage({
   params,
@@ -22,10 +23,10 @@ export default async function ApplicantsPage({
   const queryClient = getQueryClient();
 
   try {
-    await queryClient.prefetchQuery({
-      queryKey: applicationQueryKeys.adminJob(jobId),
-      queryFn: () => getAdminApplicants(jobId),
-      staleTime: 30_000,
+    await queryClient.prefetchInfiniteQuery({
+      ...adminApplicantsInfiniteOptions(jobId),
+      queryFn: ({ pageParam }) =>
+        getAdminApplicants(jobId, Number(pageParam), ADMIN_PAGE_SIZE),
     });
   } catch (error) {
     if (!(error instanceof AdminApplicantsNotFoundError)) throw error;
