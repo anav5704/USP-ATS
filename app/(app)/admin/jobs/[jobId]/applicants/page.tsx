@@ -28,7 +28,6 @@ export default async function ApplicantsPage({
       staleTime: 30_000,
     });
   } catch (error) {
-    // Leave 404 handling to the client error state (no spinner flash).
     if (!(error instanceof AdminApplicantsNotFoundError)) throw error;
   }
 

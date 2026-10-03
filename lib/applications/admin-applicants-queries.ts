@@ -28,7 +28,6 @@ function documentUrl(
 
 export class AdminApplicantsNotFoundError extends Error {}
 
-// Server-only data function shared by the API route and RSC prefetch.
 export async function getAdminApplicants(
   jobId: string
 ): Promise<AdminApplicantsResponse> {

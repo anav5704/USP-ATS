@@ -11,8 +11,6 @@ export default async function JobsPage() {
   const session = await requireMemberPage();
   const queryClient = getQueryClient();
 
-  // Prefetch in parallel; client hooks mount with data (no spinner) and
-  // refetch in background only after staleTime.
   await Promise.all([
     queryClient.prefetchQuery({
       queryKey: jobQueryKeys.feed(),

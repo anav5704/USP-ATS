@@ -2,7 +2,6 @@ import { prisma } from "@/lib/prisma";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 import type { ApplicationListItem } from "@/lib/applications/application-schema";
 
-// Server-only data function shared by the API route and RSC prefetch.
 export async function getMyApplications(
   userId: string
 ): Promise<ApplicationListItem[]> {

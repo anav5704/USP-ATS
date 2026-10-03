@@ -7,8 +7,6 @@ import type {
   StudentJobListItem,
 } from "@/lib/jobs/job-schema";
 
-// Server-only data functions shared by API routes and RSC prefetch.
-// Shapes must stay identical to what client hooks expect from /api/*.
 export async function getStudentJobFeed(): Promise<StudentJobListItem[]> {
   const postings = await prisma.jobPosting.findMany({
     where: {

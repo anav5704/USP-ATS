@@ -18,9 +18,6 @@ export default async function AppLayout({
     redirect("/access-denied");
   }
 
-  // Gate only: existence check for the onboarding redirect. Full profile
-  // is lazy-loaded client-side (ProfileModal via useProfile) so navigation
-  // never blocks on degrees/certificates/links joins.
   if (session && session.user.role !== "admin") {
     const existing = await prisma.profile.findUnique({
       where: { userId: session.user.id },

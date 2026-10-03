@@ -42,10 +42,6 @@ export function ProfileModal({
 }) {
   const isAdmin = user.role === "admin";
   const [savePending, setSavePending] = useState(false);
-  // Preload in background on app mount (modal is always mounted with the
-  // sidebar). Non-blocking for navigation; the query resolves into cache so
-  // opening the modal is instant. Shares the same query key as JobFeed, so
-  // members only pay for one /api/profile request.
   const { data: activeProfile, isPending: isProfilePending } = useProfile(
     undefined,
     !isAdmin
