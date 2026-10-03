@@ -1,6 +1,5 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-session";
 import { prisma } from "@/lib/prisma";
 import { toProfileModel } from "@/lib/profile/to-profile-input";
 import { AuthProvider } from "@/components/auth-provider";
@@ -10,9 +9,7 @@ import { AppShell } from "@/components/app-shell";
 export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getCachedSession();
 
   if (
     session &&
