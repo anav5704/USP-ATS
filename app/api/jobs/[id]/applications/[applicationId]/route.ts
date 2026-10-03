@@ -2,11 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireApiAdmin } from "@/lib/jobs/require-api";
 import { updateApplicationStatusSchema } from "@/lib/applications/application-schema";
+import {
+  AdminApplicantsNotFoundError,
+  getAdminApplicantDetail,
+} from "@/lib/applications/admin-applicants-queries";
 import { canAdminChangeStatus } from "@/lib/applications/application-rules";
 
 type RouteParams = {
   params: Promise<{ id: string; applicationId: string }>;
 };
+
+export async function GET(_request: Request, { params }: RouteParams) {
+  const guard = await requireApiAdmin();
+  if (!guard.ok) return guard.response;
+
+  const { id: jobId, applicationId } = await params;
+
+  try {
+    return NextResponse.json(
+      await getAdminApplicantDetail(jobId, applicationId)
+    );
+  } catch (error) {
+    if (error instanceof AdminApplicantsNotFoundError) {
+      return NextResponse.json(
+        { error: "Application not found for this job" },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json(
+      { error: "Unable to load applicant details" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const guard = await requireApiAdmin();

@@ -119,9 +119,41 @@ export const adminApplicantsResponseSchema = z.object({
   applications: z.array(adminApplicantListItemSchema),
 });
 
+const adminApplicantTableItemSchema = z.object({
+  id: z.string(),
+  status: z.enum(APPLICATION_STATUSES),
+  createdAt: z.string(),
+  score: z
+    .object({
+      matchScore: z.number().int().nullable(),
+      status: z.enum(["PENDING", "COMPLETE", "FAILED"]),
+    })
+    .nullable(),
+  applicant: z.object({
+    name: z.string(),
+    campuses: z.array(z.string()),
+  }),
+});
+
+export const adminApplicantsTableResponseSchema = z.object({
+  job: z.object({
+    id: z.string(),
+    title: z.string(),
+    department: z.string(),
+    campus: z.array(z.string()),
+  }),
+  applications: z.array(adminApplicantTableItemSchema),
+});
+
 export type AdminApplicantListItem = z.infer<
   typeof adminApplicantListItemSchema
 >;
 export type AdminApplicantsResponse = z.infer<
   typeof adminApplicantsResponseSchema
+>;
+export type AdminApplicantTableItem = z.infer<
+  typeof adminApplicantTableItemSchema
+>;
+export type AdminApplicantsTableResponse = z.infer<
+  typeof adminApplicantsTableResponseSchema
 >;

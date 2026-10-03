@@ -1,7 +1,10 @@
 import { rankApplicantsByScore } from "@/lib/applications/applicant-ranking";
 import { prisma } from "@/lib/prisma";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
-import type { AdminApplicantsResponse } from "@/lib/applications/application-schema";
+import type {
+  AdminApplicantListItem,
+  AdminApplicantsTableResponse,
+} from "@/lib/applications/application-schema";
 
 function applicantName(student: {
   name: string;
@@ -30,7 +33,7 @@ export class AdminApplicantsNotFoundError extends Error {}
 
 export async function getAdminApplicants(
   jobId: string
-): Promise<AdminApplicantsResponse> {
+): Promise<AdminApplicantsTableResponse> {
   const job = await prisma.jobPosting.findUnique({
     where: { id: jobId },
     select: {
@@ -44,7 +47,6 @@ export async function getAdminApplicants(
           id: true,
           status: true,
           createdAt: true,
-          coverLetter: true,
           score: { select: { matchScore: true, status: true } },
           student: {
             select: {
@@ -52,45 +54,7 @@ export async function getAdminApplicants(
               firstName: true,
               lastName: true,
               email: true,
-              profile: {
-                select: {
-                  phone: true,
-                  bio: true,
-                  campuses: true,
-                  skills: true,
-                  degrees: {
-                    orderBy: { uploadedAt: "asc" },
-                    select: {
-                      name: true,
-                      gpa: true,
-                      documentType: true,
-                      fileName: true,
-                      stored: true,
-                      type: true,
-                      size: true,
-                    },
-                  },
-                  certificates: {
-                    orderBy: { uploadedAt: "asc" },
-                    select: {
-                      label: true,
-                      organization: true,
-                      url: true,
-                      uploadedAt: true,
-                      name: true,
-                      stored: true,
-                      type: true,
-                      size: true,
-                    },
-                  },
-                  socialLinks: {
-                    select: { platform: true, url: true },
-                  },
-                  profileLinks: {
-                    select: { title: true, url: true },
-                  },
-                },
-              },
+              profile: { select: { campuses: true } },
             },
           },
         },
@@ -111,56 +75,130 @@ export async function getAdminApplicants(
       department: job.department,
       campus: job.campus.map(normalizeCampusCentre),
     },
-    applications: rankedApplications.map((application) => {
-      const profile = application.student.profile;
-      return {
-        id: application.id,
-        status: application.status,
-        createdAt: application.createdAt.toISOString(),
-        coverLetter: application.coverLetter,
-        score: application.score,
-        applicant: {
-          name: applicantName(application.student),
-          email: application.student.email,
-          profile: profile
-            ? {
-                phone: profile.phone,
-                bio: profile.bio,
-                campuses: profile.campuses.map(normalizeCampusCentre),
-                skills: profile.skills,
-                degrees: profile.degrees.map((degree) => ({
-                  name: degree.name,
-                  gpa: Number(degree.gpa),
-                  documentType: degree.documentType,
-                  document: {
-                    name: degree.fileName,
-                    type: degree.type,
-                    size: degree.size,
-                    url: documentUrl(job.id, application.id, degree.stored),
-                  },
-                })),
-                certificates: profile.certificates.map((certificate) => ({
-                  label: certificate.label,
-                  organization: certificate.organization,
-                  url: certificate.url,
-                  uploadedAt: certificate.uploadedAt.toISOString(),
-                  file: {
-                    name: certificate.name,
-                    type: certificate.type,
-                    size: certificate.size,
-                    url: documentUrl(
-                      job.id,
-                      application.id,
-                      certificate.stored
-                    ),
-                  },
-                })),
-                socialLinks: profile.socialLinks,
-                profileLinks: profile.profileLinks,
-              }
-            : null,
+    applications: rankedApplications.map((application) => ({
+      id: application.id,
+      status: application.status,
+      createdAt: application.createdAt.toISOString(),
+      score: application.score,
+      applicant: {
+        name: applicantName(application.student),
+        campuses: (application.student.profile?.campuses ?? []).map(
+          normalizeCampusCentre
+        ),
+      },
+    })),
+  };
+}
+
+export async function getAdminApplicantDetail(
+  jobId: string,
+  applicationId: string
+): Promise<AdminApplicantListItem> {
+  const application = await prisma.application.findFirst({
+    where: { id: applicationId, jobId },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true,
+      coverLetter: true,
+      score: { select: { matchScore: true, status: true } },
+      student: {
+        select: {
+          name: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          profile: {
+            select: {
+              phone: true,
+              bio: true,
+              campuses: true,
+              skills: true,
+              degrees: {
+                orderBy: { uploadedAt: "asc" },
+                select: {
+                  name: true,
+                  gpa: true,
+                  documentType: true,
+                  fileName: true,
+                  stored: true,
+                  type: true,
+                  size: true,
+                },
+              },
+              certificates: {
+                orderBy: { uploadedAt: "asc" },
+                select: {
+                  label: true,
+                  organization: true,
+                  url: true,
+                  uploadedAt: true,
+                  name: true,
+                  stored: true,
+                  type: true,
+                  size: true,
+                },
+              },
+              socialLinks: {
+                select: { platform: true, url: true },
+              },
+              profileLinks: {
+                select: { title: true, url: true },
+              },
+            },
+          },
         },
-      };
-    }),
+      },
+    },
+  });
+
+  if (!application) {
+    throw new AdminApplicantsNotFoundError();
+  }
+
+  const profile = application.student.profile;
+  return {
+    id: application.id,
+    status: application.status,
+    createdAt: application.createdAt.toISOString(),
+    coverLetter: application.coverLetter,
+    score: application.score,
+    applicant: {
+      name: applicantName(application.student),
+      email: application.student.email,
+      profile: profile
+        ? {
+            phone: profile.phone,
+            bio: profile.bio,
+            campuses: profile.campuses.map(normalizeCampusCentre),
+            skills: profile.skills,
+            degrees: profile.degrees.map((degree) => ({
+              name: degree.name,
+              gpa: Number(degree.gpa),
+              documentType: degree.documentType,
+              document: {
+                name: degree.fileName,
+                type: degree.type,
+                size: degree.size,
+                url: documentUrl(jobId, application.id, degree.stored),
+              },
+            })),
+            certificates: profile.certificates.map((certificate) => ({
+              label: certificate.label,
+              organization: certificate.organization,
+              url: certificate.url,
+              uploadedAt: certificate.uploadedAt.toISOString(),
+              file: {
+                name: certificate.name,
+                type: certificate.type,
+                size: certificate.size,
+                url: documentUrl(jobId, application.id, certificate.stored),
+              },
+            })),
+            socialLinks: profile.socialLinks,
+            profileLinks: profile.profileLinks,
+          }
+        : null,
+    },
   };
 }

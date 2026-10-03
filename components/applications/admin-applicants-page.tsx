@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Table } from "@heroui/react";
+import { Button, Modal, Spinner, Table } from "@heroui/react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
   CircleAlertIcon,
@@ -17,12 +18,17 @@ import {
   APPLICATION_STATUS_LABELS,
 } from "@/components/applications/application-status-badge";
 import { ChangeStatusMenu } from "@/components/applications/change-status-menu";
-import { useAdminApplicants } from "@/components/applications/use-admin-applicants";
+import {
+  applicantDetailsQueryOptions,
+  useAdminApplicants,
+  useApplicantDetails,
+} from "@/components/applications/use-admin-applicants";
 import { useRescoreApplication } from "@/components/applications/use-rescore-application";
 import { useUpdateApplicationStatus } from "@/components/applications/use-update-application-status";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { FormModal } from "@/components/ui/form-modal";
 import type {
-  AdminApplicantListItem,
+  AdminApplicantTableItem,
   AdminApplicationStatus,
 } from "@/lib/applications/application-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
@@ -35,11 +41,12 @@ const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
 });
 
 type PendingStatusChange = {
-  application: AdminApplicantListItem;
+  application: AdminApplicantTableItem;
   target: AdminApplicationStatus;
 };
 
 export function AdminApplicantsPage({ jobId }: { jobId: string }) {
+  const queryClient = useQueryClient();
   const { data, isPending, isError, refetch } = useAdminApplicants(jobId);
   const updateStatus = useUpdateApplicationStatus(jobId);
   const rescore = useRescoreApplication(jobId);
@@ -48,12 +55,12 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   >(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
-
-  const selectedApplication = selectedApplicationId
-    ? data?.applications.find(
-        (application) => application.id === selectedApplicationId
-      ) ?? null
-    : null;
+  const {
+    data: selectedApplication,
+    isPending: isDetailPending,
+    isError: isDetailError,
+    refetch: refetchDetail,
+  } = useApplicantDetails(jobId, selectedApplicationId);
 
   const confirmStatusChange = async () => {
     if (!pendingChange) return;
@@ -66,6 +73,12 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
     } catch {
       setPendingChange(null);
     }
+  };
+
+  const prefetchApplicant = (applicationId: string) => {
+    void queryClient.prefetchQuery(
+      applicantDetailsQueryOptions(jobId, applicationId)
+    );
   };
 
   const openApplicant = (applicationId: string) => {
@@ -141,6 +154,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                       textValue={application.applicant.name}
                       className="cursor-pointer transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
                       onAction={() => openApplicant(application.id)}
+                      onHoverStart={() => prefetchApplicant(application.id)}
                     >
                       <Table.Cell>
                         <span className="font-medium text-foreground">
@@ -148,8 +162,8 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        {application.applicant.profile?.campuses.length
-                          ? application.applicant.profile.campuses.join(", ")
+                        {application.applicant.campuses.length
+                          ? application.applicant.campuses.join(", ")
                           : "Not provided"}
                       </Table.Cell>
                       <Table.Cell>
@@ -199,15 +213,49 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         )}
       </div>
 
-      {selectedApplication && data ? (
-        <ApplicantDetailsModal
-          job={data.job}
-          application={selectedApplication}
-          isOpen
-          onOpenChange={(open) => {
-            if (!open) setSelectedApplicationId(null);
-          }}
-        />
+      {selectedApplicationId && data ? (
+        selectedApplication ? (
+          <ApplicantDetailsModal
+            job={data.job}
+            application={selectedApplication}
+            isOpen
+            onOpenChange={(open) => {
+              if (!open) setSelectedApplicationId(null);
+            }}
+          />
+        ) : (
+          <FormModal
+            isOpen
+            onOpenChange={(open) => {
+              if (!open) setSelectedApplicationId(null);
+            }}
+            title="Applicant Details"
+          >
+            <Modal.Body>
+              {isDetailError ? (
+                <div className="flex min-h-48 flex-col items-center justify-center p-8 text-center">
+                  <CircleAlertIcon className="size-10 text-danger" />
+                  <h2 className="mt-4 text-xl font-semibold text-foreground">
+                    Applicant details could not be loaded
+                  </h2>
+                  <p className="mt-1 text-sm text-muted">Please try again.</p>
+                  <Button.Root
+                    className="mt-5"
+                    onPress={() => void refetchDetail()}
+                  >
+                    Try Again
+                  </Button.Root>
+                </div>
+              ) : (
+                isDetailPending && (
+                  <div className="flex min-h-48 items-center justify-center">
+                    <Spinner.Root size="lg" className="text-foreground" />
+                  </div>
+                )
+              )}
+            </Modal.Body>
+          </FormModal>
+        )
       ) : null}
 
       <ConfirmModal
