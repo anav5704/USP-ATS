@@ -141,76 +141,85 @@ export async function getStudentJobSections(
   page: number,
   pageSize: number
 ): Promise<FeedSectionsPage> {
-  const [profile, candidates, applied] = await Promise.all([
-    prisma.profile.findUnique({
-      where: { userId },
-      select: {
-        campuses: true,
-        degrees: { select: { name: true } },
-      },
-    }),
-    prisma.jobPosting.findMany({
-      where: {
-        status: PostingStatus.ACTIVE,
-        pendingModificationId: null,
-        deadline: { gte: startOfFijiDay(todayInFiji()) },
-        AND: sharedFilterConditions(filters),
-      },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, campus: true, degree: true },
-    }),
-    prisma.application.findMany({
-      where: { studentId: userId, status: { not: "WITHDRAWN" } },
-      select: { jobId: true },
-    }),
-  ]);
-
-  const studentCampuses = profile?.campuses ?? [];
-  const studentDegrees = (profile?.degrees ?? []).map((degree) =>
-    degree.name.trim().toLowerCase()
-  );
-
-  const grouped: Record<FeedGroup, string[]> = {
-    campus: [],
-    degree: [],
-    other: [],
-  };
-  for (const candidate of candidates) {
-    const matchesCampus =
-      studentCampuses.length > 0 &&
-      candidate.campus.some((campus) => studentCampuses.includes(campus));
-    const matchesDegree =
-      studentDegrees.length > 0 &&
-      candidate.degree.some((degree) =>
-        studentDegrees.includes(degree.trim().toLowerCase())
-      );
-
-    if (matchesCampus) grouped.campus.push(candidate.id);
-    if (matchesDegree) grouped.degree.push(candidate.id);
-    if (!matchesCampus && !matchesDegree) grouped.other.push(candidate.id);
-  }
-
-  const totals = {
-    campus: grouped.campus.length,
-    degree: grouped.degree.length,
-    other: grouped.other.length,
-  };
-  const pageIds = grouped[group].slice((page - 1) * pageSize, page * pageSize);
-  const rows =
-    pageIds.length === 0
-      ? []
-      : await prisma.jobPosting.findMany({
-          where: { id: { in: pageIds } },
-          select: STUDENT_JOB_SELECT,
-        });
-  const byId = new Map(rows.map((row) => [row.id, row]));
-  const items = pageIds.flatMap((id) => {
-    const row = byId.get(id);
-    return row ? [toStudentJobListItem(row)] : [];
+  const profile = await prisma.profile.findUnique({
+    where: { userId },
+    select: {
+      campuses: true,
+      degrees: { select: { name: true } },
+    },
   });
 
+  const studentCampuses = profile?.campuses ?? [];
+  const studentDegrees = (profile?.degrees ?? []).map(
+    (degree) => degree.name
+  );
+
+  const filterConditions = sharedFilterConditions(filters);
+  const baseWhere: JobWhere = {
+    status: PostingStatus.ACTIVE,
+    pendingModificationId: null,
+    deadline: { gte: startOfFijiDay(todayInFiji()) },
+    AND: filterConditions,
+  };
+
+  const campusMatch: JobWhere | null =
+    studentCampuses.length > 0
+      ? { campus: { hasSome: studentCampuses } }
+      : null;
+  const degreeMatch: JobWhere | null =
+    studentDegrees.length > 0
+      ? { degree: { hasSome: studentDegrees } }
+      : null;
+  const noMatch: JobWhere = { id: "__no_match__" };
+
+  const groupWheres: Record<FeedGroup, JobWhere> = {
+    campus: campusMatch
+      ? { ...baseWhere, AND: [...filterConditions, campusMatch] }
+      : { ...baseWhere, AND: [...filterConditions, noMatch] },
+    degree: degreeMatch
+      ? { ...baseWhere, AND: [...filterConditions, degreeMatch] }
+      : { ...baseWhere, AND: [...filterConditions, noMatch] },
+    other: {
+      ...baseWhere,
+      AND: [
+        ...filterConditions,
+        ...(campusMatch ? [{ NOT: campusMatch }] : []),
+        ...(degreeMatch ? [{ NOT: degreeMatch }] : []),
+      ],
+    },
+  };
+
+  const [campusTotal, degreeTotal, otherTotal, rows, applied] =
+    await Promise.all([
+      prisma.jobPosting.count({ where: groupWheres.campus }),
+      prisma.jobPosting.count({ where: groupWheres.degree }),
+      prisma.jobPosting.count({ where: groupWheres.other }),
+      prisma.jobPosting.findMany({
+        where: groupWheres[group],
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: STUDENT_JOB_SELECT,
+      }),
+      prisma.application.findMany({
+        where: { studentId: userId, status: { not: "WITHDRAWN" } },
+        select: { jobId: true },
+      }),
+    ]);
+
+  const totals = {
+    campus: campusTotal,
+    degree: degreeTotal,
+    other: otherTotal,
+  };
+
   return {
-    ...pagedResult(items, totals[group], page, pageSize),
+    ...pagedResult(
+      rows.map(toStudentJobListItem),
+      totals[group],
+      page,
+      pageSize
+    ),
     totals,
     appliedJobIds: applied.map((application) => application.jobId),
   };
