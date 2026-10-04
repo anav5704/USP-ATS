@@ -1,4 +1,8 @@
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import {
+  infiniteQueryOptions,
+  keepPreviousData,
+  queryOptions,
+} from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 import {
@@ -42,43 +46,34 @@ export function jobSectionsInfiniteOptions(
   });
 }
 
-export function adminJobsInfiniteOptions(filters: AdminJobFilters) {
-  return infiniteQueryOptions({
-    queryKey: jobQueryKeys.adminList(filters),
-    queryFn: ({ signal, pageParam }) =>
+export function adminJobsPageOptions(filters: AdminJobFilters, page: number) {
+  return queryOptions({
+    queryKey: jobQueryKeys.adminList(filters, page),
+    queryFn: ({ signal }) =>
       api.get<PageResult<AdminJobListItem>>(
-        `/api/jobs/admin?page=${pageParam}&pageSize=${ADMIN_PAGE_SIZE}&${jobFiltersToSearchParams(filters)}`,
+        `/api/jobs/admin?page=${page}&pageSize=${ADMIN_PAGE_SIZE}&${jobFiltersToSearchParams(filters)}`,
         { signal }
       ),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page * lastPage.pageSize < lastPage.total
-        ? lastPage.page + 1
-        : undefined,
     staleTime: 30_000,
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 }
 
-export function approvalsInfiniteOptions(
+export function approvalsPageOptions(
   filters: ApprovalFilters,
-  tab: ApprovalTab
+  tab: ApprovalTab,
+  page: number
 ) {
-  return infiniteQueryOptions({
-    queryKey: jobQueryKeys.approvalsPage(filters, tab),
-    queryFn: ({ signal, pageParam }) =>
+  return queryOptions({
+    queryKey: jobQueryKeys.approvalsPage(filters, tab, page),
+    queryFn: ({ signal }) =>
       api.get<ApprovalPage>(
-        `/api/jobs/approvals?tab=${tab}&page=${pageParam}&pageSize=${ADMIN_PAGE_SIZE}&${approvalFiltersToSearchParams(filters)}`,
+        `/api/jobs/approvals?tab=${tab}&page=${page}&pageSize=${ADMIN_PAGE_SIZE}&${approvalFiltersToSearchParams(filters)}`,
         { signal }
       ),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page * lastPage.pageSize < lastPage.total
-        ? lastPage.page + 1
-        : undefined,
     staleTime: 30_000,
     refetchInterval: 5 * 60_000,
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousData,
   });
 }

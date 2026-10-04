@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { toast } from "@heroui/react";
@@ -10,14 +10,18 @@ import { api } from "@/lib/api";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 import type { ApprovalInput } from "@/lib/jobs/approval-schema";
 import type { ApprovalJob } from "@/lib/jobs/job-schema";
-import { approvalsInfiniteOptions } from "@/lib/jobs/job-query-options";
+import { approvalsPageOptions } from "@/lib/jobs/job-query-options";
 import type {
   ApprovalFilters,
   ApprovalTab,
 } from "@/lib/jobs/approval-filters";
 
-export function useApprovals(filters: ApprovalFilters, tab: ApprovalTab) {
-  return useInfiniteQuery(approvalsInfiniteOptions(filters, tab));
+export function useApprovals(
+  filters: ApprovalFilters,
+  tab: ApprovalTab,
+  page: number
+) {
+  return useQuery(approvalsPageOptions(filters, tab, page));
 }
 
 export function useReviewJob(job: ApprovalJob) {

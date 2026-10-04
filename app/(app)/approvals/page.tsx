@@ -3,7 +3,7 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { getCachedSession } from "@/lib/auth-session";
 import { ApprovalList } from "@/components/jobs/approvals/approval-list";
 import { getQueryClient } from "@/lib/get-query-client";
-import { approvalsInfiniteOptions } from "@/lib/jobs/job-query-options";
+import { approvalsPageOptions } from "@/lib/jobs/job-query-options";
 import { EMPTY_APPROVAL_QUERY_FILTERS } from "@/lib/jobs/approval-filters";
 import { getApprovalPage } from "@/lib/jobs/approval-queries";
 import { ADMIN_PAGE_SIZE } from "@/lib/pagination";
@@ -16,25 +16,25 @@ export default async function ApprovalsPage() {
   const queryClient = getQueryClient();
 
   await Promise.all([
-    queryClient.prefetchInfiniteQuery({
-      ...approvalsInfiniteOptions(EMPTY_APPROVAL_QUERY_FILTERS, "mine"),
-      queryFn: ({ pageParam }) =>
+    queryClient.prefetchQuery({
+      ...approvalsPageOptions(EMPTY_APPROVAL_QUERY_FILTERS, "mine", 1),
+      queryFn: () =>
         getApprovalPage(
           session.user.id,
           EMPTY_APPROVAL_QUERY_FILTERS,
           "mine",
-          Number(pageParam),
+          1,
           ADMIN_PAGE_SIZE
         ),
     }),
-    queryClient.prefetchInfiniteQuery({
-      ...approvalsInfiniteOptions(EMPTY_APPROVAL_QUERY_FILTERS, "review"),
-      queryFn: ({ pageParam }) =>
+    queryClient.prefetchQuery({
+      ...approvalsPageOptions(EMPTY_APPROVAL_QUERY_FILTERS, "review", 1),
+      queryFn: () =>
         getApprovalPage(
           session.user.id,
           EMPTY_APPROVAL_QUERY_FILTERS,
           "review",
-          Number(pageParam),
+          1,
           ADMIN_PAGE_SIZE
         ),
     }),

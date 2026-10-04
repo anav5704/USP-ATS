@@ -7,6 +7,8 @@ export const applicationQueryKeys = {
     [...applicationQueryKeys.mine(), filters] as const,
   adminJob: (jobId: string) =>
     [...applicationQueryKeys.all, "admin", "job", jobId] as const,
+  adminJobPage: (jobId: string, page: number) =>
+    [...applicationQueryKeys.adminJob(jobId), page] as const,
   adminApplicantDetail: (jobId: string, applicationId: string) =>
     [...applicationQueryKeys.all, "admin", "job", jobId, applicationId] as const,
 };

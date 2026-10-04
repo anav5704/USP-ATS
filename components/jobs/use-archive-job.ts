@@ -5,7 +5,6 @@ import { toast } from "@heroui/react";
 import { api, ApiError } from "@/lib/api";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import type { PageResult } from "@/lib/pagination";
-import type { InfiniteData } from "@tanstack/react-query";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 
 type ArchiveOutcome = { outcome: "archived" };
@@ -22,24 +21,21 @@ export function useArchiveJob() {
         queryKey: jobQueryKeys.adminLists(),
       });
       const previous = queryClient.getQueriesData<
-        InfiniteData<PageResult<AdminJobListItem>>
+        PageResult<AdminJobListItem>
       >({
         queryKey: jobQueryKeys.adminLists(),
       });
-      queryClient.setQueriesData<InfiniteData<PageResult<AdminJobListItem>>>(
+      queryClient.setQueriesData<PageResult<AdminJobListItem>>(
         { queryKey: jobQueryKeys.adminLists() },
         (old) =>
           old
             ? {
                 ...old,
-                pages: old.pages.map((page) => ({
-                  ...page,
-                  items: page.items.map((job) =>
-                    job.id === jobId
-                      ? { ...job, status: "ARCHIVED" as const }
-                      : job
-                  ),
-                })),
+                items: old.items.map((job) =>
+                  job.id === jobId
+                    ? { ...job, status: "ARCHIVED" as const }
+                    : job
+                ),
               }
             : old
       );

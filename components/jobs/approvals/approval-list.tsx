@@ -18,7 +18,7 @@ import { ApprovalReviewModal } from "@/components/jobs/approvals/approval-review
 import { ApprovalStatusBadge } from "@/components/jobs/approvals/approval-status-badge";
 import { useApprovals } from "@/components/jobs/approvals/use-approvals";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
-import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { TablePagination } from "@/components/ui/table-pagination";
 import type { ApprovalTab } from "@/lib/jobs/approval-filters";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
 import type { ApprovalJob } from "@/lib/jobs/job-schema";
@@ -41,8 +41,9 @@ function ApprovalTable({
   activeFilterCount,
   clearFilters,
   onReview,
-  sentinelRef,
-  isFetchingNextPage,
+  page,
+  pageSize,
+  onPageChange,
 }: {
   title: string;
   mine: boolean;
@@ -52,12 +53,13 @@ function ApprovalTable({
   activeFilterCount: number;
   clearFilters: () => void;
   onReview: (job: ApprovalJob) => void;
-  sentinelRef: React.RefObject<HTMLDivElement | null>;
-  isFetchingNextPage: boolean;
+  page: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
 }) {
   if (jobs.length === 0) {
     return (
-      <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+      <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
         {total > 0 && hasPresentationFilters ? (
           <SearchXIcon className="size-10 text-muted" />
         ) : (
@@ -88,14 +90,11 @@ function ApprovalTable({
   }
 
   return (
-    <div>
-      <p className="mb-3 text-sm text-muted">
-        Showing {jobs.length} of {total} requests
-      </p>
-      <Table.Root className="rounded-2xl border border-border bg-surface">
-        <Table.ScrollContainer>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
+        <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
           <Table.Content aria-label={title}>
-            <Table.Header>
+            <Table.Header className="sticky top-0 z-10">
               <Table.Column isRowHeader>Job Title</Table.Column>
               <Table.Column>Job Type</Table.Column>
               <Table.Column>Campus/Centre</Table.Column>
@@ -161,19 +160,21 @@ function ApprovalTable({
                   </Table.Cell>
                 </Table.Row>
               )}
-            </Table.Body>
-          </Table.Content>
-        </Table.ScrollContainer>
-      </Table.Root>
-      <div ref={sentinelRef} aria-hidden="true" />
-      {isFetchingNextPage ? (
-        <div className="flex items-center justify-center py-4">
-          <Spinner.Root size="lg" className="text-foreground" />
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+            <Table.Footer className="shrink-0">
+              <TablePagination
+                page={page}
+                total={total}
+                pageSize={pageSize}
+                onChange={onPageChange}
+              />
+            </Table.Footer>
+          </Table.Root>
         </div>
-      ) : null}
-    </div>
-  );
-}
+      );
+    }
 
 export function ApprovalList() {
   const [search, setSearch] = useState("");
@@ -181,33 +182,22 @@ export function ApprovalList() {
     EMPTY_APPROVAL_FILTERS
   );
   const [tab, setTab] = useState<ApprovalTab>("mine");
+  const [page, setPage] = useState(1);
   const debouncedSearch = useDebouncedValue(search, 300);
   const serverFilters = useMemo(
     () => ({ ...filters, search: debouncedSearch.trim() }),
     [debouncedSearch, filters]
   );
-  const {
-    data,
-    isPending,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useApprovals(serverFilters, tab);
+  const { data, isPending, isError, refetch } = useApprovals(
+    serverFilters,
+    tab,
+    page
+  );
   const [reviewing, setReviewing] = useState<ApprovalJob | null>(null);
 
-  const jobs = useMemo(
-    () => (data?.pages ?? []).flatMap((page) => page.items),
-    [data]
-  );
-  const totals = data?.pages[0]?.totals ?? { mine: 0, review: 0 };
+  const jobs = data?.items ?? [];
+  const totals = data?.totals ?? { mine: 0, review: 0 };
   const total = totals[tab];
-  const sentinelRef = useInfiniteScroll({
-    hasNextPage,
-    isFetching: isFetchingNextPage,
-    fetchNextPage: () => void fetchNextPage(),
-  });
   const activeFilterCount =
     (filters.requestType !== "" ? 1 : 0) +
     (filters.status !== "" ? 1 : 0) +
@@ -218,14 +208,17 @@ export function ApprovalList() {
 
   const clearFilters = () => {
     setFilters(EMPTY_APPROVAL_FILTERS);
+    setPage(1);
   };
 
   const handleFiltersChange = (next: ApprovalFilters) => {
     setFilters(next);
+    setPage(1);
   };
 
   const removeFilter = (key: keyof ApprovalFilters) => {
     setFilters((current) => ({ ...current, [key]: "" }));
+    setPage(1);
   };
 
   const activeFilters = [
@@ -263,13 +256,13 @@ export function ApprovalList() {
   ].filter((filter): filter is NonNullable<typeof filter> => filter !== null);
 
   return (
-    <div className="p-3">
+    <div className="flex h-full flex-col p-3">
       {isPending ? (
-        <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
+        <div className="flex min-h-72 flex-1 items-center justify-center rounded-2xl border border-border bg-surface">
           <Spinner.Root size="lg" className="text-foreground" />
         </div>
       ) : isError ? (
-        <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+        <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
           <CircleAlertIcon className="size-10 text-danger" />
           <h2 className="mt-4 text-xl font-semibold text-foreground">
             Approval requests could not be loaded
@@ -281,15 +274,22 @@ export function ApprovalList() {
       ) : (
         <Tabs.Root
           selectedKey={tab}
-          onSelectionChange={(key) => setTab(String(key) as ApprovalTab)}
+          onSelectionChange={(key) => {
+            setTab(String(key) as ApprovalTab);
+            setPage(1);
+          }}
+          className="flex min-h-0 flex-1 flex-col gap-3"
         >
-          <div className="sticky top-3 z-10 mb-4 space-y-4 rounded-2xl border border-border bg-surface p-4">
+          <div className="shrink-0 space-y-3 rounded-2xl border border-border bg-surface p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="min-w-0 flex-1">
                 <SearchField
                   fullWidth
               value={search}
-              onChange={setSearch}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
                   aria-label="Search approval requests by job title, department or campus"
                 >
                   <SearchField.Group className="border-border">
@@ -348,7 +348,7 @@ export function ApprovalList() {
               </Tabs.Tab>
             </Tabs.List>
           </div>
-          <Tabs.Panel id="mine">
+          <Tabs.Panel id="mine" className="mt-0 flex min-h-0 flex-1 flex-col p-0">
             {tab === "mine" ? (
               <ApprovalTable
                 title="My Approval Requests"
@@ -359,12 +359,13 @@ export function ApprovalList() {
                 activeFilterCount={activeFilterCount}
                 clearFilters={clearFilters}
                 onReview={setReviewing}
-                sentinelRef={sentinelRef}
-                isFetchingNextPage={isFetchingNextPage}
+                page={data?.page ?? 1}
+                pageSize={data?.pageSize ?? 15}
+                onPageChange={setPage}
               />
             ) : null}
           </Tabs.Panel>
-          <Tabs.Panel id="review">
+          <Tabs.Panel id="review" className="mt-0 flex min-h-0 flex-1 flex-col p-0">
             {tab === "review" ? (
               <ApprovalTable
                 title="Requests for Review"
@@ -375,8 +376,9 @@ export function ApprovalList() {
                 activeFilterCount={activeFilterCount}
                 clearFilters={clearFilters}
                 onReview={setReviewing}
-                sentinelRef={sentinelRef}
-                isFetchingNextPage={isFetchingNextPage}
+                page={data?.page ?? 1}
+                pageSize={data?.pageSize ?? 15}
+                onPageChange={setPage}
               />
             ) : null}
           </Tabs.Panel>

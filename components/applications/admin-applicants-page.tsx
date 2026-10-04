@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Button, Modal, Spinner, Table } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ import { useRescoreApplication } from "@/components/applications/use-rescore-app
 import { useUpdateApplicationStatus } from "@/components/applications/use-update-application-status";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { FormModal } from "@/components/ui/form-modal";
-import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { TablePagination } from "@/components/ui/table-pagination";
 import type {
   AdminApplicantTableItem,
   AdminApplicationStatus,
@@ -48,15 +48,8 @@ type PendingStatusChange = {
 
 export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   const queryClient = useQueryClient();
-  const {
-    data,
-    isPending,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useAdminApplicants(jobId);
+  const [page, setPage] = useState(1);
+  const { data, isPending, isError, refetch } = useAdminApplicants(jobId, page);
   const updateStatus = useUpdateApplicationStatus(jobId);
   const rescore = useRescoreApplication(jobId);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
@@ -90,17 +83,8 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
     );
   };
 
-  const applications = useMemo(
-    () => (data?.pages ?? []).flatMap((page) => page.items),
-    [data]
-  );
-  const job = data?.pages[0]?.job;
-  const total = data?.pages[0]?.total ?? 0;
-  const sentinelRef = useInfiniteScroll({
-    hasNextPage,
-    isFetching: isFetchingNextPage,
-    fetchNextPage: () => void fetchNextPage(),
-  });
+  const applications = data?.items ?? [];
+  const job = data?.job;
 
   const openApplicant = (applicationId: string) => {
     setSelectedApplicationId(applicationId);
@@ -109,9 +93,9 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   if (isPending) return <AdminApplicantsSkeleton />;
 
   return (
-    <div className="p-3">
-      <div className="mx-auto max-w-none">
-        <div className="mb-4 rounded-2xl border border-border bg-surface p-4">
+    <div className="flex h-full flex-col p-3">
+      <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
+        <div className="shrink-0 rounded-2xl border border-border bg-surface p-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-field text-sm font-medium text-muted transition-colors hover:text-foreground"
@@ -137,7 +121,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         </div>
 
         {isError || !data ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <CircleAlertIcon className="size-10 text-danger" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               Applicants could not be loaded
@@ -148,7 +132,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             </Button.Root>
           </div>
         ) : applications.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
             <UsersRoundIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No applicants yet
@@ -158,14 +142,11 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             </p>
           </div>
         ) : (
-          <div>
-            <p className="mb-3 text-sm text-muted">
-              Showing {applications.length} of {total} applicants
-            </p>
-            <Table.Root className="rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
               <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`}>
-                <Table.Header>
+                <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Applicant</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
                   <Table.Column>Applied On</Table.Column>
@@ -234,13 +215,15 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                 </Table.Body>
               </Table.Content>
             </Table.ScrollContainer>
+            <Table.Footer className="shrink-0">
+              <TablePagination
+                page={data.page}
+                total={data.total}
+                pageSize={data.pageSize}
+                onChange={setPage}
+              />
+            </Table.Footer>
           </Table.Root>
-          <div ref={sentinelRef} aria-hidden="true" />
-          {isFetchingNextPage ? (
-            <div className="flex items-center justify-center py-4">
-              <Spinner.Root size="lg" className="text-foreground" />
-            </div>
-          ) : null}
           </div>
         )}
       </div>

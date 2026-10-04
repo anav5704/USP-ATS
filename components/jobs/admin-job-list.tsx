@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
-import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
@@ -94,25 +94,9 @@ export function AdminJobList() {
     () => ({ ...filters, search: debouncedSearch.trim() }),
     [filters, debouncedSearch]
   );
-  const {
-    data,
-    isPending,
-    isError,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useAdminJobs(serverFilters);
-  const jobs = useMemo(
-    () => (data?.pages ?? []).flatMap((page) => page.items),
-    [data]
-  );
-  const total = data?.pages[0]?.total ?? 0;
-  const sentinelRef = useInfiniteScroll({
-    hasNextPage,
-    isFetching: isFetchingNextPage,
-    fetchNextPage: () => void fetchNextPage(),
-  });
+  const [page, setPage] = useState(1);
+  const { data, isPending, isError, refetch } = useAdminJobs(serverFilters, page);
+  const jobs = data?.items;
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
@@ -142,6 +126,7 @@ export function AdminJobList() {
   const clearFilters = () => {
     setSearch("");
     setFilters(EMPTY_ADMIN_FILTERS);
+    setPage(1);
   };
 
   const confirmArchive = () => {
@@ -152,18 +137,21 @@ export function AdminJobList() {
   };
 
   const prefetchApplicants = (jobId: string) => {
-    void queryClient.prefetchInfiniteQuery(adminApplicantsQueryOptions(jobId));
+    void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId, 1));
   };
 
   return (
-    <div className="p-3">
-      <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+    <div className="flex h-full flex-col p-3">
+      <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
+        <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
               value={search}
-              onChange={setSearch}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
               aria-label="Search job postings"
             >
               <SearchField.Group className="border-border">
@@ -195,11 +183,11 @@ export function AdminJobList() {
         </div>
 
         {isPending ? (
-          <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
+          <div className="flex min-h-72 flex-1 items-center justify-center rounded-2xl border border-border bg-surface">
             <Spinner.Root size="lg" className="text-foreground" />
           </div>
         ) : isError ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <CircleAlertIcon className="size-10 text-danger" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               Job postings could not be loaded
@@ -210,7 +198,7 @@ export function AdminJobList() {
             </Button.Root>
           </div>
         ) : jobs?.length === 0 && !hasFilters ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <BriefcaseBusinessIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No job postings yet
@@ -220,7 +208,7 @@ export function AdminJobList() {
             </p>
           </div>
         ) : jobs?.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <SearchXIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No jobs match your filters
@@ -236,16 +224,11 @@ export function AdminJobList() {
             </Button.Root>
           </div>
         ) : (
-          <div>
-            {jobs.length > 0 ? (
-              <p className="mb-3 text-sm text-muted">
-                Showing {jobs.length} of {total} jobs
-              </p>
-            ) : null}
-            <Table.Root className="rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
               <Table.Content aria-label="Job postings">
-                <Table.Header>
+                <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Job Posting</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
                   <Table.Column>Pay</Table.Column>
@@ -329,13 +312,15 @@ export function AdminJobList() {
                 </Table.Body>
               </Table.Content>
             </Table.ScrollContainer>
+            <Table.Footer className="shrink-0">
+              <TablePagination
+                page={data?.page ?? 1}
+                total={data?.total ?? 0}
+                pageSize={data?.pageSize ?? 15}
+                onChange={setPage}
+              />
+            </Table.Footer>
             </Table.Root>
-            <div ref={sentinelRef} aria-hidden="true" />
-            {isFetchingNextPage ? (
-              <div className="flex items-center justify-center py-4">
-                <Spinner.Root size="lg" className="text-foreground" />
-              </div>
-            ) : null}
           </div>
         )}
       </div>
@@ -378,7 +363,10 @@ export function AdminJobList() {
           filters={filters}
           onApply={(nextFilters) => {
             const gpa = gpaFilterSchema.safeParse(nextFilters.gpaMin);
-            if (gpa.success) setFilters({ ...nextFilters, gpaMin: gpa.data });
+            if (gpa.success) {
+              setFilters({ ...nextFilters, gpaMin: gpa.data });
+              setPage(1);
+            }
           }}
           onOpenChange={setFiltersOpen}
         />

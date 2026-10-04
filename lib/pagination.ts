@@ -1,5 +1,5 @@
 export const FEED_PAGE_SIZE = 12;
-export const ADMIN_PAGE_SIZE = 10;
+export const ADMIN_PAGE_SIZE = 15;
 
 export type PageResult<T> = {
   items: T[];

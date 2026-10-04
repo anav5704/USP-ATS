@@ -1,4 +1,8 @@
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import {
+  infiniteQueryOptions,
+  keepPreviousData,
+  queryOptions,
+} from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { applicationQueryKeys } from "@/lib/applications/query-keys";
 import type {
@@ -34,21 +38,16 @@ export function myApplicationsInfiniteOptions(filters: MyApplicationFilters) {
   });
 }
 
-export function adminApplicantsInfiniteOptions(jobId: string) {
-  return infiniteQueryOptions({
-    queryKey: applicationQueryKeys.adminJob(jobId),
-    queryFn: ({ signal, pageParam }) =>
+export function adminApplicantsPageOptions(jobId: string, page: number) {
+  return queryOptions({
+    queryKey: applicationQueryKeys.adminJobPage(jobId, page),
+    queryFn: ({ signal }) =>
       api.get<AdminApplicantsTablePage>(
-        `/api/jobs/${encodeURIComponent(jobId)}/applications?page=${pageParam}&pageSize=${ADMIN_PAGE_SIZE}`,
+        `/api/jobs/${encodeURIComponent(jobId)}/applications?page=${page}&pageSize=${ADMIN_PAGE_SIZE}`,
         { signal }
       ),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) =>
-      lastPage.page * lastPage.pageSize < lastPage.total
-        ? lastPage.page + 1
-        : undefined,
     staleTime: 30_000,
-    placeholderData: (previous) => previous,
+    placeholderData: keepPreviousData,
     retry: 1,
   });
 }
