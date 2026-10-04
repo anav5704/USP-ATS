@@ -22,7 +22,7 @@ const ARCHETYPES = {
   },
   research: {
     jobType: "Part Time", gpaMin: 3.7, hourlyPay: 18, hours: 15,
-    skills: ["Research Methods", "Data Analysis", "Written Communication"],
+    skills: ["Research Methods", "Data Analysis", "Technical Writing"],
   },
   administration: {
     jobType: "Part Time", gpaMin: 3, hourlyPay: 12, hours: 15,
@@ -42,7 +42,7 @@ const ARCHETYPES = {
   },
   lecturer: {
     jobType: "Full Time", gpaMin: 4, hourlyPay: 30, hours: 40,
-    skills: ["Presentation Skills", "Research Methods", "Written Communication"],
+    skills: ["Presentation Skills", "Research Methods", "Technical Writing"],
   },
   coordinator: {
     jobType: "Full Time", gpaMin: 3.3, hourlyPay: 22, hours: 40,
