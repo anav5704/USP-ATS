@@ -89,3 +89,12 @@ export async function pruneStoredFiles(userId: string, keep: Set<string>) {
       .map((name) => deleteStoredFile(userId, name))
   );
 }
+
+export async function deleteRemovedStoredFiles(
+  userId: string,
+  storedNames: string[]
+) {
+  await Promise.all(
+    storedNames.map((storedName) => deleteStoredFile(userId, storedName))
+  );
+}
