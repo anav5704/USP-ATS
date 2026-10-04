@@ -51,9 +51,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const { applicationId } = await submitApplication(
-      prisma.application,
-      prisma.jobPosting,
-      prisma.scoreResult,
+      {
+        applications: prisma.application,
+        jobs: prisma.jobPosting,
+        scoreResult: prisma.scoreResult,
+        transact: (operations) => prisma.$transaction(operations),
+      },
       guard.session.user.id,
       parsed.data
     );

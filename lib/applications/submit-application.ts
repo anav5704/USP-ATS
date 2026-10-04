@@ -1,4 +1,5 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import { randomUUID } from "node:crypto";
+import type { Prisma, PrismaClient } from "@/generated/prisma/client";
 import { createApplicationSchema, type CreateApplicationInput } from "@/lib/applications/application-schema";
 import { blocksReapplication, isJobOpenForApplication } from "@/lib/applications/application-rules";
 
@@ -13,73 +14,81 @@ export type SubmitApplicationResult = {
   applicationId: string;
 };
 
-// PENDING row so the admin table can render a scoring state immediately.
-// The scoring task overwrites this row with COMPLETE or FAILED.
-async function resetPendingScore(
-  scores: Pick<PrismaClient["scoreResult"], "upsert">,
+type SubmitDeps = {
+  applications: Pick<
+    PrismaClient["application"],
+    "findUnique" | "create" | "updateMany"
+  >;
+  jobs: Pick<PrismaClient["jobPosting"], "findUnique">;
+  scoreResult: Pick<PrismaClient["scoreResult"], "upsert">;
+  transact: (
+    operations: Prisma.PrismaPromise<unknown>[]
+  ) => Promise<unknown[]>;
+};
+
+function pendingScoreReset(
   applicationId: string
-) {
-  try {
-    await scores.upsert({
-      where: { applicationId },
-      update: {
-        status: "PENDING",
-        matchScore: null,
-        skillsScore: null,
-        educationScore: null,
-        motivationScore: null,
-        eligible: null,
-        qualificationFit: null,
-        motivationFit: null,
-        missingRequirements: [],
-      },
-      create: { applicationId, status: "PENDING", missingRequirements: [] },
-    });
-  } catch (error) {
-    // Non-fatal: the scoring task upserts the row on its own run.
-    console.warn("Failed to reset pending score", { applicationId, error });
-  }
+): Prisma.ScoreResultUpsertArgs {
+  return {
+    where: { applicationId },
+    update: {
+      status: "PENDING",
+      matchScore: null,
+      skillsScore: null,
+      educationScore: null,
+      motivationScore: null,
+      eligible: null,
+      qualificationFit: null,
+      motivationFit: null,
+      missingRequirements: [],
+    },
+    create: { applicationId, status: "PENDING", missingRequirements: [] },
+  };
 }
 
 // The caller supplies the authenticated member ID, never a client-provided ID.
 export async function submitApplication(
-  applications: Pick<PrismaClient["application"], "findUnique" | "create" | "updateMany">,
-  jobs: Pick<PrismaClient["jobPosting"], "findUnique">,
-  scores: Pick<PrismaClient["scoreResult"], "upsert">,
+  deps: SubmitDeps,
   userId: string,
   input: CreateApplicationInput,
 ): Promise<SubmitApplicationResult> {
+  const { applications, jobs, scoreResult, transact } = deps;
   const parsed = createApplicationSchema.parse(input);
-  const job = await jobs.findUnique({
-    where: { id: parsed.jobId },
-    select: {
-      id: true,
-      status: true,
-      deadline: true,
-      pendingModificationId: true,
-    },
-  });
+  const [job, existing] = await Promise.all([
+    jobs.findUnique({
+      where: { id: parsed.jobId },
+      select: {
+        id: true,
+        status: true,
+        deadline: true,
+        pendingModificationId: true,
+      },
+    }),
+    applications.findUnique({
+      where: { jobId_studentId: { jobId: parsed.jobId, studentId: userId } },
+      select: { id: true, status: true },
+    }),
+  ]);
   if (!job) throw new SubmitApplicationError(404, "Job posting not found");
   if (!isJobOpenForApplication(job)) {
     throw new SubmitApplicationError(400, "This job is no longer accepting applications");
   }
 
-  const existing = await applications.findUnique({
-    where: { jobId_studentId: { jobId: parsed.jobId, studentId: userId } },
-    select: { id: true, status: true },
-  });
-
   if (!existing) {
-    const created = await applications.create({
-      data: {
-        jobId: parsed.jobId,
-        studentId: userId,
-        coverLetter: parsed.coverLetter,
-        status: "APPLIED",
-      },
-    });
-    await resetPendingScore(scores, created.id);
-    return { outcome: "created", applicationId: created.id };
+    const applicationId = randomUUID();
+    await transact([
+      applications.create({
+        data: {
+          id: applicationId,
+          jobId: parsed.jobId,
+          studentId: userId,
+          coverLetter: parsed.coverLetter,
+          status: "APPLIED",
+        },
+      }),
+      scoreResult.upsert(pendingScoreReset(applicationId)),
+    ]);
+    return { outcome: "created", applicationId };
   }
 
   if (blocksReapplication(existing.status)) {
@@ -94,6 +103,6 @@ export async function submitApplication(
     throw new SubmitApplicationError(409, "This application changed. Refresh and try again.");
   }
   // New cover letter means the old score is stale: reset and rescore.
-  await resetPendingScore(scores, existing.id);
+  await scoreResult.upsert(pendingScoreReset(existing.id));
   return { outcome: "reapplied", applicationId: existing.id };
 }
