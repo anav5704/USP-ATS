@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Button } from "@heroui/react";
-import { DownloadIcon, FileTextIcon, LoaderCircleIcon, UploadIcon, XIcon } from "lucide-react";
+import { Button, toast } from "@heroui/react";
+import { DownloadIcon, EyeIcon, FileTextIcon, LoaderCircleIcon, UploadIcon, XIcon } from "lucide-react";
 import type { FileRef } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
 import { useUploadProfileFiles } from "@/components/profile/use-upload";
@@ -31,12 +31,41 @@ export function FileUploadField({
   const inputRef = useRef<HTMLInputElement>(null);
   const { isUploading, uploadAsync } = useUploadProfileFiles();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isPreviewing, setIsPreviewing] = useState(false);
+
+  const handlePreview = async (stored: string, type: string) => {
+    setIsPreviewing(true);
+    try {
+      const res = await fetch(`/api/profile/uploads/${stored}`);
+      if (!res.ok) {
+        toast.danger("Unable to preview file. Please try again.");
+        return;
+      }
+      const buffer = await res.arrayBuffer();
+      const mime =
+        type || res.headers.get("Content-Type") || "application/pdf";
+      const blob = new Blob([buffer], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (!opened) {
+        toast.danger("Your browser blocked the preview tab.");
+      }
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.danger("Unable to preview file. Please try again.");
+    } finally {
+      setIsPreviewing(false);
+    }
+  };
 
   const handleDownload = async (stored: string, name: string) => {
     setIsDownloading(true);
     try {
       const res = await fetch(`/api/profile/uploads/${stored}`);
-      if (!res.ok) return;
+      if (!res.ok) {
+        toast.danger("Unable to download file. Please try again.");
+        return;
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -44,6 +73,8 @@ export function FileUploadField({
       a.download = name;
       a.click();
       URL.revokeObjectURL(url);
+    } catch {
+      toast.danger("Unable to download file. Please try again.");
     } finally {
       setIsDownloading(false);
     }
@@ -98,6 +129,19 @@ export function FileUploadField({
               {formatFileSize(value.size)} (PDF or image)
             </p>
           </div>
+          <button
+            type="button"
+            aria-label={`Preview ${value.name}`}
+            disabled={isPreviewing}
+            onClick={() => void handlePreview(value.stored, value.type)}
+            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
+          >
+            {isPreviewing ? (
+              <LoaderCircleIcon className="size-4 animate-spin" />
+            ) : (
+              <EyeIcon className="size-4" />
+            )}
+          </button>
           <button
             type="button"
             aria-label={`Download ${value.name}`}

@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
       userId: guard.session.user.id,
       storedName: stored,
       buffer,
+      contentType: type,
     });
     uploaded.push({ name: file.name, stored, type, size: file.size });
   }

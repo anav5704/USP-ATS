@@ -19,10 +19,12 @@ export async function saveUploadFile({
   userId,
   storedName,
   buffer,
+  contentType,
 }: {
   userId: string;
   storedName: string;
   buffer: Uint8Array;
+  contentType?: string;
 }) {
   if (!isSafeStoredName(storedName)) {
     throw new Error("Invalid stored file name");
@@ -32,6 +34,7 @@ export async function saveUploadFile({
       Bucket: R2_BUCKET,
       Key: objectKey(userId, storedName),
       Body: buffer,
+      ...(contentType ? { ContentType: contentType } : {}),
     })
   );
 }

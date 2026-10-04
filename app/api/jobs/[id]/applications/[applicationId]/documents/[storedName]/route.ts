@@ -71,7 +71,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return new NextResponse(response.Body.transformToWebStream(), {
       headers: {
         "Content-Type": file.type || response.ContentType || "application/octet-stream",
-        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(
+        "Content-Disposition": `inline; filename*=UTF-8''${encodeURIComponent(
           file.name
         )}`,
         "Cache-Control": "private, no-store",
