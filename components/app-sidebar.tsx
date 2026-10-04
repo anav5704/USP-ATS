@@ -100,7 +100,7 @@ export function AppSidebar() {
     }`;
 
     const content = (
-      <>
+      <span className="contents">
         <span
           className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-white transition-transform lg:block ${
             active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
@@ -108,7 +108,7 @@ export function AppSidebar() {
         />
         <Icon className="size-5 shrink-0" />
         <span className="hidden lg:block">{label}</span>
-      </>
+      </span>
     );
 
     if (href) {
