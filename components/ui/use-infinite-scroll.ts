@@ -1,38 +1,48 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export function useInfiniteScroll({
   hasNextPage,
   isFetching,
   fetchNextPage,
+  rootMargin = "800px",
 }: {
   hasNextPage: boolean | undefined;
   isFetching: boolean;
   fetchNextPage: () => void;
+  rootMargin?: string;
 }) {
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const callbackRef = useRef({ fetchNextPage, isFetching });
+  const callbackRef = useRef({ hasNextPage, isFetching, fetchNextPage });
 
   useEffect(() => {
-    callbackRef.current = { fetchNextPage, isFetching };
+    callbackRef.current = { hasNextPage, isFetching, fetchNextPage };
   });
 
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel || !hasNextPage) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const { fetchNextPage, isFetching } = callbackRef.current;
-        if (entries[0]?.isIntersecting && !isFetching) {
-          fetchNextPage();
-        }
-      },
-      { rootMargin: "200px" }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasNextPage, isFetching]);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => () => observerRef.current?.disconnect(), []);
+
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      observerRef.current?.disconnect();
+      observerRef.current = null;
+      if (!node) return;
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const current = callbackRef.current;
+          if (!current.hasNextPage || current.isFetching) return;
+          if (entries.some((entry) => entry.isIntersecting)) {
+            current.fetchNextPage();
+          }
+        },
+        { rootMargin }
+      );
+      observer.observe(node);
+      observerRef.current = observer;
+    },
+    [rootMargin]
+  );
 
   return sentinelRef;
 }

@@ -11,6 +11,7 @@ import {
 import { useMyApplications } from "@/components/applications/use-my-applications";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
 import { ApplicationCard } from "@/components/applications/application-card";
 import { ApplicationDetailModal } from "@/components/applications/application-detail-modal";
 import {
@@ -46,7 +47,6 @@ export function MyApplications() {
     () => (data?.pages ?? []).flatMap((page) => page.items),
     [data]
   );
-  const total = data?.pages[0]?.total ?? 0;
   const sentinelRef = useInfiniteScroll({
     hasNextPage,
     isFetching: isFetchingNextPage,
@@ -71,7 +71,7 @@ export function MyApplications() {
   return (
     <div className="p-3">
       <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+        <div className="sticky top-3 z-10 mb-3 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
@@ -143,9 +143,6 @@ export function MyApplications() {
           </div>
         ) : (
           <div>
-            <p className="mb-3 text-sm text-muted">
-              Showing {applications.length} of {total} applications
-            </p>
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {applications.map((application) => (
                 <ApplicationCard
@@ -156,11 +153,7 @@ export function MyApplications() {
               ))}
             </div>
             <div ref={sentinelRef} aria-hidden="true" />
-            {isFetchingNextPage ? (
-              <div className="flex items-center justify-center py-4">
-                <Spinner.Root size="lg" className="text-foreground" />
-              </div>
-            ) : null}
+            <InfiniteScrollLoader isFetching={isFetchingNextPage} />
           </div>
         )}
       </div>

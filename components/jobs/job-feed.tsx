@@ -14,6 +14,7 @@ import { JobFeedCard } from "@/components/jobs/job-feed-card";
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { ApplyModal } from "@/components/applications/apply-modal";
 import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
 import type { FeedGroup } from "@/lib/jobs/job-list-queries";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import {
@@ -130,8 +131,9 @@ export function JobFeed() {
           <Tabs.Root
             selectedKey={tab}
             onSelectionChange={(key) => setTab(String(key) as FeedGroup)}
+            className="gap-3"
           >
-            <div className="sticky top-3 z-10 mb-4 space-y-4 rounded-2xl border border-border bg-surface p-4">
+            <div className="sticky top-3 z-10 space-y-3 rounded-2xl border border-border bg-surface p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="min-w-0 flex-1">
                   <SearchField
@@ -173,7 +175,7 @@ export function JobFeed() {
               </Tabs.List>
             </div>
             {TABS.map((entry) => (
-              <Tabs.Panel key={entry.id} id={entry.id}>
+              <Tabs.Panel key={entry.id} id={entry.id} className="mt-0 p-0">
                 {entry.id === tab && total === 0 && !hasFilters ? (
                   <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
                     <BriefcaseBusinessIcon className="size-10 text-muted" />
@@ -202,9 +204,6 @@ export function JobFeed() {
                   </div>
                 ) : entry.id === tab ? (
                   <div>
-                    <p className="mb-3 text-sm text-muted">
-                      Showing {jobs.length} of {total} jobs
-                    </p>
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                       {jobs.map((job) => (
                         <JobFeedCard
@@ -215,11 +214,7 @@ export function JobFeed() {
                       ))}
                     </div>
                     <div ref={sentinelRef} aria-hidden="true" />
-                    {isFetchingNextPage ? (
-                      <div className="flex items-center justify-center py-4">
-                        <Spinner.Root size="lg" className="text-foreground" />
-                      </div>
-                    ) : null}
+                    <InfiniteScrollLoader isFetching={isFetchingNextPage} />
                   </div>
                 ) : null}
               </Tabs.Panel>
