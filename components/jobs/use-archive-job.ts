@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@heroui/react";
 import { api, ApiError } from "@/lib/api";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
+import type { PageResult } from "@/lib/pagination";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
 
 type ArchiveOutcome = { outcome: "archived" };
@@ -19,23 +20,31 @@ export function useArchiveJob() {
       await queryClient.cancelQueries({
         queryKey: jobQueryKeys.adminLists(),
       });
-      const previous = queryClient.getQueryData<AdminJobListItem[]>(
-        jobQueryKeys.adminLists()
+      const previous = queryClient.getQueriesData<
+        PageResult<AdminJobListItem>
+      >({
+        queryKey: jobQueryKeys.adminLists(),
+      });
+      queryClient.setQueriesData<PageResult<AdminJobListItem>>(
+        { queryKey: jobQueryKeys.adminLists() },
+        (old) =>
+          old
+            ? {
+                ...old,
+                items: old.items.map((job) =>
+                  job.id === jobId
+                    ? { ...job, status: "ARCHIVED" as const }
+                    : job
+                ),
+              }
+            : old
       );
-      if (previous) {
-        queryClient.setQueryData(
-          jobQueryKeys.adminLists(),
-          previous.map((job) =>
-            job.id === jobId ? { ...job, status: "ARCHIVED" as const } : job
-          )
-        );
-      }
       return { previous };
     },
     onError: (error, _jobId, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(jobQueryKeys.adminLists(), context.previous);
-      }
+      context?.previous.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
       toast.danger(
         error instanceof ApiError
           ? error.message

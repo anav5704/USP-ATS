@@ -1,63 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { PostingStatus } from "@/generated/prisma/client";
 import { jobInputSchema } from "@/lib/jobs/job-schema";
 import { requireApiAdmin, requireApiMember } from "@/lib/jobs/require-api";
 import {
   deadlineAtEndOfFijiDay,
-  startOfFijiDay,
   todayInFiji,
 } from "@/lib/jobs/job-dates";
-import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
+import { getStudentJobSections, type FeedGroup } from "@/lib/jobs/job-list-queries";
+import { searchParamsToStudentJobFilters } from "@/lib/jobs/job-filters";
+import { parsePageParams, FEED_PAGE_SIZE } from "@/lib/pagination";
 import { pendingReviewData } from "@/lib/jobs/approval-schema";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const guard = await requireApiMember();
   if (!guard.ok) return guard.response;
 
   try {
-    const postings = await prisma.jobPosting.findMany({
-      where: {
-        status: PostingStatus.ACTIVE,
-        pendingModificationId: null,
-        deadline: { gte: startOfFijiDay(todayInFiji()) },
-      },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        department: true,
-        jobType: true,
-        campus: true,
-        gpaMin: true,
-        degree: true,
-        skills: true,
-        hours: true,
-        hourlyPay: true,
-        benefit: true,
-        deadline: true,
-        createdAt: true,
-      },
-    });
-
+    const params = request.nextUrl.searchParams;
+    const filters = searchParamsToStudentJobFilters(params);
+    const groupParam = params.get("group");
+    const group: FeedGroup =
+      groupParam === "degree" || groupParam === "other" ? groupParam : "campus";
+    const { page, pageSize } = parsePageParams(params, FEED_PAGE_SIZE);
     return NextResponse.json(
-      postings.map((posting) => ({
-        id: posting.id,
-        title: posting.title,
-        description: posting.description,
-        department: posting.department,
-        jobType: posting.jobType,
-        campus: posting.campus.map(normalizeCampusCentre),
-        gpaMin: posting.gpaMin === null ? null : Number(posting.gpaMin),
-        degree: posting.degree,
-        skills: posting.skills,
-        hours: posting.hours,
-        hourlyPay: Number(posting.hourlyPay),
-        benefit: posting.benefit,
-        deadline: posting.deadline.toISOString(),
-        createdAt: posting.createdAt.toISOString(),
-      }))
+      await getStudentJobSections(
+        guard.session.user.id,
+        filters,
+        group,
+        page,
+        pageSize
+      )
     );
   } catch {
     return NextResponse.json(

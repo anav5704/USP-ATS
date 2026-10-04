@@ -16,8 +16,7 @@ import {
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import type { ProfileModel } from "@/lib/profile/to-profile-input";
-import { useAuth } from "@/lib/use-auth";
+import { useSessionContext } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
@@ -80,12 +79,8 @@ const adminNav: NavItem[] = [
   },
 ];
 
-export function AppSidebar({
-  profile,
-}: {
-  profile: ProfileModel | null;
-}) {
-  const { data: session } = useAuth();
+export function AppSidebar() {
+  const session = useSessionContext();
   const pathname = usePathname();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -105,7 +100,7 @@ export function AppSidebar({
     }`;
 
     const content = (
-      <>
+      <span className="contents">
         <span
           className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-white transition-transform lg:block ${
             active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
@@ -113,7 +108,7 @@ export function AppSidebar({
         />
         <Icon className="size-5 shrink-0" />
         <span className="hidden lg:block">{label}</span>
-      </>
+      </span>
     );
 
     if (href) {
@@ -177,7 +172,6 @@ export function AppSidebar({
       </div>
       <ProfileModal
         user={user ?? {}}
-        profile={profile}
         isOpen={profileOpen}
         onOpenChange={setProfileOpen}
       />

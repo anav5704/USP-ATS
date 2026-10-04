@@ -1,12 +1,7 @@
 import type { ApplicationStatus } from "@/lib/applications/application-schema";
+import { APPLICATION_STATUS_LABELS } from "@/lib/applications/application-schema";
 
-export const APPLICATION_STATUS_LABELS = {
-  APPLIED: "Applied",
-  SHORTLISTED: "Shortlisted",
-  ACCEPTED: "Accepted",
-  DECLINED: "Declined",
-  WITHDRAWN: "Withdrawn",
-} as const;
+export { APPLICATION_STATUS_LABELS };
 
 export function ApplicationStatusBadge({
   status,

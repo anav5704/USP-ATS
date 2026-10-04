@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button, SearchField, Spinner, Table } from "@heroui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -16,6 +15,8 @@ import {
   UsersRoundIcon,
 } from "lucide-react";
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
+import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
@@ -28,10 +29,8 @@ import {
 } from "@/components/jobs/admin-job-filter-modal";
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
-import { JOB_STATUS_LABELS } from "@/components/jobs/job-status-badge";
 import { JobStatusMenu } from "@/components/jobs/job-status-menu";
 import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
-import { effectiveJobStatus } from "@/lib/jobs/job-lifecycle";
 import {
   JOB_DATE_TIME_ZONE,
   deadlineRemainingLabel,
@@ -87,16 +86,22 @@ function adminDeadlineLabel(deadline: string) {
 }
 
 export function AdminJobList() {
-  const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: jobs, isPending, isError, refetch } = useAdminJobs();
+  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const serverFilters = useMemo(
+    () => ({ ...filters, search: debouncedSearch.trim() }),
+    [filters, debouncedSearch]
+  );
+  const [page, setPage] = useState(1);
+  const { data, isPending, isError, refetch } = useAdminJobs(serverFilters, page);
+  const jobs = data?.items;
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<AdminJobFilters>(EMPTY_ADMIN_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const hasFilters =
@@ -116,57 +121,12 @@ export function AdminJobList() {
     (filters.skills.length > 0 ? 1 : 0) +
     (filters.status !== "" ? 1 : 0);
 
-  const visibleJobs = useMemo(() => {
-    if (!jobs) return jobs;
-    const normalizedSearch = search.trim().toLowerCase();
-    const gpaValue = Number(filters.gpaMin);
-
-    return jobs.filter((job) => {
-      const effectiveStatus = effectiveJobStatus(job);
-      const matchesSearch =
-        normalizedSearch === "" ||
-        job.title.toLowerCase().includes(normalizedSearch) ||
-        job.description.toLowerCase().includes(normalizedSearch) ||
-        job.department.toLowerCase().includes(normalizedSearch) ||
-        job.campus.some((campus) =>
-          campus.toLowerCase().includes(normalizedSearch)
-        );
-      const matchesType = filters.jobType === "" || job.jobType === filters.jobType;
-      const matchesCampus =
-        filters.campuses.length === 0 ||
-        job.campus.some((campus) => filters.campuses.includes(campus));
-      const matchesGpa =
-        filters.gpaMin === "" ||
-        Number.isNaN(gpaValue) ||
-        job.gpaMin === null ||
-        job.gpaMin <= gpaValue;
-      const matchesDegree =
-        filters.degrees.length === 0 ||
-        job.degree.length === 0 ||
-        job.degree.some((degree) => filters.degrees.includes(degree));
-      const matchesSkills =
-        filters.skills.length === 0 ||
-        job.skills.length === 0 ||
-        job.skills.some((skill) => filters.skills.includes(skill));
-      const matchesStatus =
-        filters.status === "" ||
-        JOB_STATUS_LABELS[effectiveStatus] === filters.status;
-
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesCampus &&
-        matchesGpa &&
-        matchesDegree &&
-        matchesSkills &&
-        matchesStatus
-      );
-    });
-  }, [jobs, search, filters]);
+  const visibleJobs = jobs;
 
   const clearFilters = () => {
     setSearch("");
     setFilters(EMPTY_ADMIN_FILTERS);
+    setPage(1);
   };
 
   const confirmArchive = () => {
@@ -177,20 +137,21 @@ export function AdminJobList() {
   };
 
   const prefetchApplicants = (jobId: string) => {
-    const href = `/admin/jobs/${encodeURIComponent(jobId)}/applicants`;
-    router.prefetch(href);
-    void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId));
+    void queryClient.prefetchQuery(adminApplicantsQueryOptions(jobId, 1));
   };
 
   return (
-    <div className="p-3">
-      <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+    <div className="flex h-full flex-col p-3">
+      <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
+        <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
               value={search}
-              onChange={setSearch}
+              onChange={(value) => {
+                setSearch(value);
+                setPage(1);
+              }}
               aria-label="Search job postings"
             >
               <SearchField.Group className="border-border">
@@ -222,11 +183,11 @@ export function AdminJobList() {
         </div>
 
         {isPending ? (
-          <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
+          <div className="flex min-h-72 flex-1 items-center justify-center rounded-2xl border border-border bg-surface">
             <Spinner.Root size="lg" className="text-foreground" />
           </div>
         ) : isError ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <CircleAlertIcon className="size-10 text-danger" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               Job postings could not be loaded
@@ -236,8 +197,8 @@ export function AdminJobList() {
               Try Again
             </Button.Root>
           </div>
-        ) : jobs?.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+        ) : jobs?.length === 0 && !hasFilters ? (
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <BriefcaseBusinessIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No job postings yet
@@ -246,8 +207,8 @@ export function AdminJobList() {
               Create the first posting to make it immediately available to students.
             </p>
           </div>
-        ) : visibleJobs && visibleJobs.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+        ) : jobs?.length === 0 ? (
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <SearchXIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No jobs match your filters
@@ -263,16 +224,11 @@ export function AdminJobList() {
             </Button.Root>
           </div>
         ) : (
-          <div>
-            {jobs && jobs.length > 0 && hasFilters ? (
-              <p className="mb-3 text-sm text-muted">
-                Showing {visibleJobs?.length} of {jobs.length} jobs
-              </p>
-            ) : null}
-            <Table.Root className="rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
               <Table.Content aria-label="Job postings">
-                <Table.Header>
+                <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Job Posting</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
                   <Table.Column>Pay</Table.Column>
@@ -323,7 +279,6 @@ export function AdminJobList() {
                       <Table.Cell>
                         <Link
                           href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
-                          prefetch={false}
                           onMouseEnter={() => prefetchApplicants(job.id)}
                           onFocus={() => prefetchApplicants(job.id)}
                           aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
@@ -357,6 +312,14 @@ export function AdminJobList() {
                 </Table.Body>
               </Table.Content>
             </Table.ScrollContainer>
+            <Table.Footer className="shrink-0">
+              <TablePagination
+                page={data?.page ?? 1}
+                total={data?.total ?? 0}
+                pageSize={data?.pageSize ?? 15}
+                onChange={setPage}
+              />
+            </Table.Footer>
             </Table.Root>
           </div>
         )}
@@ -400,7 +363,10 @@ export function AdminJobList() {
           filters={filters}
           onApply={(nextFilters) => {
             const gpa = gpaFilterSchema.safeParse(nextFilters.gpaMin);
-            if (gpa.success) setFilters({ ...nextFilters, gpaMin: gpa.data });
+            if (gpa.success) {
+              setFilters({ ...nextFilters, gpaMin: gpa.data });
+              setPage(1);
+            }
           }}
           onOpenChange={setFiltersOpen}
         />

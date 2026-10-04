@@ -3,14 +3,28 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { applicationQueryKeys } from "@/lib/applications/query-keys";
-import type { AdminApplicantsResponse } from "@/lib/applications/application-schema";
+import { adminApplicantsPageOptions } from "@/lib/applications/application-query-options";
+import type { AdminApplicantListItem } from "@/lib/applications/application-schema";
 
-export function adminApplicantsQueryOptions(jobId: string) {
+export function adminApplicantsQueryOptions(jobId: string, page: number) {
+  return adminApplicantsPageOptions(jobId, page);
+}
+
+export function useAdminApplicants(jobId: string, page: number) {
+  return useQuery(adminApplicantsQueryOptions(jobId, page));
+}
+
+export function applicantDetailsQueryOptions(
+  jobId: string,
+  applicationId: string
+) {
   return queryOptions({
-    queryKey: applicationQueryKeys.adminJob(jobId),
+    queryKey: applicationQueryKeys.adminApplicantDetail(jobId, applicationId),
     queryFn: ({ signal }) =>
-      api.get<AdminApplicantsResponse>(
-        `/api/jobs/${encodeURIComponent(jobId)}/applications`,
+      api.get<AdminApplicantListItem>(
+        `/api/jobs/${encodeURIComponent(jobId)}/applications/${encodeURIComponent(
+          applicationId
+        )}`,
         { signal }
       ),
     staleTime: 30_000,
@@ -18,6 +32,12 @@ export function adminApplicantsQueryOptions(jobId: string) {
   });
 }
 
-export function useAdminApplicants(jobId: string) {
-  return useQuery(adminApplicantsQueryOptions(jobId));
+export function useApplicantDetails(
+  jobId: string,
+  applicationId: string | null
+) {
+  return useQuery({
+    ...applicantDetailsQueryOptions(jobId, applicationId ?? ""),
+    enabled: applicationId !== null,
+  });
 }

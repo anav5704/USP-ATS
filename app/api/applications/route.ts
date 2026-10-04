@@ -4,73 +4,29 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { requireApiMember } from "@/lib/jobs/require-api";
 import { createApplicationSchema } from "@/lib/applications/application-schema";
+import { getMyApplications } from "@/lib/applications/application-list-queries";
+import { searchParamsToMyApplicationFilters } from "@/lib/applications/application-filters";
+import { parsePageParams, FEED_PAGE_SIZE } from "@/lib/pagination";
 import {
   submitApplication,
   SubmitApplicationError,
 } from "@/lib/applications/submit-application";
-import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 import type { scoreApplication } from "@/trigger/score-application";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const guard = await requireApiMember();
   if (!guard.ok) return guard.response;
 
   try {
-    const applications = await prisma.application.findMany({
-      where: { studentId: guard.session.user.id },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        status: true,
-        createdAt: true,
-        coverLetter: true,
-        job: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            department: true,
-            jobType: true,
-            campus: true,
-            gpaMin: true,
-            degree: true,
-            skills: true,
-            hours: true,
-            hourlyPay: true,
-            benefit: true,
-            deadline: true,
-            createdAt: true,
-          },
-        },
-      },
-    });
-
+    const params = request.nextUrl.searchParams;
+    const { page, pageSize } = parsePageParams(params, FEED_PAGE_SIZE);
     return NextResponse.json(
-      applications.map((application) => ({
-        id: application.id,
-        status: application.status,
-        createdAt: application.createdAt.toISOString(),
-        coverLetter: application.coverLetter,
-        job: {
-          id: application.job.id,
-          title: application.job.title,
-          description: application.job.description,
-          department: application.job.department,
-          jobType: application.job.jobType,
-          campus: application.job.campus.map(normalizeCampusCentre),
-          gpaMin:
-            application.job.gpaMin === null
-              ? null
-              : Number(application.job.gpaMin),
-          degree: application.job.degree,
-          skills: application.job.skills,
-          hours: application.job.hours,
-          hourlyPay: Number(application.job.hourlyPay),
-          benefit: application.job.benefit,
-          deadline: application.job.deadline.toISOString(),
-          createdAt: application.job.createdAt.toISOString(),
-        },
-      }))
+      await getMyApplications(
+        guard.session.user.id,
+        searchParamsToMyApplicationFilters(params),
+        page,
+        pageSize
+      )
     );
   } catch {
     return NextResponse.json(
@@ -95,9 +51,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const { applicationId } = await submitApplication(
-      prisma.application,
-      prisma.jobPosting,
-      prisma.scoreResult,
+      {
+        applications: prisma.application,
+        jobs: prisma.jobPosting,
+        scoreResult: prisma.scoreResult,
+        transact: (operations) => prisma.$transaction(operations),
+      },
       guard.session.user.id,
       parsed.data
     );

@@ -1,19 +1,27 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "@heroui/react";
 import { api } from "@/lib/api";
 import { jobQueryKeys } from "@/lib/jobs/query-keys";
-import type { ApprovalJob } from "@/lib/jobs/job-schema";
 import type { ApprovalInput } from "@/lib/jobs/approval-schema";
+import type { ApprovalJob } from "@/lib/jobs/job-schema";
+import { approvalsPageOptions } from "@/lib/jobs/job-query-options";
+import type {
+  ApprovalFilters,
+  ApprovalTab,
+} from "@/lib/jobs/approval-filters";
 
-export function useApprovals() {
-  return useQuery({
-    queryKey: jobQueryKeys.approvals(),
-    queryFn: ({ signal }) => api.get<ApprovalJob[]>("/api/jobs/approvals", { signal }),
-    staleTime: 30_000,
-    refetchInterval: 30_000,
-  });
+export function useApprovals(
+  filters: ApprovalFilters,
+  tab: ApprovalTab,
+  page: number
+) {
+  return useQuery(approvalsPageOptions(filters, tab, page));
 }
 
 export function useReviewJob(job: ApprovalJob) {

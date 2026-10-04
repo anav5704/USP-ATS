@@ -1,16 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import type { AdminJobListItem } from "@/lib/jobs/job-schema";
-import { jobQueryKeys } from "@/lib/jobs/query-keys";
+import { adminJobsPageOptions } from "@/lib/jobs/job-query-options";
+import type { AdminJobFilters } from "@/lib/jobs/job-filters";
 
-export function useAdminJobs() {
-  return useQuery({
-    queryKey: jobQueryKeys.adminLists(),
-    queryFn: ({ signal }) =>
-      api.get<AdminJobListItem[]>("/api/jobs/admin", { signal }),
-    staleTime: 30_000,
-    retry: 1,
-  });
+export function useAdminJobs(filters: AdminJobFilters, page: number) {
+  return useQuery(adminJobsPageOptions(filters, page));
 }

@@ -9,6 +9,9 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { useMyApplications } from "@/components/applications/use-my-applications";
+import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
+import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
 import { ApplicationCard } from "@/components/applications/application-card";
 import { ApplicationDetailModal } from "@/components/applications/application-detail-modal";
 import {
@@ -16,50 +19,49 @@ import {
   EMPTY_APPLICATION_FILTERS,
   type ApplicationFilters,
 } from "@/components/applications/application-filter-modal";
-import { APPLICATION_STATUS_LABELS } from "@/components/applications/application-status-badge";
 import type { ApplicationListItem } from "@/lib/applications/application-schema";
 
 export function MyApplications() {
-  const { data: applications, isPending, isError, refetch } = useMyApplications();
-  const [selected, setSelected] = useState<ApplicationListItem | null>(null);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<ApplicationFilters>(
     EMPTY_APPLICATION_FILTERS
   );
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const serverFilters = useMemo(
+    () => ({ search: debouncedSearch.trim(), status: filters.status }),
+    [debouncedSearch, filters.status]
+  );
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useMyApplications(serverFilters);
+  const [selected, setSelected] = useState<ApplicationListItem | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const applications = useMemo(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
+  );
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage: () => void fetchNextPage(),
+  });
+
   const selectedApplication = selected
-    ? (applications ?? []).find(
-        (application) => application.id === selected.id
-      ) ?? selected
+    ? (applications.find((application) => application.id === selected.id) ??
+      selected)
     : null;
 
   const hasFilters =
     search.trim() !== "" || filters.status !== "";
 
   const activeFilterCount = filters.status !== "" ? 1 : 0;
-
-  const visibleApplications = useMemo(() => {
-    if (!applications) return applications;
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return applications.filter((application) => {
-      const matchesSearch =
-        normalizedSearch === "" ||
-        application.job.title.toLowerCase().includes(normalizedSearch) ||
-        application.job.department.toLowerCase().includes(normalizedSearch) ||
-        application.job.campus
-          .join(", ")
-          .toLowerCase()
-          .includes(normalizedSearch) ||
-        application.coverLetter.toLowerCase().includes(normalizedSearch);
-      const matchesStatus =
-        filters.status === "" ||
-        APPLICATION_STATUS_LABELS[application.status] === filters.status;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [applications, search, filters.status]);
 
   const clearFilters = () => {
     setSearch("");
@@ -69,7 +71,7 @@ export function MyApplications() {
   return (
     <div className="p-3">
       <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+        <div className="sticky top-3 z-10 mb-3 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
             <SearchField
               fullWidth
@@ -79,7 +81,7 @@ export function MyApplications() {
             >
               <SearchField.Group className="border-border">
                 <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search by job title, department or campus" />
+                <SearchField.Input placeholder="Search by job title or department" />
                 <SearchField.ClearButton />
               </SearchField.Group>
             </SearchField>
@@ -113,7 +115,7 @@ export function MyApplications() {
               Try Again
             </Button.Root>
           </div>
-        ) : applications && applications.length === 0 ? (
+        ) : applications.length === 0 && !hasFilters ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <ClipboardListIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -123,7 +125,7 @@ export function MyApplications() {
               Apply to jobs from the Job Feed and they will appear here.
             </p>
           </div>
-        ) : visibleApplications && visibleApplications.length === 0 ? (
+        ) : applications.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <SearchXIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
@@ -141,14 +143,8 @@ export function MyApplications() {
           </div>
         ) : (
           <div>
-            {applications && applications.length > 0 && hasFilters ? (
-              <p className="mb-3 text-sm text-muted">
-                Showing {visibleApplications?.length} of {applications.length}{" "}
-                applications
-              </p>
-            ) : null}
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {(visibleApplications ?? []).map((application) => (
+              {applications.map((application) => (
                 <ApplicationCard
                   key={application.id}
                   application={application}
@@ -156,6 +152,8 @@ export function MyApplications() {
                 />
               ))}
             </div>
+            <div ref={sentinelRef} aria-hidden="true" />
+            <InfiniteScrollLoader isFetching={isFetchingNextPage} />
           </div>
         )}
       </div>

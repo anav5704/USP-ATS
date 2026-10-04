@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, SearchField, Spinner } from "@heroui/react";
+import { Button, SearchField, Spinner, Tabs } from "@heroui/react";
 import {
   BriefcaseBusinessIcon,
   CircleAlertIcon,
@@ -9,41 +9,73 @@ import {
   SlidersHorizontalIcon,
 } from "lucide-react";
 import { useJobFeed } from "@/components/jobs/use-job-feed";
-import { JobFeedSection } from "@/components/jobs/job-feed-section";
+import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
+import { JobFeedCard } from "@/components/jobs/job-feed-card";
 import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { ApplyModal } from "@/components/applications/apply-modal";
-import { useMyApplications } from "@/components/applications/use-my-applications";
-import { blocksReapplication } from "@/lib/applications/application-rules";
+import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
+import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
+import type { FeedGroup } from "@/lib/jobs/job-list-queries";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
-import { useProfile } from "@/components/profile/use-profile";
 import {
   JobFeedFilterModal,
   type JobFeedFilters,
 } from "@/components/jobs/job-feed-filter-modal";
 
+const TABS: { id: FeedGroup; label: string }[] = [
+  { id: "campus", label: "Near You" },
+  { id: "degree", label: "Matching Qualification" },
+  { id: "other", label: "Other Opportunities" },
+];
+
 export function JobFeed() {
-  const { data: jobs, isPending, isError, refetch } = useJobFeed();
-  const { data: profile } = useProfile();
-  const { data: applications } = useMyApplications();
-  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
-  const [applyJob, setApplyJob] = useState<StudentJobListItem | null>(null);
   const [search, setSearch] = useState("");
   const [jobType, setJobType] = useState("");
   const [campuses, setCampuses] = useState<string[]>([]);
   const [gpaMin, setGpaMin] = useState("");
   const [degrees, setDegrees] = useState<string[]>([]);
   const [skills, setSkills] = useState<string[]>([]);
+  const [tab, setTab] = useState<FeedGroup>("campus");
+  const debouncedSearch = useDebouncedValue(search, 300);
+  const filters = useMemo(
+    () => ({
+      search: debouncedSearch.trim(),
+      jobType,
+      campuses,
+      gpaMin,
+      degrees,
+      skills,
+    }),
+    [debouncedSearch, jobType, campuses, gpaMin, degrees, skills]
+  );
+  const {
+    data,
+    isPending,
+    isError,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useJobFeed(filters, tab);
+  const [selectedJob, setSelectedJob] = useState<StudentJobListItem | null>(null);
+  const [applyJob, setApplyJob] = useState<StudentJobListItem | null>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const appliedJobIds = useMemo(
-    () =>
-      new Set(
-        (applications ?? [])
-          .filter((application) => blocksReapplication(application.status))
-          .map((application) => application.job.id)
-      ),
-    [applications]
+  const jobs = useMemo(
+    () => (data?.pages ?? []).flatMap((page) => page.items),
+    [data]
   );
+  const totals = data?.pages[0]?.totals ?? { campus: 0, degree: 0, other: 0 };
+  const total = totals[tab];
+  const appliedJobIds = useMemo(
+    () => new Set(data?.pages[0]?.appliedJobIds ?? []),
+    [data]
+  );
+  const sentinelRef = useInfiniteScroll({
+    hasNextPage,
+    isFetching: isFetchingNextPage,
+    fetchNextPage: () => void fetchNextPage(),
+  });
 
   const hasFilters =
     search.trim() !== "" ||
@@ -59,71 +91,6 @@ export function JobFeed() {
     (gpaMin !== "" ? 1 : 0) +
     (degrees.length > 0 ? 1 : 0) +
     (skills.length > 0 ? 1 : 0);
-
-  const visibleJobs = useMemo(() => {
-    if (!jobs) return jobs;
-    const normalizedSearch = search.trim().toLowerCase();
-
-    return jobs.filter((job) => {
-      const matchesSearch =
-        normalizedSearch === "" ||
-        job.title.toLowerCase().includes(normalizedSearch) ||
-        job.description.toLowerCase().includes(normalizedSearch);
-      const matchesType = jobType === "" || job.jobType === jobType;
-      const matchesCampus =
-        campuses.length === 0 || job.campus.some((campus) => campuses.includes(campus));
-      const gpaValue = Number(gpaMin);
-      const matchesGpa =
-        gpaMin === "" ||
-        Number.isNaN(gpaValue) ||
-        job.gpaMin === null ||
-        job.gpaMin <= gpaValue;
-      const matchesDegree =
-        degrees.length === 0 ||
-        job.degree.length === 0 ||
-        job.degree.some((degree) => degrees.includes(degree));
-      const matchesSkills =
-        skills.length === 0 ||
-        job.skills.length === 0 ||
-        job.skills.some((skill) => skills.includes(skill));
-
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesCampus &&
-        matchesGpa &&
-        matchesDegree &&
-        matchesSkills
-      );
-    });
-  }, [jobs, search, jobType, campuses, gpaMin, degrees, skills]);
-
-  const { campusMatchedJobs, degreeMatchedJobs, otherJobs } = useMemo(() => {
-    const studentCampuses = profile?.campuses ?? [];
-    const studentDegrees =
-      profile?.degrees.map((degree) => degree.name.trim().toLowerCase()) ?? [];
-
-    const campusMatchedJobs: StudentJobListItem[] = [];
-    const degreeMatchedJobs: StudentJobListItem[] = [];
-    const otherJobs: StudentJobListItem[] = [];
-
-    for (const job of visibleJobs ?? []) {
-      const matchesCampus =
-        studentCampuses.length > 0 &&
-        job.campus.some((campus) => studentCampuses.includes(campus));
-      const matchesDegree =
-        studentDegrees.length > 0 &&
-        job.degree.some((degree) =>
-          studentDegrees.includes(degree.trim().toLowerCase())
-        );
-
-      if (matchesCampus) campusMatchedJobs.push(job);
-      if (matchesDegree) degreeMatchedJobs.push(job);
-      if (!matchesCampus && !matchesDegree) otherJobs.push(job);
-    }
-
-    return { campusMatchedJobs, degreeMatchedJobs, otherJobs };
-  }, [visibleJobs, profile]);
 
   const clearFilters = () => {
     setSearch("");
@@ -145,35 +112,6 @@ export function JobFeed() {
   return (
     <div className="p-3">
       <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
-          <div className="min-w-0 flex-1">
-            <SearchField
-              fullWidth
-              value={search}
-              onChange={setSearch}
-              aria-label="Search jobs"
-            >
-              <SearchField.Group className="border-border">
-                <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search by title or description" />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
-          </div>
-          <Button.Root
-            onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
-          >
-            <SlidersHorizontalIcon className="size-4" />
-            Filters
-            {activeFilterCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button.Root>
-        </div>
-
         {isPending ? (
           <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
             <Spinner.Root size="lg" className="text-foreground" />
@@ -189,57 +127,99 @@ export function JobFeed() {
               Try Again
             </Button.Root>
           </div>
-        ) : jobs?.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
-            <BriefcaseBusinessIcon className="size-10 text-muted" />
-            <h2 className="mt-4 text-xl font-semibold text-foreground">
-              No job opportunities available
-            </h2>
-            <p className="mt-1 max-w-sm text-sm text-muted">
-              Check back later for new postings.
-            </p>
-          </div>
-        ) : visibleJobs && visibleJobs.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
-            <SearchXIcon className="size-10 text-muted" />
-            <h2 className="mt-4 text-xl font-semibold text-foreground">
-              No jobs match your filters
-            </h2>
-            <p className="mt-1 max-w-sm text-sm text-muted">
-              Try adjusting your search or clearing the filters.
-            </p>
-            <Button.Root
-              className="mt-5 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
-              onPress={clearFilters}
-            >
-              Clear Filters
-            </Button.Root>
-          </div>
         ) : (
-          <div>
-            {jobs?.length && jobs.length > 0 && hasFilters ? (
-              <p className="mb-3 text-sm text-muted">
-                Showing {visibleJobs?.length} of {jobs.length} jobs
-              </p>
-            ) : null}
-            <div className="space-y-8">
-              <JobFeedSection
-                title="Opportunities Near You"
-                jobs={campusMatchedJobs}
-                onJobPress={setSelectedJob}
-              />
-              <JobFeedSection
-                title="Opportunities Matching Your Qualification"
-                jobs={degreeMatchedJobs}
-                onJobPress={setSelectedJob}
-              />
-              <JobFeedSection
-                title="Other Opportunities"
-                jobs={otherJobs}
-                onJobPress={setSelectedJob}
-              />
+          <Tabs.Root
+            selectedKey={tab}
+            onSelectionChange={(key) => setTab(String(key) as FeedGroup)}
+            className="gap-3"
+          >
+            <div className="sticky top-3 z-10 space-y-3 rounded-2xl border border-border bg-surface p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <SearchField
+                    fullWidth
+                    value={search}
+                    onChange={setSearch}
+                    aria-label="Search jobs"
+                  >
+                    <SearchField.Group className="border-border">
+                      <SearchField.SearchIcon />
+                      <SearchField.Input placeholder="Search by title or description" />
+                      <SearchField.ClearButton />
+                    </SearchField.Group>
+                  </SearchField>
+                </div>
+                <Button.Root
+                  onPress={() => setFiltersOpen(true)}
+                  className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+                >
+                  <SlidersHorizontalIcon className="size-4" />
+                  Filters
+                  {activeFilterCount > 0 ? (
+                    <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                      {activeFilterCount}
+                    </span>
+                  ) : null}
+                </Button.Root>
+              </div>
+              <Tabs.List aria-label="Job groups">
+                {TABS.map((entry) => (
+                  <Tabs.Tab
+                    key={entry.id}
+                    id={entry.id}
+                    className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"
+                  >
+                    {entry.label} ({totals[entry.id]})
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
             </div>
-          </div>
+            {TABS.map((entry) => (
+              <Tabs.Panel key={entry.id} id={entry.id} className="mt-0 p-0">
+                {entry.id === tab && total === 0 && !hasFilters ? (
+                  <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+                    <BriefcaseBusinessIcon className="size-10 text-muted" />
+                    <h2 className="mt-4 text-xl font-semibold text-foreground">
+                      No job opportunities available
+                    </h2>
+                    <p className="mt-1 max-w-sm text-sm text-muted">
+                      Check back later for new postings.
+                    </p>
+                  </div>
+                ) : entry.id === tab && total === 0 ? (
+                  <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+                    <SearchXIcon className="size-10 text-muted" />
+                    <h2 className="mt-4 text-xl font-semibold text-foreground">
+                      No jobs match your filters
+                    </h2>
+                    <p className="mt-1 max-w-sm text-sm text-muted">
+                      Try adjusting your search or clearing the filters.
+                    </p>
+                    <Button.Root
+                      className="mt-5 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+                      onPress={clearFilters}
+                    >
+                      Clear Filters
+                    </Button.Root>
+                  </div>
+                ) : entry.id === tab ? (
+                  <div>
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {jobs.map((job) => (
+                        <JobFeedCard
+                          key={job.id}
+                          job={job}
+                          onPress={() => setSelectedJob(job)}
+                        />
+                      ))}
+                    </div>
+                    <div ref={sentinelRef} aria-hidden="true" />
+                    <InfiniteScrollLoader isFetching={isFetchingNextPage} />
+                  </div>
+                ) : null}
+              </Tabs.Panel>
+            ))}
+          </Tabs.Root>
         )}
       </div>
       {filtersOpen ? (

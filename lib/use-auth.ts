@@ -15,12 +15,11 @@ export function useSessionContext() {
 
 export function useAuth() {
   const hydrated = useSessionContext();
-  const live = authClient.useSession();
+  return { data: hydrated, isPending: false };
+}
 
-  if (hydrated) {
-    return { data: hydrated, isPending: false };
-  }
-  return live;
+export function useLiveSession() {
+  return authClient.useSession();
 }
 
 export async function signInWithMicrosoft(

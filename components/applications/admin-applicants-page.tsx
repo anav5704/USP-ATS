@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Table } from "@heroui/react";
+import { Button, Modal, Spinner, Table } from "@heroui/react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeftIcon,
   CircleAlertIcon,
@@ -17,12 +18,18 @@ import {
   APPLICATION_STATUS_LABELS,
 } from "@/components/applications/application-status-badge";
 import { ChangeStatusMenu } from "@/components/applications/change-status-menu";
-import { useAdminApplicants } from "@/components/applications/use-admin-applicants";
+import {
+  applicantDetailsQueryOptions,
+  useAdminApplicants,
+  useApplicantDetails,
+} from "@/components/applications/use-admin-applicants";
 import { useRescoreApplication } from "@/components/applications/use-rescore-application";
 import { useUpdateApplicationStatus } from "@/components/applications/use-update-application-status";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { FormModal } from "@/components/ui/form-modal";
+import { TablePagination } from "@/components/ui/table-pagination";
 import type {
-  AdminApplicantListItem,
+  AdminApplicantTableItem,
   AdminApplicationStatus,
 } from "@/lib/applications/application-schema";
 import { JOB_DATE_TIME_ZONE } from "@/lib/jobs/job-dates";
@@ -35,12 +42,14 @@ const dateFormatter = new Intl.DateTimeFormat("en-FJ", {
 });
 
 type PendingStatusChange = {
-  application: AdminApplicantListItem;
+  application: AdminApplicantTableItem;
   target: AdminApplicationStatus;
 };
 
 export function AdminApplicantsPage({ jobId }: { jobId: string }) {
-  const { data, isPending, isError, refetch } = useAdminApplicants(jobId);
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const { data, isPending, isError, refetch } = useAdminApplicants(jobId, page);
   const updateStatus = useUpdateApplicationStatus(jobId);
   const rescore = useRescoreApplication(jobId);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
@@ -48,12 +57,12 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   >(null);
   const [pendingChange, setPendingChange] =
     useState<PendingStatusChange | null>(null);
-
-  const selectedApplication = selectedApplicationId
-    ? data?.applications.find(
-        (application) => application.id === selectedApplicationId
-      ) ?? null
-    : null;
+  const {
+    data: selectedApplication,
+    isPending: isDetailPending,
+    isError: isDetailError,
+    refetch: refetchDetail,
+  } = useApplicantDetails(jobId, selectedApplicationId);
 
   const confirmStatusChange = async () => {
     if (!pendingChange) return;
@@ -68,6 +77,15 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
     }
   };
 
+  const prefetchApplicant = (applicationId: string) => {
+    void queryClient.prefetchQuery(
+      applicantDetailsQueryOptions(jobId, applicationId)
+    );
+  };
+
+  const applications = data?.items ?? [];
+  const job = data?.job;
+
   const openApplicant = (applicationId: string) => {
     setSelectedApplicationId(applicationId);
   };
@@ -75,9 +93,9 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   if (isPending) return <AdminApplicantsSkeleton />;
 
   return (
-    <div className="p-3">
-      <div className="mx-auto max-w-none">
-        <div className="mb-4 rounded-2xl border border-border bg-surface p-4">
+    <div className="flex h-full flex-col p-3">
+      <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
+        <div className="shrink-0 rounded-2xl border border-border bg-surface p-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded-field text-sm font-medium text-muted transition-colors hover:text-foreground"
@@ -89,13 +107,13 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             <h1 className="text-2xl font-semibold text-foreground">
               Applicants
             </h1>
-            {data ? (
+            {job ? (
               <>
                 <h2 className="mt-2 text-lg font-semibold text-foreground">
-                  {data.job.title}
+                  {job.title}
                 </h2>
                 <p className="mt-1 text-sm text-muted">
-                  {data.job.department} · {data.job.campus.join(", ")}
+                  {job.department} · {job.campus.join(", ")}
                 </p>
               </>
             ) : null}
@@ -103,7 +121,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         </div>
 
         {isError || !data ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-border bg-surface p-8 text-center">
             <CircleAlertIcon className="size-10 text-danger" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               Applicants could not be loaded
@@ -113,8 +131,8 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
               Try Again
             </Button.Root>
           </div>
-        ) : data.applications.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
+        ) : applications.length === 0 ? (
+          <div className="flex min-h-72 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface p-8 text-center">
             <UsersRoundIcon className="size-10 text-muted" />
             <h2 className="mt-4 text-xl font-semibold text-foreground">
               No applicants yet
@@ -124,23 +142,25 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             </p>
           </div>
         ) : (
-          <Table.Root className="rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer>
-              <Table.Content aria-label={`Applicants for ${data.job.title}`}>
-                <Table.Header>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
+              <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`}>
+                <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Applicant</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>
                   <Table.Column>Applied On</Table.Column>
                   <Table.Column>AI Score</Table.Column>
                   <Table.Column>Status</Table.Column>
                 </Table.Header>
-                <Table.Body items={data.applications}>
+                <Table.Body items={applications}>
                   {(application) => (
                     <Table.Row
                       id={application.id}
                       textValue={application.applicant.name}
                       className="cursor-pointer transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-foreground"
                       onAction={() => openApplicant(application.id)}
+                      onHoverStart={() => prefetchApplicant(application.id)}
                     >
                       <Table.Cell>
                         <span className="font-medium text-foreground">
@@ -148,8 +168,8 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        {application.applicant.profile?.campuses.length
-                          ? application.applicant.profile.campuses.join(", ")
+                        {application.applicant.campuses.length
+                          ? application.applicant.campuses.join(", ")
                           : "Not provided"}
                       </Table.Cell>
                       <Table.Cell>
@@ -195,19 +215,62 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                 </Table.Body>
               </Table.Content>
             </Table.ScrollContainer>
+            <Table.Footer className="shrink-0">
+              <TablePagination
+                page={data.page}
+                total={data.total}
+                pageSize={data.pageSize}
+                onChange={setPage}
+              />
+            </Table.Footer>
           </Table.Root>
+          </div>
         )}
       </div>
 
-      {selectedApplication && data ? (
-        <ApplicantDetailsModal
-          job={data.job}
-          application={selectedApplication}
-          isOpen
-          onOpenChange={(open) => {
-            if (!open) setSelectedApplicationId(null);
-          }}
-        />
+      {selectedApplicationId && job ? (
+        selectedApplication ? (
+          <ApplicantDetailsModal
+            job={job}
+            application={selectedApplication}
+            isOpen
+            onOpenChange={(open) => {
+              if (!open) setSelectedApplicationId(null);
+            }}
+          />
+        ) : (
+          <FormModal
+            isOpen
+            onOpenChange={(open) => {
+              if (!open) setSelectedApplicationId(null);
+            }}
+            title="Applicant Details"
+          >
+            <Modal.Body>
+              {isDetailError ? (
+                <div className="flex min-h-48 flex-col items-center justify-center p-8 text-center">
+                  <CircleAlertIcon className="size-10 text-danger" />
+                  <h2 className="mt-4 text-xl font-semibold text-foreground">
+                    Applicant details could not be loaded
+                  </h2>
+                  <p className="mt-1 text-sm text-muted">Please try again.</p>
+                  <Button.Root
+                    className="mt-5"
+                    onPress={() => void refetchDetail()}
+                  >
+                    Try Again
+                  </Button.Root>
+                </div>
+              ) : (
+                isDetailPending && (
+                  <div className="flex min-h-48 items-center justify-center">
+                    <Spinner.Root size="lg" className="text-foreground" />
+                  </div>
+                )
+              )}
+            </Modal.Body>
+          </FormModal>
+        )
       ) : null}
 
       <ConfirmModal
@@ -225,7 +288,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         message={
           pendingChange
             ? `${pendingChange.application.applicant.name}'s application for "${
-                data?.job.title ?? "this job"
+                job?.title ?? "this job"
               }" will be marked ${APPLICATION_STATUS_LABELS[
                 pendingChange.target
               ].toLowerCase()}. ${

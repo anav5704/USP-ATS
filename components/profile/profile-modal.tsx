@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Input, Modal } from "@heroui/react";
-import type { ProfileModel } from "@/lib/profile/to-profile-input";
+import { Button, Input, Modal, Spinner } from "@heroui/react";
 import { toProfileInput } from "@/lib/profile/to-profile-input";
 import { FormModal } from "@/components/ui/form-modal";
 import { FormField } from "@/components/ui/form-field";
@@ -34,19 +33,19 @@ function ReadOnlyField({
 
 export function ProfileModal({
   user,
-  profile,
   isOpen,
   onOpenChange,
 }: {
   user: ProfileModalUser;
-  profile: ProfileModel | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const isAdmin = user.role === "admin";
   const [savePending, setSavePending] = useState(false);
-  const { data: profileData } = useProfile(profile, !isAdmin);
-  const activeProfile = profileData ?? profile;
+  const { data: activeProfile, isPending: isProfilePending } = useProfile(
+    undefined,
+    !isAdmin
+  );
   const { first, last } = user.firstName
     ? { first: user.firstName, last: user.lastName ?? "" }
     : splitName(user.name);
@@ -81,6 +80,12 @@ export function ProfileModal({
             </Button.Root>
           </Modal.Footer>
         </>
+      ) : isProfilePending ? (
+        <Modal.Body>
+          <div className="flex min-h-48 items-center justify-center">
+            <Spinner.Root size="lg" className="text-foreground" />
+          </div>
+        </Modal.Body>
       ) : activeProfile ? (
         <UpdateProfileForm
           key={JSON.stringify(activeProfile)}

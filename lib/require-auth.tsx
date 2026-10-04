@@ -2,25 +2,21 @@
 
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/use-auth";
+import { useSessionContext } from "@/lib/use-auth";
 
 export function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { data: session, isPending } = useAuth();
+  const session = useSessionContext();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isPending && !session) {
+    if (!session) {
       router.replace(`/sign-in?returnTo=${encodeURIComponent(pathname)}`);
     }
-  }, [isPending, session, router, pathname]);
+  }, [session, router, pathname]);
 
-  if (isPending || !session) {
-    return (
-      <div className="bg-primary-gradient flex flex-1 items-center justify-center">
-        <p className="text-sm text-foreground">Checking session...</p>
-      </div>
-    );
+  if (!session) {
+    return null;
   }
 
   return <>{children}</>;

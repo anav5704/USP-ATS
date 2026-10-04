@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { getCachedSession } from "@/lib/auth-session";
 
 export type ApiSession = NonNullable<
   Awaited<ReturnType<typeof auth.api.getSession>>
@@ -11,9 +11,7 @@ export type ApiGuard =
   | { ok: false; response: NextResponse };
 
 async function requireApiRole(role: "admin" | "member"): Promise<ApiGuard> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getCachedSession();
 
   if (!session) {
     return {

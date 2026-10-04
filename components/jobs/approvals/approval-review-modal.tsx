@@ -12,12 +12,12 @@ import { ApprovalDetails } from "@/components/jobs/approvals/approval-details";
 import { useReviewJob } from "@/components/jobs/approvals/use-approvals";
 import { approvalInputSchema, isOwnApprovalRequest, type ApprovalInput } from "@/lib/jobs/approval-schema";
 import type { ApprovalJob } from "@/lib/jobs/job-schema";
-import { useAuth } from "@/lib/use-auth";
+import { useSessionContext } from "@/lib/use-auth";
 
 const reasonSchema = approvalInputSchema.pick({ rejectionReason: true });
 
 export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: ApprovalJob; onClose: () => void; withdraw?: boolean }) {
-  const { data: session } = useAuth();
+  const session = useSessionContext();
   const review = useReviewJob(job);
   const [decision, setDecision] = useState<ApprovalInput["decision"] | null>(withdraw ? "withdraw" : null);
   const { register, handleSubmit, getValues, formState: { errors } } = useForm<{ rejectionReason?: string }>({
