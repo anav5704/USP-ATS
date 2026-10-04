@@ -200,7 +200,7 @@
 ### 4.11 Git Branching
 - The repo has two permanent branches: `main` (protected, always deployable) and short-lived feature branches
 - All work happens on a feature branch branched from `main`, never directly on `main`
-- Name branches by intent: `feat/<scope>`, `fix/<scope>`, `chore/<scope>` (e.g. `feat/job-search`)
+- Name branches by intent: `feat/<scope>` or `feature/<scope>`, `fix/<scope>`, `chore/<scope>` (e.g. `feat/job-search`)
 - Keep branches small and scoped to a single feature; merge back via PR into `main`
 
 ### 4.12 AI Coding Agents
