@@ -11,6 +11,7 @@ import {
   toFijiDate,
 } from "@/lib/jobs/job-dates";
 import { USP_DEGREES } from "@/lib/usp-degrees";
+import { getPoolConfig } from "@/lib/db-connection";
 
 const JOB_COUNT = 500;
 const MIN_APPLICATIONS_PER_JOB = 4;
@@ -145,7 +146,7 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 async function main() {
   const prisma = new PrismaClient({
-    adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+    adapter: new PrismaPg(getPoolConfig(process.env.DATABASE_URL)),
   });
   const runTag = Date.now().toString(36);
 
