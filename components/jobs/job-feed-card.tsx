@@ -5,6 +5,7 @@ import { Card } from "@heroui/react";
 import {
   BanknoteIcon,
   CalendarDaysIcon,
+  CheckIcon,
   ClockIcon,
   MapPinIcon,
 } from "lucide-react";
@@ -68,9 +69,11 @@ export function RequirementChips({ items }: { items: string[] }) {
 
 export function JobFeedCard({
   job,
+  hasApplied,
   onPress,
 }: {
   job: StudentJobListItem;
+  hasApplied: boolean;
   onPress?: () => void;
 }) {
   const deadline = dateFormatter.format(new Date(job.deadline));
@@ -129,9 +132,17 @@ export function JobFeedCard({
     >
       <div className="flex h-full flex-col gap-3">
         <div>
-          <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
-            {job.jobType}
-          </span>
+          <div className="flex items-start justify-between gap-2">
+            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+              {job.jobType}
+            </span>
+            {hasApplied ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-medium text-success-soft-foreground">
+                <CheckIcon className="size-3.5" />
+                Applied
+              </span>
+            ) : null}
+          </div>
           <h2 className="mt-2 text-xl font-semibold text-foreground">
             {job.title}
           </h2>

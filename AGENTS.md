@@ -218,6 +218,16 @@
 ### 4.15 Writing Style
 - Do not use em dashes (—); use hyphens, commas, or semicolons instead
 
+### 4.16 UI Theming
+- Support both Light and Dark Mode using HeroUI semantic tokens and the root `data-theme`; Dark is the default. Do not add a system/third theme unless requested.
+- Use theme-aware styles, avoid colors that only work in one theme, and preserve USP ATS cyan branding.
+- Verify text, surfaces, borders, inputs, cards, tables, and interactive states in both themes, including modals, dropdowns, popovers, and other portals.
+- Test both Admin and Member interfaces when changing shared UI. Display preferences stay in local storage, not the database.
+
+### 4.17 FAQ Content
+- Keep Admin and Member FAQ content role-specific and centralised in `lib/faq/faq-data.ts`, rather than duplicating it in UI components.
+- FAQ UI must use the shared theme tokens and remain usable in both Light and Dark Mode.
+
 ---
 
 *Draft v1 — adjust as implementation reveals edge cases.*

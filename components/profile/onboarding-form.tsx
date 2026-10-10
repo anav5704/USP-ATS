@@ -133,7 +133,7 @@ export function OnboardingForm({
             Back
           </Button.Root>
           <div className="flex items-center gap-4">
-            <span className="text-xs font-medium tabular-nums text-zinc-500">
+            <span className="text-xs font-medium tabular-nums text-muted">
               Step {currentIndex + 1} of {PROFILE_SECTIONS.length}
             </span>
             {isLastSection ? (
