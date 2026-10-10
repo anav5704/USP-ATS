@@ -5,19 +5,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  BellIcon,
-  BookmarkIcon,
   BriefcaseIcon,
+  CircleHelpIcon,
   ClipboardListIcon,
   ClipboardCheckIcon,
-  FileTextIcon,
-  HelpCircleIcon,
   LogOutIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useSessionContext } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
+import { DisplayControl } from "@/components/theme/display-control";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
 
@@ -45,16 +43,6 @@ const studentNav: NavItem[] = [
     icon: ClipboardListIcon,
     isActive: (p) => p.startsWith("/applications"),
   },
-  {
-    key: "saved",
-    label: "Saved Jobs",
-    icon: BookmarkIcon,
-  },
-  {
-    key: "notifications",
-    label: "Notifications",
-    icon: BellIcon,
-  },
 ];
 
 const adminNav: NavItem[] = [
@@ -71,11 +59,6 @@ const adminNav: NavItem[] = [
     label: "Approvals",
     icon: ClipboardCheckIcon,
     isActive: (p) => p === "/approvals",
-  },
-  {
-    key: "reports",
-    label: "Reports",
-    icon: FileTextIcon,
   },
 ];
 
@@ -95,14 +78,14 @@ export function AppSidebar() {
 
   const renderItem = ({ href, onClick, label, icon: Icon, isActive }: NavItem) => {
     const active = isActive?.(pathname) ?? false;
-    const itemClass = `group relative flex w-full cursor-pointer items-center justify-center gap-3 py-2 text-sm font-medium text-white transition-opacity lg:justify-start lg:pl-5 lg:pr-3 ${
-      active ? "opacity-100" : "opacity-60 hover:opacity-100"
+    const itemClass = `group relative flex w-full cursor-pointer items-center justify-center gap-3 py-2 text-sm font-medium text-sidebar-foreground transition-opacity lg:justify-start lg:pl-5 lg:pr-3 ${
+      active ? "opacity-100" : "opacity-[var(--sidebar-inactive-opacity)] hover:opacity-100"
     }`;
 
     const content = (
       <span className="contents">
         <span
-          className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-white transition-transform lg:block ${
+          className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-sidebar-foreground transition-transform lg:block ${
             active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
           }`}
         />
@@ -140,7 +123,7 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="flex h-full w-16 shrink-0 flex-col items-center lg:w-56 2xl:w-64">
+    <aside className="flex h-full w-16 shrink-0 flex-col items-center overflow-y-auto lg:w-56 2xl:w-64">
       <Image
         src="/usp-logo.svg"
         alt="USP Logo"
@@ -152,10 +135,13 @@ export function AppSidebar() {
         {nav.map((item) => renderItem(item))}
       </nav>
       <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
+        <DisplayControl />
         {renderItem({
-          key: "help",
-          label: "Help & Support",
-          icon: HelpCircleIcon,
+          key: "faq",
+          href: "/faq",
+          label: "FAQ",
+          icon: CircleHelpIcon,
+          isActive: (p) => p === "/faq",
         })}
         {renderItem({
           key: "profile",

@@ -209,6 +209,7 @@ export function JobFeed() {
                         <JobFeedCard
                           key={job.id}
                           job={job}
+                          hasApplied={appliedJobIds.has(job.id)}
                           onPress={() => setSelectedJob(job)}
                         />
                       ))}

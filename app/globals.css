@@ -2,12 +2,46 @@
 @import "@heroui/styles";
 
 :root {
-  color-scheme: dark;
   --primary-bright: #60edff;
   --primary-dim: #3999a5;
   --field-border-width: 1px;
+  --app-canvas: #111111;
+  --sidebar-foreground: white;
+  --sidebar-inactive-opacity: 0.6;
+  --brand-text-start: var(--primary-dim);
+  --brand-text-end: var(--primary-bright);
   --field-border: oklch(0.3 0.012 260);
   --focus-ring: oklch(0.8 0.012 260);
+}
+
+:root[data-theme="light"] {
+  --app-canvas: var(--background);
+  --sidebar-foreground: #042027;
+  --sidebar-inactive-opacity: 0.9;
+  --field-border: oklch(0.75 0.012 260);
+  --focus-ring: oklch(0.45 0.06 220);
+  --brand-text-start: #16616c;
+  --brand-text-end: #087787;
+  /* Status text must remain legible against light surfaces. */
+  --warning: oklch(0.5 0.11 65);
+  --warning-foreground: white;
+  --danger: oklch(0.53 0.2 25);
+}
+
+/* CSS chooses the icon before React hydrates a saved light preference. */
+:root[data-theme="dark"] .theme-light-icon,
+:root[data-theme="light"] .theme-dark-icon {
+  display: none;
+}
+
+.display-control {
+  --switch-control-bg-checked: #16616c;
+  --switch-control-bg-checked-hover: #12343b;
+}
+
+.display-control [data-focus-visible="true"] {
+  outline: 2px solid var(--sidebar-foreground);
+  outline-offset: 2px;
 }
 
 @theme inline {
@@ -15,6 +49,8 @@
   --font-mono: var(--font-geist-mono);
   --color-primary-dim: var(--primary-dim);
   --color-primary-bright: var(--primary-bright);
+  --color-app-canvas: var(--app-canvas);
+  --color-sidebar-foreground: var(--sidebar-foreground);
 }
 
 @utility bg-primary-gradient {
@@ -28,8 +64,8 @@
 @utility text-primary-gradient {
   background-image: linear-gradient(
     to bottom right,
-    var(--primary-dim),
-    var(--primary-bright)
+    var(--brand-text-start),
+    var(--brand-text-end)
   );
   -webkit-background-clip: text;
   background-clip: text;
