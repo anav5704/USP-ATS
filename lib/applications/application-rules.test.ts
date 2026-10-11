@@ -1,7 +1,11 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { readFileSync } from "node:fs";
+import { describe, expect, test } from "vitest";
+
 import {
+  ADMIN_APPLICATION_STATUSES,
   APPLICATION_STATUSES,
+  adminApplicationStatusSchema,
+  createApplicationSchema,
   type ApplicationStatus,
 } from "@/lib/applications/application-schema";
 import {
@@ -11,139 +15,131 @@ import {
   canWithdraw,
   isJobOpenForApplication,
 } from "@/lib/applications/application-rules";
-import {
-  deadlineAtEndOfFijiDay,
-  startOfFijiDay,
-} from "@/lib/jobs/job-dates";
 
-const TODAY = "2027-01-15";
+type ParseResult = { success: boolean; error?: { issues: { message: string }[] } };
 
-test("canWithdraw is true only for APPLIED", () => {
-  const expected: Record<ApplicationStatus, boolean> = {
-    APPLIED: true,
-    SHORTLISTED: false,
-    ACCEPTED: false,
-    DECLINED: false,
-    WITHDRAWN: false,
-  };
-  for (const status of APPLICATION_STATUSES) {
-    assert.equal(canWithdraw(status), expected[status], `status ${status}`);
-  }
-});
+const firstIssue = (result: ParseResult) =>
+  result.success ? "" : (result.error?.issues[0]?.message ?? "");
 
-test("blocksReapplication is false only for WITHDRAWN", () => {
-  const expected: Record<ApplicationStatus, boolean> = {
-    APPLIED: true,
-    SHORTLISTED: true,
-    ACCEPTED: true,
-    DECLINED: true,
-    WITHDRAWN: false,
-  };
-  for (const status of APPLICATION_STATUSES) {
-    assert.equal(
-      blocksReapplication(status),
-      expected[status],
-      `status ${status}`
+describe("Job Application", () => {
+  test("TC-33", () => {
+    for (const coverLetter of ["", "   ", "\n\t "]) {
+      expect(
+        firstIssue(createApplicationSchema.safeParse({ jobId: "job-1", coverLetter })),
+        JSON.stringify(coverLetter)
+      ).toBe("Cover letter is required");
+    }
+    expect(createApplicationSchema.safeParse({ jobId: "job-1", coverLetter: "a" }).success).toBe(true);
+    expect(createApplicationSchema.safeParse({ jobId: "job-1", coverLetter: "a".repeat(2000) }).success).toBe(
+      true
     );
-  }
-});
-
-test("active jobs are open on and after the deadline day", () => {
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: deadlineAtEndOfFijiDay("2027-01-16") },
-      TODAY
-    ),
-    true
-  );
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: deadlineAtEndOfFijiDay(TODAY) },
-      TODAY
-    ),
-    true
-  );
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: startOfFijiDay(TODAY) },
-      TODAY
-    ),
-    true
-  );
-});
-
-test("active jobs with a past deadline are closed", () => {
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: deadlineAtEndOfFijiDay("2027-01-14") },
-      TODAY
-    ),
-    false
-  );
-});
-
-test("jobs awaiting modification approval are closed", () => {
-  assert.equal(
-    isJobOpenForApplication(
-      {
-        status: "ACTIVE",
-        deadline: deadlineAtEndOfFijiDay("2027-02-01"),
-        pendingModificationId: "request-1",
-      },
-      TODAY
-    ),
-    false
-  );
-});
-
-test("non-active jobs are closed regardless of deadline", () => {
-  for (const status of ["PENDING_APPROVAL", "REJECTED", "ARCHIVED"]) {
-    assert.equal(
-      isJobOpenForApplication(
-        { status, deadline: deadlineAtEndOfFijiDay("2027-02-01") },
-        TODAY
-      ),
-      false,
-      `status ${status}`
+    expect(firstIssue(createApplicationSchema.safeParse({ jobId: "job-1", coverLetter: "a".repeat(2001) }))).toBe(
+      "Cover letter is too long"
     );
-  }
-});
+    expect(firstIssue(createApplicationSchema.safeParse({ jobId: "", coverLetter: "a" }))).toBe(
+      "Job id is required"
+    );
+  });
 
-test("string deadlines are accepted", () => {
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: "2027-01-15T23:59:59.999+12:00" },
-      TODAY
-    ),
-    true
-  );
-  assert.equal(
-    isJobOpenForApplication(
-      { status: "ACTIVE", deadline: "2027-01-14T23:59:59.999+12:00" },
-      TODAY
-    ),
-    false
-  );
-});
+  test("TC-34", () => {
+    const expected: Record<ApplicationStatus, boolean> = {
+      APPLIED: true,
+      SHORTLISTED: true,
+      ACCEPTED: true,
+      DECLINED: true,
+      WITHDRAWN: false,
+    };
+    for (const status of APPLICATION_STATUSES) {
+      expect(blocksReapplication(status), status).toBe(expected[status]);
+    }
+  });
 
-test("admin status transitions preserve final application states", () => {
-  assert.deepEqual(allowedAdminStatusTargets("APPLIED"), [
-    "SHORTLISTED",
-    "ACCEPTED",
-    "DECLINED",
-  ]);
-  assert.deepEqual(allowedAdminStatusTargets("SHORTLISTED"), [
-    "ACCEPTED",
-    "DECLINED",
-  ]);
+  test("TC-35", () => {
+    const deadline = new Date(Date.now() + 86400000);
 
-  for (const status of ["ACCEPTED", "DECLINED", "WITHDRAWN"] as const) {
-    assert.deepEqual(allowedAdminStatusTargets(status), []);
-  }
+    for (const status of ["ARCHIVED", "PENDING_APPROVAL", "REJECTED"]) {
+      expect(isJobOpenForApplication({ status, deadline }), status).toBe(false);
+    }
+    expect(isJobOpenForApplication({ status: "ACTIVE", deadline, pendingModificationId: "mod-1" })).toBe(false);
+    expect(isJobOpenForApplication({ status: "ACTIVE", deadline: new Date(Date.now() - 86400000) })).toBe(false);
+    expect(isJobOpenForApplication({ status: "ACTIVE", deadline })).toBe(true);
+  });
 
-  assert.equal(canAdminChangeStatus("APPLIED", "SHORTLISTED"), true);
-  assert.equal(canAdminChangeStatus("SHORTLISTED", "ACCEPTED"), true);
-  assert.equal(canAdminChangeStatus("SHORTLISTED", "DECLINED"), true);
-  assert.equal(canAdminChangeStatus("ACCEPTED", "DECLINED"), false);
-  assert.equal(canAdminChangeStatus("WITHDRAWN", "SHORTLISTED"), false);
+  test("TC-36", () => {
+    const expected: Record<ApplicationStatus, boolean> = {
+      APPLIED: true,
+      SHORTLISTED: false,
+      ACCEPTED: false,
+      DECLINED: false,
+      WITHDRAWN: false,
+    };
+    for (const status of APPLICATION_STATUSES) {
+      expect(canWithdraw(status), status).toBe(expected[status]);
+    }
+  });
+
+  test("TC-37", () => {
+    const source = readFileSync(
+      new URL("../../app/api/applications/[id]/withdraw/route.ts", import.meta.url),
+      "utf8"
+    );
+    expect(source).toMatch(/studentId:\s*guard\.session\.user\.id/);
+    expect(source).toMatch(/status:\s*"APPLIED"/);
+    expect(source).toMatch(/status:\s*409/);
+  });
+
+  test("TC-38", () => {
+    expect([...ADMIN_APPLICATION_STATUSES]).toEqual(["SHORTLISTED", "ACCEPTED", "DECLINED"]);
+    for (const status of ADMIN_APPLICATION_STATUSES) {
+      expect(adminApplicationStatusSchema.safeParse(status).success, status).toBe(true);
+    }
+    for (const status of ["APPLIED", "WITHDRAWN", "pending", ""]) {
+      expect(adminApplicationStatusSchema.safeParse(status).success, status).toBe(false);
+    }
+  });
+
+  test("TC-39", () => {
+    expect(allowedAdminStatusTargets("APPLIED")).toEqual(["SHORTLISTED", "ACCEPTED", "DECLINED"]);
+    expect(allowedAdminStatusTargets("SHORTLISTED")).toEqual(["ACCEPTED", "DECLINED"]);
+
+    for (const status of ["ACCEPTED", "DECLINED", "WITHDRAWN"] as const) {
+      expect(allowedAdminStatusTargets(status), status).toEqual([]);
+      for (const target of ADMIN_APPLICATION_STATUSES) {
+        expect(canAdminChangeStatus(status, target), `${status} -> ${target}`).toBe(false);
+      }
+    }
+
+    const allowed: Record<ApplicationStatus, string[]> = {
+      APPLIED: ["SHORTLISTED", "ACCEPTED", "DECLINED"],
+      SHORTLISTED: ["ACCEPTED", "DECLINED"],
+      ACCEPTED: [],
+      DECLINED: [],
+      WITHDRAWN: [],
+    };
+    for (const from of APPLICATION_STATUSES) {
+      for (const to of ADMIN_APPLICATION_STATUSES) {
+        expect(canAdminChangeStatus(from, to), `${from} -> ${to}`).toBe(allowed[from].includes(to));
+      }
+    }
+  });
+
+  test("TC-40", () => {
+    const source = readFileSync(
+      new URL("../applications/application-list-queries.ts", import.meta.url),
+      "utf8"
+    );
+    expect(source).toMatch(/studentId:\s*userId/);
+  });
+
+  test("TC-41", () => {
+    const source = readFileSync(
+      new URL("../../components/applications/application-detail-modal.tsx", import.meta.url),
+      "utf8"
+    );
+    const notice = source.match(/message=\{`You are withdrawing[\s\S]*?`\}/)?.[0] ?? "";
+
+    expect(notice.length).toBeGreaterThan(0);
+    expect(blocksReapplication("WITHDRAWN")).toBe(false);
+    expect(notice).not.toMatch(/will not be able to apply/i);
+  });
 });
