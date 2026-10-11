@@ -3,6 +3,8 @@ import { describe, expect, test } from "vitest";
 
 import { pendingReviewData } from "@/lib/jobs/approval-schema";
 import { ArchiveJobError, archiveJobRecord } from "@/lib/jobs/archive-job";
+import { isJobOpenForApplication } from "@/lib/applications/application-rules";
+import { reviewJob } from "@/lib/jobs/review-job";
 import { deadlineAtEndOfFijiDay, startOfFijiDay, todayInFiji } from "@/lib/jobs/job-dates";
 
 type Posting = { id: string; pendingModificationId: string | null };
@@ -64,8 +66,54 @@ describe("Job CRUD", () => {
     expect(source).not.toMatch(/jobPosting\.delete|deleteMany/);
   });
 
-  test("TC-32", () => {
-    expect(pendingReviewData("admin-1").status).toBe("ACTIVE");
+  test("TC-32", async () => {
+    const created = pendingReviewData("admin-1");
+
+    expect(created.status).toBe("PENDING_APPROVAL");
+    expect(created.requestedById).toBe("admin-1");
+    expect(created.approvedById).toBeNull();
+    expect(created.rejectionReason).toBeNull();
+
+    expect(isJobOpenForApplication({ status: created.status, deadline: new Date() })).toBe(false);
+
+    const updates: { status: string }[] = [];
+    const posting = {
+      id: "job-1",
+      status: "PENDING_APPROVAL",
+      revision: 0,
+      createdById: "admin-1",
+      requestedById: "admin-1",
+      title: "Research Assistant",
+      description: "Support the research team.",
+      department: "SBM",
+      jobType: "Part Time",
+      campus: ["Laucala Campus"],
+      gpaMin: null,
+      degree: [],
+      skills: [],
+      hours: 10,
+      hourlyPay: 15,
+      benefit: null,
+      deadline: new Date(Date.now() + 7 * 86400000),
+    };
+    // Only the fields reviewJob reads are supplied; the client is narrowed so
+    // the fake satisfies the injected repository signature.
+    const jobs = {
+      findUnique: async () => posting,
+      updateMany: async ({ data }: { data: { status: string } }) => {
+        updates.push(data);
+        return { count: 1 };
+      },
+    } as unknown as Parameters<typeof reviewJob>[0];
+
+    await expect(
+      reviewJob(jobs, "job-1", "admin-2", { decision: "approve", revision: 0 })
+    ).resolves.toBeUndefined();
+    expect(updates[0]?.status).toBe("ACTIVE");
+
+    await expect(
+      reviewJob(jobs, "job-1", "admin-1", { decision: "approve", revision: 0 })
+    ).rejects.toMatchObject({ status: 403 });
 
     const today = todayInFiji();
     const startOfToday = startOfFijiDay(today);

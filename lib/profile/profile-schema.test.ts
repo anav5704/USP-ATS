@@ -1,5 +1,7 @@
 import { describe, expect, test } from "vitest";
 
+import { applySelectionLimit } from "@/components/ui/selection-limit";
+
 import {
   MAX_UPLOAD_COUNT,
   MAX_UPLOAD_SIZE,
@@ -243,8 +245,14 @@ describe("Profile Management", () => {
   });
 
   test("TC-16", () => {
-    const chosen = Array.from({ length: 10 }, (_, i) => `Skill ${i}`);
-    const afterSelectingAnEleventh = [...chosen, "Skill 10"].slice(0, 10);
-    expect(afterSelectingAnEleventh.length).toBe(11);
+    const ten = Array.from({ length: 10 }, (_, i) => `Skill ${i}`);
+
+    const withinLimit = applySelectionLimit(ten, 10);
+    expect(withinLimit.value).toHaveLength(10);
+    expect(withinLimit.limitReached).toBe(false);
+
+    const overflow = applySelectionLimit([...ten, "Skill 10", "Skill 11"], 10);
+    expect(overflow.limitReached).toBe(true);
+    expect(overflow.value).toHaveLength(10);
   });
 });

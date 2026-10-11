@@ -33,7 +33,10 @@ describe("Job Feed", () => {
 
   test("TC-19", () => {
     expect(filters("campuses=Laucala%20Campus").campuses).toEqual(["Laucala Campus"]);
-    expect(filters("campuses=A&campuses=B").campuses).toEqual(["A", "B"]);
+    expect(filters("campuses=Laucala%20Campus&campuses=Emalus%20Campus").campuses).toEqual([
+      "Laucala Campus",
+      "Emalus Campus",
+    ]);
     expect(filters("campuses=&campuses=Laucala%20Campus&campuses=").campuses).toEqual(["Laucala Campus"]);
     expect(filters("jobType=Internship").jobType).toBe("Internship");
     expect(filters("jobType=").jobType).toBe("");
