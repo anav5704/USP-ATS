@@ -34,8 +34,9 @@
 - CRUD for job postings
 - Fields: title, department, job type (free text), campus (from a defined list, supports multiple campuses), requirements (GPA minimum, degree, skills — free text), hours/week, deadline
 - Postings can be edited after applications exist; existing applications/scores are not retroactively recalculated
-- No draft state — postings are live as soon as created
-- Deleting a posting: hard-deletes if no applications exist; archives (soft-delete) if applications exist
+- Postings are **approval-gated**: a new or modified posting is created in `PENDING_APPROVAL` and is not visible to students until a *different* admin approves it, at which point it becomes `ACTIVE`. Admins cannot approve their own request; self-approval attempts are refused with a 403. A requester may withdraw their own pending request, which archives the posting
+- Rejection moves a posting to `REJECTED` with a stored reason; an expired posting cannot be approved (400)
+- Removal is **archive-only (soft-delete)** at every application count — there is no hard-delete path. Archiving preserves the posting, its applications, applicant details, scores and approval history. A posting with a pending modification cannot be archived (409)
 
 **3. Job Feed** *(Student-facing)*
 - Search by job title/description
@@ -72,7 +73,7 @@
 - Retry mechanism for failed AI scoring calls
 - Structured/tagged skills (free text for prototype)
 - File/resume upload (profile is fully structured; cover letter is plain text)
-- Draft state for job postings
+- Self-approval of postings or modifications (blocked; a second admin must review)
 
 ---
 
@@ -98,7 +99,7 @@
 
 - **User** — id, entraId, email, role (member/admin), createdAt
 - **Profile** — userId (FK), degrees[], education[], skills (text), gpa (decimal, /4.5), projects[] (name, description, link)
-- **JobPosting** — id, title, department, jobType (text), campus, requirements (gpaMin, degree, skills text), hours, deadline, status (active/archived), createdBy (admin userId)
+- **JobPosting** — id, title, department, jobType (text), campus, requirements (gpaMin, degree, skills text), hours, deadline, status (enum: pending_approval/active/rejected/archived), createdBy (admin userId), requestedBy/approvedBy/rejectedBy, revision (optimistic concurrency)
 - **Application** — id, jobId (FK), studentId (FK), coverLetter (text), status (enum), createdAt
 - **ScoreResult** — applicationId (FK), matchScore, eligible (bool), qualificationFit (text), motivationFit (text), missingRequirements (text[]), status (pending/complete/failed)
 

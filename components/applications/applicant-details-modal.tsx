@@ -5,6 +5,7 @@ import {
   AwardIcon,
   CalendarDaysIcon,
   CircleAlertIcon,
+  CircleCheckIcon,
   ExternalLinkIcon,
   FileTextIcon,
   GraduationCapIcon,
@@ -12,6 +13,8 @@ import {
   MailIcon,
   MapPinIcon,
   PhoneIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
   UserRoundIcon,
   WrenchIcon,
 } from "lucide-react";
@@ -291,6 +294,63 @@ export function ApplicantDetailsModal({
                 </p>
               </div>
             </section>
+
+            {application.score?.status === "COMPLETE" ? (
+              <section>
+                <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                  <SparklesIcon className="size-4" /> AI Assessment
+                </h4>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    {application.score.eligible ? (
+                      <CircleCheckIcon className="size-4 text-success" />
+                    ) : (
+                      <TriangleAlertIcon className="size-4 text-danger" />
+                    )}
+                    <span className="font-medium text-foreground">
+                      {application.score.eligible
+                        ? "Meets the stated requirements"
+                        : "Does not meet the stated requirements"}
+                    </span>
+                  </div>
+
+                  {application.score.qualificationFit ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Qualification fit
+                      </p>
+                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">
+                        {application.score.qualificationFit}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {application.score.motivationFit ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Motivation fit
+                      </p>
+                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">
+                        {application.score.motivationFit}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {application.score.missingRequirements.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Missing requirements
+                      </p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-foreground">
+                        {application.score.missingRequirements.map((requirement) => (
+                          <li key={requirement}>{requirement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
         </div>
       </Modal.Body>
       <Modal.Footer>

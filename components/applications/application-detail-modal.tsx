@@ -197,7 +197,7 @@ export function ApplicationDetailModal({
           if (!open && !isPending) setConfirmOpen(false);
         }}
         title="Withdraw application?"
-        message={`You are withdrawing your application for "${job.title}". It will remain in My Applications with a Withdrawn status, and you will not be able to apply for this job again.`}
+        message={`You are withdrawing your application for "${job.title}". It will remain in My Applications with a Withdrawn status, and you can apply for this job again while the posting is still open.`}
         confirmLabel="Withdraw"
         isPending={isPending}
         onConfirm={confirmWithdraw}

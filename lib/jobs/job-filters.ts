@@ -1,3 +1,7 @@
+import { z } from "zod";
+import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
+import { JOB_TYPES, USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
+
 export type StudentJobFilters = {
   search: string;
   jobType: string;
@@ -25,18 +29,43 @@ export const EMPTY_ADMIN_JOB_FILTERS: AdminJobFilters = {
   status: "",
 };
 
-function readList(params: URLSearchParams, key: string): string[] {
-  return params.getAll(key).filter((value) => value !== "");
+const MAX_LIST_LENGTH = 20;
+
+const campusSchema = z.enum(USP_CAMPUSES_CENTRES);
+const jobTypeSchema = z.enum(JOB_TYPES);
+
+// Enumerations and the GPA bound are validated here rather than trusted from
+// the browser: unknown values and out-of-range numbers are discarded instead
+// of reaching the query builder. Free text is left as entered.
+function readEnumList<K extends string>(
+  params: URLSearchParams,
+  key: string,
+  schema: z.ZodType<K>
+): K[] {
+  return params
+    .getAll(key)
+    .flatMap((value) => {
+      const parsed = schema.safeParse(value);
+      return parsed.success ? [parsed.data] : [];
+    })
+    .slice(0, MAX_LIST_LENGTH);
+}
+
+function readFreeTextList(params: URLSearchParams, key: string): string[] {
+  return params.getAll(key).filter((value) => value !== "").slice(0, MAX_LIST_LENGTH);
 }
 
 function readStudentFilters(params: URLSearchParams): StudentJobFilters {
+  const parsedJobType = jobTypeSchema.safeParse(params.get("jobType") ?? "");
+  const parsedGpaMin = gpaFilterSchema.safeParse(params.get("gpaMin") ?? "");
+
   return {
     search: params.get("search")?.trim() ?? "",
-    jobType: params.get("jobType") ?? "",
-    campuses: readList(params, "campuses"),
-    gpaMin: params.get("gpaMin") ?? "",
-    degrees: readList(params, "degrees"),
-    skills: readList(params, "skills"),
+    jobType: parsedJobType.success ? parsedJobType.data : "",
+    campuses: readEnumList(params, "campuses", campusSchema),
+    gpaMin: parsedGpaMin.success ? parsedGpaMin.data : "",
+    degrees: readFreeTextList(params, "degrees"),
+    skills: readFreeTextList(params, "skills"),
   };
 }
 

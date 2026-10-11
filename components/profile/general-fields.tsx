@@ -124,6 +124,7 @@ export function GeneralFields({
                 searchPlaceholder="Search skills"
                 emptyMessage="No skills found"
                 maxItems={10}
+                limitMessage="You can select up to 10 skills"
                 onChange={field.onChange}
               />
             )}
