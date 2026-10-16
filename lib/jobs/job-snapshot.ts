@@ -50,6 +50,24 @@ export function toJsonSnapshot(input: JobInput): Prisma.InputJsonObject {
   return { ...input } as unknown as Prisma.InputJsonObject;
 }
 
+const UNARCHIVE_REQUEST_TYPE = "UNARCHIVE";
+
+export function toUnarchiveJsonSnapshot(input: JobInput): Prisma.InputJsonObject {
+  return {
+    ...input,
+    _requestType: UNARCHIVE_REQUEST_TYPE,
+  } as unknown as Prisma.InputJsonObject;
+}
+
+export function isUnarchiveSnapshot(value: unknown): boolean {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "_requestType" in value &&
+    value._requestType === UNARCHIVE_REQUEST_TYPE
+  );
+}
+
 export function jobInputDatabaseData(input: JobInput) {
   return {
     title: input.title,

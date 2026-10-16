@@ -11,6 +11,7 @@ import { JOB_TYPES, USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 const REQUEST_TYPE_OPTIONS: readonly ApprovalFilterOption[] = [
   { value: "NEW_JOB", label: "New Posting" },
   { value: "MODIFICATION", label: "Modification" },
+  { value: "UNARCHIVE", label: "Unarchive" },
 ];
 
 const APPROVAL_STATUS_OPTIONS: readonly ApprovalFilterOption[] = [

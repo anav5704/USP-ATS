@@ -3,6 +3,7 @@ import { getApprovalStatus } from "@/lib/jobs/approval-status";
 import { deadlineAtEndOfFijiDay } from "@/lib/jobs/job-dates";
 import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 import {
+  isUnarchiveSnapshot,
   parseJobSnapshot,
   parsePreviousJobSnapshot,
 } from "@/lib/jobs/job-snapshot";
@@ -25,7 +26,7 @@ function modificationApprovalStatus(status: string) {
 }
 
 type LightRequest = {
-  kind: "NEW_JOB" | "MODIFICATION";
+  kind: "NEW_JOB" | "MODIFICATION" | "UNARCHIVE";
   key: string;
   approvalId: string;
   title: string;
@@ -132,8 +133,9 @@ export async function getApprovalPage(
   for (const request of modifications) {
     const proposed = parseJobSnapshot(request.proposedData);
     if (!proposed.success) continue;
+    const unarchive = isUnarchiveSnapshot(request.proposedData);
     light.push({
-      kind: "MODIFICATION",
+      kind: unarchive ? "UNARCHIVE" : "MODIFICATION",
       key: `mod:${request.id}`,
       approvalId: request.id,
       title: proposed.data.title,
@@ -142,7 +144,11 @@ export async function getApprovalPage(
       jobType: proposed.data.jobType,
       approvalStatus: modificationApprovalStatus(request.status),
       own: isOwnApprovalRequest(
-        { createdById: "", requestedById: request.requestedById, requestType: "MODIFICATION" },
+        {
+          createdById: "",
+          requestedById: request.requestedById,
+          requestType: unarchive ? "UNARCHIVE" : "MODIFICATION",
+        },
         adminId
       ),
       requestedAt: request.requestedAt,
@@ -189,7 +195,7 @@ export async function getApprovalPage(
       where: {
         id: {
           in: active
-            .filter((request) => request.kind === "MODIFICATION")
+            .filter((request) => request.kind !== "NEW_JOB")
             .map((request) => request.approvalId)
             .filter((id) => pageSet.has(id)),
         },
@@ -243,11 +249,13 @@ export async function getApprovalPage(
     const approved = request.status === "APPROVED";
     const rejected = request.status === "REJECTED";
 
+    const unarchive = isUnarchiveSnapshot(request.proposedData);
+
     return {
       id: request.job.id,
       approvalId: request.id,
       jobId: request.job.id,
-      requestType: "MODIFICATION" as const,
+      requestType: unarchive ? ("UNARCHIVE" as const) : ("MODIFICATION" as const),
       approvalStatus: modificationApprovalStatus(request.status),
       originalJob: previous.data,
       title: proposed.data.title,

@@ -29,7 +29,7 @@ export function useReviewJob(job: ApprovalJob) {
   return useMutation({
     mutationFn: (input: ApprovalInput) =>
       api.post(
-        job.requestType === "MODIFICATION"
+        job.requestType !== "NEW_JOB"
           ? `/api/jobs/${job.jobId}/modifications/${job.approvalId}/review`
           : `/api/jobs/${job.jobId}/review`,
         input
@@ -41,12 +41,16 @@ export function useReviewJob(job: ApprovalJob) {
         input.decision === "withdraw"
           ? "Approval request withdrawn"
           : input.decision === "approve"
-            ? job.requestType === "MODIFICATION"
-              ? "Job modification approved and applied"
-              : "Job posting approved and active"
-            : job.requestType === "MODIFICATION"
-              ? "Job modification rejected; approved values were preserved"
-              : "Job posting rejected"
+            ? job.requestType === "UNARCHIVE"
+              ? "Unarchive request approved; job posting is active"
+              : job.requestType === "MODIFICATION"
+                ? "Job modification approved and applied"
+                : "Job posting approved and active"
+            : job.requestType === "UNARCHIVE"
+              ? "Unarchive request rejected; archived posting was preserved"
+              : job.requestType === "MODIFICATION"
+                ? "Job modification rejected; approved values were preserved"
+                : "Job posting rejected"
       );
     },
     onError: async () => {

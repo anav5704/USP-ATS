@@ -24,6 +24,9 @@ export async function POST(
     }
     return NextResponse.json({ outcome });
   } catch (error) {
+    if (!(error instanceof ArchiveJobError)) {
+      console.error("Unable to archive job posting", { jobId: id, error });
+    }
     return NextResponse.json(
       {
         error:

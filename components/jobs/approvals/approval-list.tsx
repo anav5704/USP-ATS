@@ -117,7 +117,9 @@ function ApprovalTable({
                     <p className="mt-1 text-xs font-medium text-muted">
                       {job.requestType === "MODIFICATION"
                         ? "Modification"
-                        : "New posting"}
+                        : job.requestType === "UNARCHIVE"
+                          ? "Unarchive"
+                          : "New posting"}
                     </p>
                   </Table.Cell>
                   <Table.Cell>{job.jobType}</Table.Cell>
@@ -228,7 +230,9 @@ export function ApprovalList() {
           label:
             filters.requestType === "MODIFICATION"
               ? "Modification"
-              : "New Posting",
+              : filters.requestType === "UNARCHIVE"
+                ? "Unarchive"
+                : "New Posting",
           remove: () => removeFilter("requestType"),
         }
       : null,

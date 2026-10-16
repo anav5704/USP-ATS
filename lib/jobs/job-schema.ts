@@ -5,6 +5,7 @@ import {
   USP_CAMPUSES_CENTRES,
   USP_DEPARTMENTS,
 } from "@/lib/jobs/job-constants";
+import { todayInFiji } from "@/lib/jobs/job-dates";
 
 function isCalendarDate(value: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -66,6 +67,16 @@ export const jobSnapshotSchema = z.object({
 
 export type JobInput = z.infer<typeof jobSnapshotSchema>;
 
+export const unarchiveJobInputSchema = jobSnapshotSchema
+  .pick({ deadline: true })
+  .strict()
+  .refine((input) => input.deadline > todayInFiji(), {
+    path: ["deadline"],
+    message: "New application deadline must be a future date.",
+  });
+
+export type UnarchiveJobInput = z.infer<typeof unarchiveJobInputSchema>;
+
 const payValidationFields = jobSnapshotSchema.pick({ jobType: true, hourlyPay: true });
 
 export const jobInputSchema = jobSnapshotSchema.superRefine((job, ctx) => {
@@ -107,7 +118,7 @@ export type AdminJobListItem = {
 export type ApprovalJob = AdminJobListItem & {
   approvalId: string;
   jobId: string;
-  requestType: "NEW_JOB" | "MODIFICATION";
+  requestType: "NEW_JOB" | "MODIFICATION" | "UNARCHIVE";
   approvalStatus: "Pending Approval" | "Approved" | "Rejected";
   originalJob: JobInput | null;
   approvedBy: { name: string; email: string } | null;

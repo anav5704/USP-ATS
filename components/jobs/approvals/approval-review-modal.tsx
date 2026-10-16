@@ -42,7 +42,7 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
   };
   return <>
     <FormModal isOpen onOpenChange={(open) => { if (!open && !review.isPending) onClose(); }}
-      title={job.requestType === "MODIFICATION" ? "Review job modification" : "Review job posting"} closeDisabled={review.isPending}>
+      title={job.requestType === "UNARCHIVE" ? "Review unarchive request" : job.requestType === "MODIFICATION" ? "Review job modification" : "Review job posting"} closeDisabled={review.isPending}>
       <form className="mt-5 flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit(() => { if (canReview) setDecision("reject"); })}>
         <Modal.Body>
           <ApprovalDetails job={job} />
@@ -75,16 +75,22 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
       </form>
     </FormModal>
     <ConfirmModal isOpen={decision !== null} onOpenChange={(open) => { if (!open && !review.isPending) setDecision(null); }}
-      title={decision === "withdraw" ? "Withdraw approval request?" : decision === "approve" ? `Approve job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?` : `Reject job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?`}
+      title={decision === "withdraw" ? "Withdraw approval request?" : decision === "approve" ? job.requestType === "UNARCHIVE" ? "Approve unarchive request?" : `Approve job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?` : job.requestType === "UNARCHIVE" ? "Reject unarchive request?" : `Reject job ${job.requestType === "MODIFICATION" ? "modification" : "posting"}?`}
       message={decision === "withdraw"
-        ? job.requestType === "MODIFICATION"
+        ? job.requestType === "UNARCHIVE"
+          ? "This unarchive request will be cancelled. The posting will remain archived with its existing deadline."
+          : job.requestType === "MODIFICATION"
           ? "This modification request will be cancelled. The approved posting will remain unchanged."
           : "This pending request will be cancelled and archived, preserving its data."
         : decision === "approve"
-          ? job.requestType === "MODIFICATION"
+          ? job.requestType === "UNARCHIVE"
+            ? "The new deadline will be applied and the existing posting will become active."
+            : job.requestType === "MODIFICATION"
             ? "The proposed values will be applied to the existing posting without changing its job ID or applications."
             : "This posting will become active and visible to applicants."
-          : job.requestType === "MODIFICATION"
+          : job.requestType === "UNARCHIVE"
+            ? "The posting will remain archived and its existing deadline will be preserved."
+            : job.requestType === "MODIFICATION"
             ? "The proposed values will be discarded and the approved posting will remain unchanged."
             : "This posting will be rejected and remain hidden from applicants."}
       confirmLabel={decision === "withdraw" ? "Withdraw Request" : decision === "approve" ? "Approve" : "Reject"}
