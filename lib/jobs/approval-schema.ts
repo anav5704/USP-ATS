@@ -12,11 +12,14 @@ export function isOwnApprovalRequest(
   posting: {
     createdById: string;
     requestedById: string | null;
-    requestType?: "NEW_JOB" | "MODIFICATION";
+    requestType?: "NEW_JOB" | "MODIFICATION" | "UNARCHIVE";
   },
   adminId: string,
 ) {
-  if (posting.requestType === "MODIFICATION") {
+  if (
+    posting.requestType === "MODIFICATION" ||
+    posting.requestType === "UNARCHIVE"
+  ) {
     return posting.requestedById === adminId;
   }
   return posting.createdById === adminId || posting.requestedById === adminId;

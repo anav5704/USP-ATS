@@ -10,6 +10,7 @@ import {
   CircleAlertIcon,
   PencilIcon,
   PlusIcon,
+  RotateCcwIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
   UsersRoundIcon,
@@ -18,6 +19,8 @@ import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { TablePagination } from "@/components/ui/table-pagination";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
+import { useUnarchiveJob } from "@/components/jobs/use-unarchive-job";
+import { UnarchiveJobModal } from "@/components/jobs/unarchive-job-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
 import { EditJobModal } from "@/components/jobs/edit-job-modal";
@@ -98,11 +101,16 @@ export function AdminJobList() {
   const { data, isPending, isError, refetch } = useAdminJobs(serverFilters, page);
   const jobs = data?.items;
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
+  const unarchive = useUnarchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [unarchiveJob, setUnarchiveJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const unarchiveNeedsDeadline = unarchiveJob
+    ? deadlineRemainingLabel(new Date(unarchiveJob.deadline)).expired
+    : false;
 
   const hasFilters =
     search.trim() !== "" ||
@@ -129,11 +137,25 @@ export function AdminJobList() {
     setPage(1);
   };
 
-  const confirmArchive = () => {
+  const confirmArchive = async () => {
     if (!selectedJob) return;
     const jobId = selectedJob.id;
-    setSelectedJob(null);
-    void archiveAsync(jobId);
+    try {
+      await archiveAsync(jobId);
+      setSelectedJob(null);
+    } catch {
+      // The mutation hook restores the optimistic update and reports the error.
+    }
+  };
+
+  const confirmDirectUnarchive = async () => {
+    if (!unarchiveJob) return;
+    try {
+      await unarchive.mutateAsync({ jobId: unarchiveJob.id });
+      setUnarchiveJob(null);
+    } catch {
+      // The mutation hook reports the error and keeps the modal open.
+    }
   };
 
   const prefetchApplicants = (jobId: string) => {
@@ -292,6 +314,7 @@ export function AdminJobList() {
                         <JobStatusMenu
                           job={job}
                           onArchive={() => setSelectedJob(job)}
+                          onUnarchive={() => setUnarchiveJob(job)}
                         />
                         {job.status === "REJECTED" && job.rejectionReason ? (
                           <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
@@ -336,6 +359,36 @@ export function AdminJobList() {
         isPending={isArchiving}
         onConfirm={confirmArchive}
       />
+      {unarchiveJob && unarchiveNeedsDeadline ? (
+        <UnarchiveJobModal
+          job={unarchiveJob}
+          isPending={unarchive.isPending}
+          error={unarchive.error}
+          onClose={() => setUnarchiveJob(null)}
+          onSubmit={async (input) => {
+            try {
+              await unarchive.mutateAsync({ jobId: unarchiveJob.id, input });
+              setUnarchiveJob(null);
+            } catch {
+              // The modal displays the mutation error and remains open.
+            }
+          }}
+        />
+      ) : (
+        <ConfirmModal
+          isOpen={unarchiveJob !== null}
+          onOpenChange={(open) => {
+            if (!open && !unarchive.isPending) setUnarchiveJob(null);
+          }}
+          title="Unarchive job posting?"
+          message="This posting's current deadline is still valid. It will become active again and accept applications."
+          confirmLabel="Unarchive posting"
+          icon={RotateCcwIcon}
+          danger={false}
+          isPending={unarchive.isPending}
+          onConfirm={confirmDirectUnarchive}
+        />
+      )}
       {createOpen ? (
         <CreateJobModal isOpen onOpenChange={setCreateOpen} />
       ) : null}

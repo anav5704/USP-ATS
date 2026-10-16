@@ -28,7 +28,7 @@ export const ADMIN_FAQS: readonly FaqItem[] = [
     id: "admin-archive-job",
     question: "What happens when I archive a job posting?",
     answer:
-      "Archiving removes a posting from active opportunities and prevents new applications. The posting, applications, applicant details, scores, and approval history are preserved for administrators. The current system does not permanently delete postings through the Job Postings page.",
+      "Archiving removes the posting from active opportunities and prevents new applications. The posting and its associated applications, applicant details, scores and approval history are preserved for Administrators. An archived posting can later be unarchived. If its application deadline has not passed, it can be restored to Active status directly. If its deadline has already passed, a new future deadline must be provided and approved by another Administrator before the posting becomes Active again.",
     keywords: ["delete", "archive", "archived", "remove", "applications", "history"],
   },
   {
@@ -70,7 +70,7 @@ export const ADMIN_FAQS: readonly FaqItem[] = [
     id: "admin-deadline",
     question: "What happens when a job reaches its application deadline?",
     answer:
-      "Once the deadline has passed, the posting is considered closed and members can no longer submit new applications for it.",
+      "Once the application deadline has passed, the posting is automatically Archived and Members can no longer submit new applications. An Administrator may later attempt to unarchive the posting, but a new future application deadline must be provided and approved by another Administrator before the posting can become Active again.",
     keywords: ["deadline", "close", "closed", "application", "expiry"],
   },
   {
@@ -133,7 +133,7 @@ export const ADMIN_FAQS: readonly FaqItem[] = [
     id: "admin-permanent-delete",
     question: "Can I permanently delete a job posting?",
     answer:
-      "No. The current Job Postings page archives postings instead of permanently deleting them. This preserves associated applications, applicant details, scores, and approval history.",
+      "No. The current system archives postings instead of permanently deleting them. This preserves associated applications, applicant details, scores and approval history. Archived postings can also be restored through the Unarchive functionality where required.",
     keywords: ["delete", "permanent", "archive", "applicant", "application", "history"],
   },
   {

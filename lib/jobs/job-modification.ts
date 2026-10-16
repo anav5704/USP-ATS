@@ -3,11 +3,13 @@ import type { ApprovalInput } from "@/lib/jobs/approval-schema";
 import { approvalInputSchema } from "@/lib/jobs/approval-schema";
 import type { JobInput } from "@/lib/jobs/job-schema";
 import {
+  isUnarchiveSnapshot,
   jobInputDatabaseData,
   parseJobSnapshot,
   toJobSnapshot,
   toJsonSnapshot,
 } from "@/lib/jobs/job-snapshot";
+import { todayInFiji } from "@/lib/jobs/job-dates";
 
 export class JobModificationError extends Error {
   constructor(public readonly status: number, message: string) {
@@ -109,6 +111,7 @@ export async function reviewJobModification(
     }
 
     const ownRequest = request.requestedById === adminId;
+    const unarchiveRequest = isUnarchiveSnapshot(request.proposedData);
     if (decision.decision === "withdraw" ? !ownRequest : ownRequest) {
       throw new JobModificationError(
         403,
@@ -128,6 +131,12 @@ export async function reviewJobModification(
         );
       }
       proposed = parsed.data;
+      if (unarchiveRequest && proposed.deadline <= todayInFiji()) {
+        throw new JobModificationError(
+          400,
+          "The proposed unarchive deadline is no longer a future date."
+        );
+      }
     }
 
     const posting = await transaction.jobPosting.updateMany({
@@ -140,6 +149,7 @@ export async function reviewJobModification(
         decision.decision === "approve" && proposed
           ? {
               ...jobInputDatabaseData(proposed),
+              ...(unarchiveRequest ? { status: "ACTIVE" as const } : {}),
               pendingModificationId: null,
               revision: { increment: 1 },
             }

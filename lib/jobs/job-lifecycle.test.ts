@@ -7,54 +7,64 @@ import { isJobOpenForApplication } from "@/lib/applications/application-rules";
 import { reviewJob } from "@/lib/jobs/review-job";
 import { deadlineAtEndOfFijiDay, startOfFijiDay, todayInFiji } from "@/lib/jobs/job-dates";
 
-type Posting = { id: string; pendingModificationId: string | null };
+type Posting = {
+  id: string;
+  status: "ACTIVE" | "ARCHIVED";
+  pendingModificationId: string | null;
+};
 
 function recorder(postings: Posting[], applicationCounts: Record<string, number> = {}) {
   const statusUpdates: { id: string; status: string }[] = [];
   return {
     statusUpdates,
     findPosting: async (id: string) => postings.find((p) => p.id === id) ?? null,
-    updateStatus: async (id: string, status: string) => {
-      statusUpdates.push({ id, status });
+    archiveActivePosting: async (id: string) => {
+      const posting = postings.find((candidate) => candidate.id === id);
+      if (!posting || posting.status !== "ACTIVE" || posting.pendingModificationId) {
+        return false;
+      }
+      posting.status = "ARCHIVED";
+      statusUpdates.push({ id, status: "ARCHIVED" });
       void applicationCounts[id];
+      return true;
     },
   };
 }
 
 describe("Job CRUD", () => {
   test("TC-31", async () => {
-    const zero = [{ id: "job-1", pendingModificationId: null }];
+    const zero: Posting[] = [{ id: "job-1", status: "ACTIVE", pendingModificationId: null }];
     const zeroDeps = recorder(zero, { "job-1": 0 });
-    await expect(archiveJobRecord(zeroDeps.findPosting, zeroDeps.updateStatus, "job-1")).resolves.toBe("archived");
+    await expect(archiveJobRecord(zeroDeps.findPosting, zeroDeps.archiveActivePosting, "job-1")).resolves.toBe("archived");
     expect(zeroDeps.statusUpdates).toEqual([{ id: "job-1", status: "ARCHIVED" }]);
     expect(zero).toHaveLength(1);
 
-    const withApps = [{ id: "job-2", pendingModificationId: null }];
+    const withApps: Posting[] = [{ id: "job-2", status: "ACTIVE", pendingModificationId: null }];
     const appsDeps = recorder(withApps, { "job-2": 3 });
-    await expect(archiveJobRecord(appsDeps.findPosting, appsDeps.updateStatus, "job-2")).resolves.toBe("archived");
+    await expect(archiveJobRecord(appsDeps.findPosting, appsDeps.archiveActivePosting, "job-2")).resolves.toBe("archived");
     expect(appsDeps.statusUpdates).toEqual([{ id: "job-2", status: "ARCHIVED" }]);
     expect(withApps).toHaveLength(1);
 
     for (const count of [0, 1, 3, 50]) {
-      const postings: Posting[] = [{ id: `job-${count}`, pendingModificationId: null }];
+      const postings: Posting[] = [{ id: `job-${count}`, status: "ACTIVE", pendingModificationId: null }];
       const deps = recorder(postings, { [`job-${count}`]: count });
       await expect(
-        archiveJobRecord(deps.findPosting, deps.updateStatus, `job-${count}`)
+        archiveJobRecord(deps.findPosting, deps.archiveActivePosting, `job-${count}`)
       ).resolves.toBe("archived");
       expect(deps.statusUpdates[0]?.status, `applicationCount ${count}`).toBe("ARCHIVED");
     }
 
     const emptyDeps = recorder([]);
-    await expect(archiveJobRecord(emptyDeps.findPosting, emptyDeps.updateStatus, "missing")).resolves.toBeNull();
+    await expect(archiveJobRecord(emptyDeps.findPosting, emptyDeps.archiveActivePosting, "missing")).resolves.toBeNull();
     expect(emptyDeps.statusUpdates).toHaveLength(0);
 
-    const pending = [{ id: "job-3", pendingModificationId: "mod-1" }];
+    const pending: Posting[] = [{ id: "job-3", status: "ACTIVE", pendingModificationId: "mod-1" }];
     const pendingDeps = recorder(pending);
     await expect(
-      archiveJobRecord(pendingDeps.findPosting, pendingDeps.updateStatus, "job-3")
+      archiveJobRecord(pendingDeps.findPosting, pendingDeps.archiveActivePosting, "job-3")
     ).rejects.toBeInstanceOf(ArchiveJobError);
     await expect(
-      archiveJobRecord(pendingDeps.findPosting, pendingDeps.updateStatus, "job-3")
+      archiveJobRecord(pendingDeps.findPosting, pendingDeps.archiveActivePosting, "job-3")
     ).rejects.toMatchObject({
       status: 409,
       message: "A posting with a pending modification cannot be archived.",
@@ -62,8 +72,21 @@ describe("Job CRUD", () => {
     expect(pendingDeps.statusUpdates).toHaveLength(0);
 
     const source = readFileSync(new URL("./archive-job.ts", import.meta.url), "utf8");
-    expect(source).toMatch(/PostingStatus\.ARCHIVED/);
+    expect(source).toMatch(/status: "ARCHIVED"/);
+    expect(source).not.toMatch(/\$transaction/);
     expect(source).not.toMatch(/jobPosting\.delete|deleteMany/);
+
+    await expect(
+      archiveJobRecord(zeroDeps.findPosting, zeroDeps.archiveActivePosting, "job-1")
+    ).resolves.toBe("archived");
+    expect(zeroDeps.statusUpdates).toHaveLength(1);
+
+    const uiSource = readFileSync(
+      new URL("../../components/jobs/admin-job-list.tsx", import.meta.url),
+      "utf8"
+    );
+    expect(uiSource).toMatch(/await archiveAsync\(jobId\)/);
+    expect(uiSource).not.toMatch(/void archiveAsync\(jobId\)/);
   });
 
   test("TC-32", async () => {
