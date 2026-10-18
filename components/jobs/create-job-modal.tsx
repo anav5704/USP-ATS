@@ -19,6 +19,10 @@ export function CreateJobModal({
         if (!isPending) onOpenChange(open);
       }}
       title="Post a new job"
+      info={{
+        title: "Approval required",
+        body: "After saving, the posting enters the approvals queue and stays hidden from students until a second admin approves it.",
+      }}
       size="lg"
       closeDisabled={isPending}
     >

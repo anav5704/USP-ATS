@@ -68,6 +68,10 @@ export function ApplyModal({
         if (!open && !isPending) onOpenChange(open);
       }}
       title={job.title}
+      info={{
+        title: "How applying works",
+        body: "Submitting sends your profile snapshot and cover letter to the admins of this posting. The submitted snapshot is not updated when you later edit your profile.",
+      }}
       closeDisabled={isPending}
     >
       <form

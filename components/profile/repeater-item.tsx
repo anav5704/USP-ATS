@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Button } from "@heroui/react";
 import { Trash2Icon } from "lucide-react";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 
 export function RepeaterItem({
   title,
@@ -22,17 +23,19 @@ export function RepeaterItem({
           {index > 0 ? `${title} ${index + 1}` : title}
         </p>
         {canRemove ? (
-          <Button.Root
-            type="button"
-            isIconOnly
-            size="sm"
-            variant="ghost"
-            aria-label={`Remove ${title.toLowerCase()}`}
-            onPress={onRemove}
-            className="text-muted transition-colors hover:text-danger"
-          >
-            <Trash2Icon className="size-4" />
-          </Button.Root>
+          <IconTooltip label={`Remove ${title.toLowerCase()}`}>
+            <Button.Root
+              type="button"
+              isIconOnly
+              size="sm"
+              variant="ghost"
+              aria-label={`Remove ${title.toLowerCase()}`}
+              onPress={onRemove}
+              className="text-muted transition-colors hover:text-danger"
+            >
+              <Trash2Icon className="size-4" />
+            </Button.Root>
+          </IconTooltip>
         ) : null}
       </div>
       {children}

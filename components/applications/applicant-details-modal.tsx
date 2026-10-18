@@ -57,6 +57,10 @@ export function ApplicantDetailsModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="Applicant Details"
+      info={{
+        title: "Point-in-time snapshot",
+        body: "Profile, application and AI assessment are exactly as captured when the student applied. The AI verdict is never recalculated after later profile edits.",
+      }}
       size="lg"
     >
       <Modal.Body>

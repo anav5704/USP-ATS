@@ -83,6 +83,10 @@ export function ApplicationDetailModal({
       onOpenChange={onOpenChange}
       title={job.title}
       size="lg"
+      info={{
+        title: "Withdrawing and reapplying",
+        body: "Applications you withdraw stay listed with Withdrawn status. While the posting is still open, you can submit a new application for it.",
+      }}
     >
       <Modal.Body>
         <div className="space-y-5">

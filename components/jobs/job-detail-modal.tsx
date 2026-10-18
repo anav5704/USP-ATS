@@ -73,6 +73,10 @@ export function JobDetailModal({
       onOpenChange={onOpenChange}
       title={job.title}
       size="lg"
+      info={{
+        title: "About requirements",
+        body: "Requirements listed here are matched against applicant profiles by AI scoring. Applications are accepted until the deadline passes.",
+      }}
     >
       <Modal.Body>
         <div className="space-y-5">

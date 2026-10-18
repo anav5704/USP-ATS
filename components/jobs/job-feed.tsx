@@ -15,6 +15,7 @@ import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { ApplyModal } from "@/components/applications/apply-modal";
 import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
 import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import type { FeedGroup } from "@/lib/jobs/job-list-queries";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import {
@@ -149,18 +150,22 @@ export function JobFeed() {
                     </SearchField.Group>
                   </SearchField>
                 </div>
-                <Button.Root
-                  onPress={() => setFiltersOpen(true)}
-                  className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+                <IconTooltip
+                  label="Filter by campus, job type, GPA, degree or skills"
                 >
-                  <SlidersHorizontalIcon className="size-4" />
-                  Filters
-                  {activeFilterCount > 0 ? (
-                    <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                      {activeFilterCount}
-                    </span>
-                  ) : null}
-                </Button.Root>
+                  <Button.Root
+                    onPress={() => setFiltersOpen(true)}
+                    className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+                  >
+                    <SlidersHorizontalIcon className="size-4" />
+                    Filters
+                    {activeFilterCount > 0 ? (
+                      <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                        {activeFilterCount}
+                      </span>
+                    ) : null}
+                  </Button.Root>
+                </IconTooltip>
               </div>
               <Tabs.List aria-label="Job groups">
                 {TABS.map((entry) => (

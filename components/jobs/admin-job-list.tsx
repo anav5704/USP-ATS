@@ -18,6 +18,7 @@ import {
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
 import { useUnarchiveJob } from "@/components/jobs/use-unarchive-job";
 import { UnarchiveJobModal } from "@/components/jobs/unarchive-job-modal";
@@ -183,18 +184,22 @@ export function AdminJobList() {
               </SearchField.Group>
             </SearchField>
           </div>
-          <Button.Root
-            onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+          <IconTooltip
+            label="Filter job postings by type, campus, GPA, skills or status"
           >
-            <SlidersHorizontalIcon className="size-4" />
-            Filters
-            {activeFilterCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button.Root>
+            <Button.Root
+              onPress={() => setFiltersOpen(true)}
+              className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+            >
+              <SlidersHorizontalIcon className="size-4" />
+              Filters
+              {activeFilterCount > 0 ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </Button.Root>
+          </IconTooltip>
           <Button.Root
             onPress={() => setCreateOpen(true)}
             className="shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
@@ -299,16 +304,21 @@ export function AdminJobList() {
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        <Link
-                          href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
-                          onMouseEnter={() => prefetchApplicants(job.id)}
-                          onFocus={() => prefetchApplicants(job.id)}
-                          aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
-                          className="inline-flex h-auto min-w-0 cursor-pointer items-center gap-1.5 rounded-field px-2 py-1 font-medium text-foreground hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+                        <IconTooltip
+                          className="inline-flex"
+                          label={`View ${job.applicationCount} applicants for ${job.title}`}
                         >
-                          <UsersRoundIcon className="size-4 text-muted" />
-                          {job.applicationCount}
-                        </Link>
+                          <Link
+                            href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
+                            onMouseEnter={() => prefetchApplicants(job.id)}
+                            onFocus={() => prefetchApplicants(job.id)}
+                            aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
+                            className="inline-flex h-auto min-w-0 cursor-pointer items-center gap-1.5 rounded-field px-2 py-1 font-medium text-foreground hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+                          >
+                            <UsersRoundIcon className="size-4 text-muted" />
+                            {job.applicationCount}
+                          </Link>
+                        </IconTooltip>
                       </Table.Cell>
                       <Table.Cell>
                         <JobStatusMenu
