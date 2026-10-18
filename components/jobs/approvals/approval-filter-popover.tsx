@@ -64,7 +64,7 @@ export function ApprovalFilterPopover({
     <Popover.Root>
       <Popover.Trigger
         aria-label="Filter approval requests"
-        className="flex shrink-0 cursor-pointer items-center gap-2 rounded-field border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground outline-none transition-colors hover:bg-surface-tertiary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+        className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-2 rounded-field border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground outline-none transition-colors hover:bg-surface-tertiary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 sm:w-auto"
       >
         <SlidersHorizontalIcon className="size-4" />
         Filters

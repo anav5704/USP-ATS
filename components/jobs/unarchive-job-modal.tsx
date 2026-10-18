@@ -65,35 +65,38 @@ export function UnarchiveJobModal({
               </p>
             </div>
           </div>
-          <Controller
-            name="deadline"
-            control={control}
-            render={({ field }) => (
-              <DatePickerField
-                id="unarchive-deadline"
-                label="New Application Deadline"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.deadline?.message}
-                minValue={minimumDate}
-              />
-            )}
-          />
+          <div className="mt-6">
+            <Controller
+              name="deadline"
+              control={control}
+              render={({ field }) => (
+                <DatePickerField
+                  id="unarchive-deadline"
+                  label="New Application Deadline"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.deadline?.message}
+                  minValue={minimumDate}
+                  fieldClassName="space-y-2"
+                />
+              )}
+            />
+          </div>
           {error ? (
-            <p role="alert" className="flex items-center gap-2 text-sm text-danger">
+            <p role="alert" className="mt-4 flex items-center gap-2 text-sm text-danger">
               <CircleAlertIcon className="size-4 shrink-0" />
               {error.message}
             </p>
           ) : null}
         </Modal.Body>
-        <Modal.Footer>
-          <Button.Root variant="ghost" isDisabled={isPending} onPress={onClose}>
+        <Modal.Footer className="flex-col-reverse gap-3 sm:flex-row">
+          <Button.Root variant="ghost" isDisabled={isPending} onPress={onClose} className="w-full sm:w-auto">
             Cancel
           </Button.Root>
           <Button.Root
             type="submit"
             isDisabled={isPending}
-            className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
           >
             {isPending ? <Spinner.Root size="sm" /> : <RotateCcwIcon className="size-4" />}
             Submit for Approval

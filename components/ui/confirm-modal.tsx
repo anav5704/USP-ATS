@@ -31,8 +31,8 @@ export function ConfirmModal({
   return (
     <Modal.Root isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
-        <Modal.Container size="sm" scroll="inside">
-          <Modal.Dialog>
+        <Modal.Container size="sm" scroll="inside" className="p-2 sm:p-4">
+          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)]">
             <Modal.Body>
               <div className="flex flex-col items-center gap-4 px-2 py-4 text-center">
                 <span
@@ -49,7 +49,7 @@ export function ConfirmModal({
               </div>
             </Modal.Body>
             <Modal.Footer>
-              <div className="grid w-full grid-cols-2 gap-3 pt-4">
+              <div className="grid w-full grid-cols-1 gap-3 pt-4 sm:grid-cols-2">
                 <Button.Root
                   type="button"
                   variant="ghost"

@@ -6,16 +6,18 @@ export function FormField({
   id,
   error,
   hint,
+  className = "space-y-1.5",
   children,
 }: {
   label: string;
   id?: string;
   error?: string;
   hint?: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className={className}>
       <Label
         htmlFor={id}
         className="text-sm font-medium text-foreground"

@@ -93,11 +93,13 @@ export function ApplicantDetailsModal({
                     Applied {dateFormatter.format(new Date(application.createdAt))}
                   </span>
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-start gap-2">
                   <MapPinIcon className="size-4 shrink-0" />
-                  {profile?.campuses.length
-                    ? profile.campuses.join(", ")
-                    : "Campus/Centre not provided"}
+                  <span className="min-w-0 break-words">
+                    {profile?.campuses.length
+                      ? profile.campuses.join(", ")
+                      : "Campus/Centre not provided"}
+                  </span>
                 </span>
                 <span className="flex items-center gap-2">
                   <PhoneIcon className="size-4 shrink-0" />
@@ -141,8 +143,8 @@ export function ApplicantDetailsModal({
                           className="rounded-2xl border border-border p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium text-foreground">
+                            <div className="min-w-0">
+                              <p className="break-words font-medium text-foreground">
                                 {degree.name}
                               </p>
                               <p className="text-sm text-muted">
@@ -162,7 +164,7 @@ export function ApplicantDetailsModal({
                               <ExternalLinkIcon className="size-3" />
                             </a>
                           </div>
-                          <p className="mt-2 text-xs text-muted">
+                          <p className="mt-2 break-all text-xs text-muted">
                             {degree.document.name} ({fileSizeLabel(degree.document.size)})
                           </p>
                         </div>
@@ -205,8 +207,8 @@ export function ApplicantDetailsModal({
                           className="rounded-2xl border border-border p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium text-foreground">
+                            <div className="min-w-0">
+                              <p className="break-words font-medium text-foreground">
                                 {certificate.label}
                               </p>
                               <p className="text-sm text-muted">
@@ -224,7 +226,7 @@ export function ApplicantDetailsModal({
                             </a>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                            <span>{certificate.file.name}</span>
+                            <span className="break-all">{certificate.file.name}</span>
                             <span>
                               Uploaded {dateFormatter.format(new Date(certificate.uploadedAt))}
                             </span>
@@ -262,10 +264,10 @@ export function ApplicantDetailsModal({
                           href={link.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                          className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
                         >
-                          {link.platform}
-                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                          <span className="min-w-0 break-words">{link.platform}</span>
+                          <ExternalLinkIcon className="size-3.5 shrink-0 text-muted" />
                         </a>
                       ))}
                       {profile.profileLinks.map((link, index) => (
@@ -274,10 +276,10 @@ export function ApplicantDetailsModal({
                           href={link.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                          className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
                         >
-                          {link.title}
-                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                          <span className="min-w-0 break-words">{link.title}</span>
+                          <ExternalLinkIcon className="size-3.5 shrink-0 text-muted" />
                         </a>
                       ))}
                     </div>
@@ -358,7 +360,7 @@ export function ApplicantDetailsModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button.Root variant="ghost" onPress={() => onOpenChange(false)}>
+        <Button.Root variant="ghost" onPress={() => onOpenChange(false)} className="w-full sm:w-auto">
           Close
         </Button.Root>
       </Modal.Footer>

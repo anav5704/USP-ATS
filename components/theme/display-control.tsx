@@ -10,7 +10,7 @@ import {
   subscribeToTheme,
 } from "@/lib/theme/theme-store";
 
-export function DisplayControl() {
+export function DisplayControl({ expanded = false }: { expanded?: boolean }) {
   const theme = useSyncExternalStore(subscribeToTheme, getTheme, getServerTheme);
   const isDark = theme === "dark";
   const modeLabel = isDark ? "Dark Mode" : "Light Mode";
@@ -26,8 +26,8 @@ export function DisplayControl() {
           onChange={(selected) => setTheme(selected ? "dark" : "light")}
           className="display-control w-full"
         >
-          <Switch.Content className="w-full justify-center gap-3 rounded-field py-2 text-sidebar-foreground lg:justify-start lg:pl-5 lg:pr-3">
-            <span aria-hidden="true" className="hidden lg:contents">
+          <Switch.Content className={`w-full gap-3 rounded-field py-2 text-sidebar-foreground ${expanded ? "min-h-11 justify-start px-5" : "justify-center lg:justify-start lg:pl-5 lg:pr-3"}`}>
+            <span aria-hidden="true" className={expanded ? "contents" : "hidden lg:contents"}>
               <SunIcon className="theme-light-icon size-5 shrink-0" />
               <MoonIcon className="theme-dark-icon size-5 shrink-0" />
               <span className="flex-1 text-left">Display</span>
@@ -41,7 +41,7 @@ export function DisplayControl() {
           </span>
         </Switch.Root>
       </Tooltip.Trigger>
-      <Tooltip.Content placement="right">{modeLabel}</Tooltip.Content>
+      <Tooltip.Content placement="top">{modeLabel}</Tooltip.Content>
     </Tooltip.Root>
   );
 }

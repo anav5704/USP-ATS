@@ -31,7 +31,7 @@ export function ProfileStepper({
   const percent = Math.round((completedRequired / requiredCount) * 100);
 
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5">
+    <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
         <h2 className="text-sm font-semibold text-foreground">
           Profile progress
@@ -41,7 +41,7 @@ export function ProfileStepper({
         </span>
       </div>
 
-      <ol className="flex items-start gap-0">
+      <ol className="flex min-w-0 items-start gap-0">
         {PROFILE_SECTIONS.map((section, index) => {
           const isComplete = complete[index];
           const isChecked = isComplete && index <= currentIndex;

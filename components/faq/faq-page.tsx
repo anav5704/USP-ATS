@@ -52,9 +52,9 @@ export function FaqPage({ role }: { role: FaqRole }) {
       : faqs.slice(0, COMMON_FAQ_COUNT);
 
   return (
-    <div className="h-full overflow-y-auto p-3">
+    <div className="h-full overflow-y-auto p-2 sm:p-3">
       <main className="mx-auto w-full max-w-4xl pb-8">
-        <section className="rounded-2xl border border-border bg-surface p-5 sm:p-7">
+        <section className="rounded-2xl border border-border bg-surface p-4 sm:p-7">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Frequently Asked Questions
           </h1>

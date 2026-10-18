@@ -34,6 +34,7 @@ import {
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 import { JobStatusMenu } from "@/components/jobs/job-status-menu";
+import { AdminJobCard } from "@/components/jobs/admin-job-card";
 import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
 import {
   JOB_DATE_TIME_ZONE,
@@ -164,7 +165,7 @@ export function AdminJobList() {
   };
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
         <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
@@ -186,10 +187,11 @@ export function AdminJobList() {
           </div>
           <IconTooltip
             label="Filter job postings by type, campus, GPA, skills or status"
+            className="w-full sm:w-auto"
           >
             <Button.Root
               onPress={() => setFiltersOpen(true)}
-              className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+              className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
             >
               <SlidersHorizontalIcon className="size-4" />
               Filters
@@ -202,7 +204,7 @@ export function AdminJobList() {
           </IconTooltip>
           <Button.Root
             onPress={() => setCreateOpen(true)}
-            className="shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            className="w-full shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
           >
             <PlusIcon className="size-4" />
             Create New Job
@@ -252,9 +254,34 @@ export function AdminJobList() {
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
-            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-              <Table.Content aria-label="Job postings">
+            <div className="space-y-3 md:hidden">
+              {visibleJobs?.map((job) => (
+                <AdminJobCard
+                  key={job.id}
+                  job={job}
+                  payLabel={hourlyPayLabel(job.hourlyPay)}
+                  deadlineLabel={adminDeadlineLabel(job.deadline)}
+                  deadlineTitle={dateFormatter.format(new Date(job.deadline))}
+                  onView={() => setViewingJob(job)}
+                  onEdit={() => setEditingJob(job)}
+                  onArchive={() => setSelectedJob(job)}
+                  onUnarchive={() => setUnarchiveJob(job)}
+                  onPrefetchApplicants={() => prefetchApplicants(job.id)}
+                />
+              ))}
+              <div className="empty:hidden rounded-2xl border border-border bg-surface p-3">
+                <TablePagination
+                  page={data?.page ?? 1}
+                  total={data?.total ?? 0}
+                  pageSize={data?.pageSize ?? 15}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+
+            <Table.Root className="hidden min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface md:flex">
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-auto">
+              <Table.Content aria-label="Job postings" className="min-w-[72rem]">
                 <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Job Posting</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>

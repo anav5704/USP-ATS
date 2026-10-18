@@ -10,10 +10,12 @@ export function JobStatusMenu({
   job,
   onArchive,
   onUnarchive,
+  className,
 }: {
   job: AdminJobListItem;
   onArchive: () => void;
   onUnarchive: () => void;
+  className?: string;
 }) {
   const status = effectiveJobStatus(job);
 
@@ -21,7 +23,7 @@ export function JobStatusMenu({
     <Dropdown.Root>
       <Dropdown.Trigger
         aria-label={`Change status for ${job.title}`}
-        className="inline-flex items-center gap-1 rounded-full transition-opacity hover:opacity-75"
+        className={`inline-flex items-center gap-1 rounded-full transition-opacity hover:opacity-75 ${className ?? ""}`}
       >
         <JobStatusBadge status={status} />
         <ChevronDownIcon className="size-3.5 text-muted" />

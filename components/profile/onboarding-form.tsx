@@ -121,7 +121,7 @@ export function OnboardingForm({
             <CurrentFields />
           )}
         </div>
-        <div className="flex w-full items-center justify-between gap-3">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3">
           <Button.Root
             type="button"
             variant="ghost"
@@ -132,7 +132,7 @@ export function OnboardingForm({
             <ArrowLeftIcon className="size-4" />
             Back
           </Button.Root>
-          <div className="flex items-center gap-4">
+          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-4">
             <span className="text-xs font-medium tabular-nums text-muted">
               Step {currentIndex + 1} of {PROFILE_SECTIONS.length}
             </span>
@@ -141,7 +141,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={() => void form.handleSubmit(handleSave)()}
-                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+                className="rounded-field bg-foreground px-3 text-sm font-medium text-background transition-colors hover:opacity-90 sm:px-5"
               >
                 {isPending ? (
                   <LoaderCircleIcon className="size-4 animate-spin" />
@@ -155,7 +155,7 @@ export function OnboardingForm({
                 type="button"
                 isDisabled={isPending}
                 onPress={advance}
-                className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+                className="rounded-field bg-foreground px-3 text-sm font-medium text-background transition-colors hover:opacity-90 sm:px-5"
               >
                 Next
                 <ChevronRightIcon className="size-4" />

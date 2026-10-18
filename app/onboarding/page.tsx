@@ -25,12 +25,12 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-1 overflow-y-auto bg-background px-4 py-6">
+    <div className="flex min-h-svh flex-1 overflow-y-auto bg-background px-3 py-5 sm:px-4 sm:py-6">
       <div className="m-auto flex w-full max-w-2xl flex-col items-center">
-        <h1 className="text-center text-3xl font-bold text-foreground md:text-4xl">
+        <h1 className="text-center text-2xl font-bold text-foreground sm:text-3xl md:text-4xl">
           Welcome to <span className="text-primary-gradient">USP ATS</span>
         </h1>
-        <main className="mt-8 w-full">
+        <main className="mt-6 w-full sm:mt-8">
           <OnboardingForm user={session.user} />
         </main>
       </div>

@@ -93,7 +93,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   if (isPending) return <AdminApplicantsSkeleton />;
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
         <div className="shrink-0 rounded-2xl border border-border bg-surface p-4">
           <Link
@@ -104,7 +104,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             Return to Job Postings
           </Link>
           <div className="mt-4">
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h1 className="text-xl font-semibold text-foreground sm:text-2xl">
               Applicants
             </h1>
             {job ? (
@@ -144,8 +144,8 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
             <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-              <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`}>
+            <Table.ScrollContainer className="min-h-0 flex-1 overflow-auto">
+              <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`} className="min-w-[52rem]">
                 <Table.Header className="sticky top-0 z-10">
                   <Table.Column isRowHeader>Applicant</Table.Column>
                   <Table.Column>Campus/Centre</Table.Column>

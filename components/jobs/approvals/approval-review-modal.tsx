@@ -62,25 +62,25 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
             <TextArea.Root id="rejectionReason" fullWidth rows={3} {...register("rejectionReason")} />
           </FormField> : null}
         </Modal.Body>
-        <Modal.Footer>
-          <Button.Root variant="ghost" isDisabled={review.isPending} onPress={onClose}>Close</Button.Root>
-          {canWithdraw ? <IconTooltip label="Withdrawing cancels your request and archives the posting">
+        <Modal.Footer className="flex-wrap gap-3">
+          <Button.Root variant="ghost" isDisabled={review.isPending} onPress={onClose} className="w-full sm:w-auto">Close</Button.Root>
+          {canWithdraw ? <IconTooltip label="Withdrawing cancels your request and archives the posting" className="w-full sm:w-auto">
             <Button.Root isDisabled={review.isPending} onPress={() => setDecision("withdraw")}
-              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
+              className="w-full rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover sm:w-auto">
               Withdraw Request
             </Button.Root>
           </IconTooltip> : null}
           {canReview ? (<>
-          <IconTooltip label="Approving applies the request and makes the posting active">
+          <IconTooltip label="Approving applies the request and makes the posting active" className="w-full sm:w-auto">
             <Button.Root isDisabled={!session || ownRequest || review.isPending}
               onPress={() => setDecision("approve")}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90">
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto">
               <CheckIcon className="size-4" />Approve
             </Button.Root>
           </IconTooltip>
-          <IconTooltip label="Rejecting hides the posting; a reason is optional">
+          <IconTooltip label="Rejecting hides the posting; a reason is optional" className="w-full sm:w-auto">
             <Button.Root type="submit" isDisabled={review.isPending}
-              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
+              className="w-full rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover sm:w-auto">
               <XIcon className="size-4" />Reject
             </Button.Root>
           </IconTooltip>

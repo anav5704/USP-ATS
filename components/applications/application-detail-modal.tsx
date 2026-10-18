@@ -177,18 +177,18 @@ export function ApplicationDetailModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full justify-end gap-3">
+        <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button.Root
             variant="ghost"
             onPress={() => onOpenChange(false)}
-            className="rounded-field text-muted"
+            className="w-full rounded-field text-muted sm:w-auto"
           >
             Close
           </Button.Root>
           {canWithdraw(application.status) ? (
             <Button.Root
               onPress={() => setConfirmOpen(true)}
-              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground transition-colors hover:bg-danger-hover"
+              className="w-full rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground transition-colors hover:bg-danger-hover sm:w-auto"
             >
               Withdraw Application
             </Button.Root>

@@ -229,6 +229,12 @@
 - Keep Admin and Member FAQ content role-specific and centralised in `lib/faq/faq-data.ts`, rather than duplicating it in UI components.
 - FAQ UI must use the shared theme tokens and remain usable in both Light and Dark Mode.
 
+### 4.18 Responsive UI
+- Support desktop, laptop, tablet, and mobile layouts while preserving desktop behaviour and essential functionality.
+- Use shared responsive components and existing Tailwind breakpoints; avoid fixed widths that cause page-level overflow and adapt tables, forms, cards, and toolbars for narrow screens.
+- Keep modals, dropdowns, popovers, and important touch controls usable within the viewport.
+- Verify Admin and Member interfaces in both Light and Dark Mode when changing shared UI.
+
 ---
 
 *Draft v1 — adjust as implementation reveals edge cases.*

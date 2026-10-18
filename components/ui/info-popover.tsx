@@ -16,7 +16,7 @@ export function InfoPopover({ title, body }: Info) {
         <InfoIcon className="size-4" />
       </Popover.Trigger>
       <Popover.Content placement="bottom end">
-        <Popover.Dialog className="max-w-72">
+        <Popover.Dialog className="w-[min(18rem,calc(100vw-1rem))] max-w-72">
           <Popover.Heading className="text-sm font-semibold text-foreground">
             {title}
           </Popover.Heading>
