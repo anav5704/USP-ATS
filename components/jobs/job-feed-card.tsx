@@ -128,7 +128,7 @@ export function JobFeedCard({
           onPress();
         }
       }}
-      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:p-5"
     >
       <div className="flex h-full flex-col gap-3">
         <div>
@@ -143,7 +143,7 @@ export function JobFeedCard({
               </span>
             ) : null}
           </div>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">
+          <h2 className="mt-2 break-words text-lg font-semibold text-foreground sm:text-xl">
             {job.title}
           </h2>
           <p className="mt-0.5 text-sm text-muted">{job.department}</p>

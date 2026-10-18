@@ -92,8 +92,8 @@ function ApprovalTable({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-        <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-          <Table.Content aria-label={title}>
+        <Table.ScrollContainer className="min-h-0 flex-1 overflow-auto">
+          <Table.Content aria-label={title} className="min-w-[76rem]">
             <Table.Header className="sticky top-0 z-10">
               <Table.Column isRowHeader>Job Title</Table.Column>
               <Table.Column>Job Type</Table.Column>
@@ -260,7 +260,7 @@ export function ApprovalList() {
   ].filter((filter): filter is NonNullable<typeof filter> => filter !== null);
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       {isPending ? (
         <div className="flex min-h-72 flex-1 items-center justify-center rounded-2xl border border-border bg-surface">
           <Spinner.Root size="lg" className="text-foreground" />
@@ -337,7 +337,7 @@ export function ApprovalList() {
               </div>
             ) : null}
 
-            <Tabs.List aria-label="Approval request groups">
+            <Tabs.List aria-label="Approval request groups" className="w-full overflow-x-auto">
               <Tabs.Tab
                 id="mine"
                 className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"

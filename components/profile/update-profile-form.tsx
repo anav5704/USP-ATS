@@ -92,7 +92,7 @@ export function UpdateProfileForm({
             }}
           >
             <Tabs.ListContainer className="sticky top-0 z-10 rounded-field bg-background">
-              <Tabs.List className="w-full">
+              <Tabs.List className="w-full overflow-x-auto">
                 {PROFILE_SECTIONS.map((section) => (
                   <Tabs.Tab
                     key={section.id}
@@ -125,7 +125,7 @@ export function UpdateProfileForm({
               type="button"
               isDisabled={isPending}
               onPress={() => void handleSaveClick()}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90 sm:w-auto"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />

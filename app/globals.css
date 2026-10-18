@@ -77,6 +77,19 @@ body {
   @apply bg-background text-foreground;
 }
 
+html,
+body {
+  min-width: 320px;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  min-width: 0;
+}
+
 .toast {
   border-radius: var(--radius-field);
 }

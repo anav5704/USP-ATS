@@ -35,7 +35,7 @@ export function GeneralFields({
   const email = user?.email ?? "";
 
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5">
+    <section className="rounded-2xl border border-border bg-surface p-4 sm:p-5">
       <div className="mb-4 flex items-center gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-secondary text-foreground">
           <UserRoundIcon className="size-5" />

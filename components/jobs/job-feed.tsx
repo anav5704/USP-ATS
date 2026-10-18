@@ -111,7 +111,7 @@ export function JobFeed() {
   };
 
   return (
-    <div className="p-3">
+    <div className="p-2 sm:p-3">
       <div className="mx-auto max-w-none">
         {isPending ? (
           <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
@@ -152,10 +152,11 @@ export function JobFeed() {
                 </div>
                 <IconTooltip
                   label="Filter by campus, job type, GPA, degree or skills"
+                  className="w-full sm:w-auto"
                 >
                   <Button.Root
                     onPress={() => setFiltersOpen(true)}
-                    className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+                    className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
                   >
                     <SlidersHorizontalIcon className="size-4" />
                     Filters
@@ -167,7 +168,7 @@ export function JobFeed() {
                   </Button.Root>
                 </IconTooltip>
               </div>
-              <Tabs.List aria-label="Job groups">
+              <Tabs.List aria-label="Job groups" className="w-full overflow-x-auto">
                 {TABS.map((entry) => (
                   <Tabs.Tab
                     key={entry.id}
@@ -209,7 +210,7 @@ export function JobFeed() {
                   </div>
                 ) : entry.id === tab ? (
                   <div>
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
                       {jobs.map((job) => (
                         <JobFeedCard
                           key={job.id}

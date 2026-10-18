@@ -69,7 +69,7 @@ export function MyApplications() {
   };
 
   return (
-    <div className="p-3">
+    <div className="p-2 sm:p-3">
       <div className="mx-auto max-w-none">
         <div className="sticky top-3 z-10 mb-3 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
@@ -88,7 +88,7 @@ export function MyApplications() {
           </div>
           <Button.Root
             onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+            className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
           >
             <SlidersHorizontalIcon className="size-4" />
             Filters
@@ -143,7 +143,7 @@ export function MyApplications() {
           </div>
         ) : (
           <div>
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
               {applications.map((application) => (
                 <ApplicationCard
                   key={application.id}

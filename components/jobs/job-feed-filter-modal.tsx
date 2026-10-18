@@ -135,7 +135,7 @@ export function JobFeedFilterModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full items-center justify-between gap-3 pt-4">
+        <div className="flex w-full flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <Button.Root
             type="button"
             variant="ghost"
@@ -145,7 +145,7 @@ export function JobFeedFilterModal({
             <Trash2Icon className="size-4" />
             Clear All
           </Button.Root>
-          <div className="flex items-center gap-3">
+          <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto sm:items-center">
             <Button.Root
               type="button"
               variant="ghost"

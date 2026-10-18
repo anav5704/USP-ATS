@@ -148,18 +148,18 @@ export function JobDetailModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full justify-end gap-3">
+        <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button.Root
             variant="ghost"
             onPress={() => onOpenChange(false)}
-            className="rounded-field text-muted"
+            className="w-full rounded-field text-muted sm:w-auto"
           >
             Close
           </Button.Root>
           {readOnly ? null : hasApplied ? (
             <Button.Root
               isDisabled
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background sm:w-auto"
             >
               <CheckIcon className="size-4" />
               Applied
@@ -167,7 +167,7 @@ export function JobDetailModal({
           ) : (
             <Button.Root
               onPress={onApply}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
             >
               <SendIcon className="size-4" />
               Apply Now
