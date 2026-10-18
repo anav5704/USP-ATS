@@ -45,6 +45,10 @@ export function UnarchiveJobModal({
         if (!open && !isPending) onClose();
       }}
       title="Unarchive job posting"
+      info={{
+        title: "Unarchive requests",
+        body: "Submitting this request moves the posting back to pending approval; it becomes active for applications once another admin approves the new deadline.",
+      }}
       closeDisabled={isPending}
     >
       <form

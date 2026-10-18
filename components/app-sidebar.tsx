@@ -16,6 +16,8 @@ import { authClient } from "@/lib/auth-client";
 import { useSessionContext } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
 import { DisplayControl } from "@/components/theme/display-control";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
+import { useMediaQuery } from "@/components/ui/use-media-query";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
 
@@ -70,6 +72,7 @@ export function AppSidebar() {
   const user = session?.user;
   const role = user?.role;
   const nav = role === "admin" ? adminNav : studentNav;
+  const isLabelVisible = useMediaQuery("(min-width: 1024px)");
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -94,31 +97,35 @@ export function AppSidebar() {
       </span>
     );
 
-    if (href) {
-      return (
-        <Link
-          key={href}
-          href={href}
-          title={label}
-          aria-current={active ? "page" : undefined}
-          className={itemClass}
-        >
-          {content}
-        </Link>
-      );
-    }
-
-    return (
+    const element = href ? (
+      <Link
+        key={href}
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={itemClass}
+        {...(isLabelVisible ? { title: label } : {})}
+      >
+        {content}
+      </Link>
+    ) : (
       <button
         key={`btn-${label}`}
         type="button"
-        title={label}
         onClick={onClick}
         aria-current={active ? "page" : undefined}
         className={itemClass}
+        {...(isLabelVisible ? { title: label } : {})}
       >
         {content}
       </button>
+    );
+
+    if (isLabelVisible) return element;
+
+    return (
+      <IconTooltip key={element.key} label={label} placement="right" className="w-full">
+        {element}
+      </IconTooltip>
     );
   };
 

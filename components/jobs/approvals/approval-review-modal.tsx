@@ -8,6 +8,7 @@ import { CheckIcon, CircleAlertIcon, XIcon } from "lucide-react";
 import { FormModal } from "@/components/ui/form-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { FormField } from "@/components/ui/form-field";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import { ApprovalDetails } from "@/components/jobs/approvals/approval-details";
 import { useReviewJob } from "@/components/jobs/approvals/use-approvals";
 import { approvalInputSchema, isOwnApprovalRequest, type ApprovalInput } from "@/lib/jobs/approval-schema";
@@ -42,7 +43,12 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
   };
   return <>
     <FormModal isOpen onOpenChange={(open) => { if (!open && !review.isPending) onClose(); }}
-      title={job.requestType === "UNARCHIVE" ? "Review unarchive request" : job.requestType === "MODIFICATION" ? "Review job modification" : "Review job posting"} closeDisabled={review.isPending}>
+      title={job.requestType === "UNARCHIVE" ? "Review unarchive request" : job.requestType === "MODIFICATION" ? "Review job modification" : "Review job posting"}
+      info={{
+        title: "Second-admin rule",
+        body: "The admin who requested this cannot act on it. Approving makes the request effective; rejecting keeps the posting hidden or unchanged.",
+      }}
+      closeDisabled={review.isPending}>
       <form className="mt-5 flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit(() => { if (canReview) setDecision("reject"); })}>
         <Modal.Body>
           <ApprovalDetails job={job} />
@@ -58,19 +64,27 @@ export function ApprovalReviewModal({ job, onClose, withdraw = false }: { job: A
         </Modal.Body>
         <Modal.Footer>
           <Button.Root variant="ghost" isDisabled={review.isPending} onPress={onClose}>Close</Button.Root>
-          {canWithdraw ? <Button.Root isDisabled={review.isPending} onPress={() => setDecision("withdraw")}
-            className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
-            Withdraw Request
-          </Button.Root> : null}
-          {canReview ? <><Button.Root type="submit" isDisabled={review.isPending}
-            className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
-            <XIcon className="size-4" />Reject
-          </Button.Root>
-          <Button.Root isDisabled={!session || ownRequest || review.isPending}
-            onPress={() => setDecision("approve")}
-            className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90">
-            <CheckIcon className="size-4" />Approve
-          </Button.Root></> : null}
+          {canWithdraw ? <IconTooltip label="Withdrawing cancels your request and archives the posting">
+            <Button.Root isDisabled={review.isPending} onPress={() => setDecision("withdraw")}
+              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
+              Withdraw Request
+            </Button.Root>
+          </IconTooltip> : null}
+          {canReview ? (<>
+          <IconTooltip label="Approving applies the request and makes the posting active">
+            <Button.Root isDisabled={!session || ownRequest || review.isPending}
+              onPress={() => setDecision("approve")}
+              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90">
+              <CheckIcon className="size-4" />Approve
+            </Button.Root>
+          </IconTooltip>
+          <IconTooltip label="Rejecting hides the posting; a reason is optional">
+            <Button.Root type="submit" isDisabled={review.isPending}
+              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground hover:bg-danger-hover">
+              <XIcon className="size-4" />Reject
+            </Button.Root>
+          </IconTooltip>
+          </>) : null}
         </Modal.Footer>
       </form>
     </FormModal>
