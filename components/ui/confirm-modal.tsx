@@ -32,7 +32,7 @@ export function ConfirmModal({
     <Modal.Root isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container size="sm" scroll="inside" className="p-2 sm:p-4">
-          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)]">
+          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] min-w-0 w-[calc(100vw-1rem)] break-words">
             <Modal.Body>
               <div className="flex flex-col items-center gap-4 px-2 py-4 text-center">
                 <span

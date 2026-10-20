@@ -16,13 +16,13 @@ function FaqAccordion({ faqs }: { faqs: readonly FaqItem[] }) {
     <Accordion.Root
       key={faqs.map((faq) => faq.id).join(",")}
       variant="surface"
-      className="overflow-hidden rounded-2xl border border-border bg-surface"
+      className="min-w-0 overflow-hidden rounded-2xl border border-border bg-surface"
     >
       {faqs.map((faq) => (
         <Accordion.Item key={faq.id} id={faq.id}>
           <Accordion.Heading>
             <Accordion.Trigger>
-              <span className="text-left font-medium text-foreground">
+              <span className="min-w-0 break-words text-left font-medium text-foreground">
                 {faq.question}
               </span>
               <Accordion.Indicator />

@@ -44,10 +44,10 @@ export function TablePagination({
 
   return (
     <Pagination size="sm" className="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <Pagination.Summary className="whitespace-nowrap">
+      <Pagination.Summary className="max-w-full whitespace-normal text-sm">
         {start} to {end} of {total} results
       </Pagination.Summary>
-      <Pagination.Content className="w-full flex-wrap justify-center sm:w-auto sm:justify-end">
+      <Pagination.Content className="max-w-full flex-wrap justify-center sm:w-auto sm:justify-end">
           <Pagination.Item>
             <Pagination.Previous
               isDisabled={page === 1}

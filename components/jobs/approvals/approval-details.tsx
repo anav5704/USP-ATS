@@ -116,12 +116,12 @@ export function ApprovalDetails({ job }: { job: ApprovalJob }) {
       })}
 
       <FormField label="Created by">
-        <p className="text-sm text-muted">
+        <p className="break-words text-sm text-muted">
           {job.createdBy.name} ({job.createdBy.email})
         </p>
       </FormField>
       <FormField label="Requested by">
-        <p className="text-sm text-muted">
+        <p className="break-words text-sm text-muted">
           {(job.requestedBy ?? job.createdBy).name} ({
             (job.requestedBy ?? job.createdBy).email
           })
@@ -145,7 +145,7 @@ export function ApprovalDetails({ job }: { job: ApprovalJob }) {
         </p>
       </FormField>
       <FormField label="Rejection reason">
-        <p className="whitespace-pre-wrap text-sm text-muted">
+        <p className="whitespace-pre-wrap break-words text-sm text-muted">
           {job.rejectionReason || "None"}
         </p>
       </FormField>

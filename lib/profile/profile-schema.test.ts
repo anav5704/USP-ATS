@@ -124,17 +124,43 @@ describe("Profile Management", () => {
   test("TC-11", () => {
     expect(profileInputSchema.safeParse({ ...baseProfile, phone: "" }).success).toBe(true);
 
-    for (const phone of ["+679 323 1000", "679-323-1000", "6793231000"]) {
+    const validPhones = [
+      "1234567",
+      "12345678901",
+      "+1234567",
+      "+12345678901",
+      "6791234",
+      "6791234567",
+      "+6791234",
+      "+6791234567",
+    ];
+    for (const phone of validPhones) {
       expect(profileInputSchema.safeParse({ ...baseProfile, phone }).success, phone).toBe(true);
     }
-    for (const phone of ["abc12345", "(679) 323-1000"]) {
+
+    const invalidPhones = [
+      "123456",
+      "123456789012",
+      "+123456",
+      "+123456789012",
+      "++6791234567",
+      "67+9123456",
+      "679+123456",
+      "+679+123456",
+      "abc1234567",
+      "679abc1234",
+      "679 123 456",
+      "679-123-456",
+      "(679)123456",
+      "679.123456",
+      "679,123456",
+      "679/123456",
+    ];
+    for (const phone of invalidPhones) {
       expect(profileInputSchema.safeParse({ ...baseProfile, phone }).success, phone).toBe(false);
     }
     expect(firstIssue(profileInputSchema.safeParse({ ...baseProfile, phone: "abc12345" }))).toBe(
-      "Enter a valid phone number (e.g. +679 323 1000)"
-    );
-    expect(firstIssue(profileInputSchema.safeParse({ ...baseProfile, phone: at(31) }))).toBe(
-      "Phone number is too long"
+      "Phone number must contain 7 to 11 digits and may start with +."
     );
 
     expect(profileInputSchema.safeParse({ ...baseProfile, bio: "" }).success).toBe(true);

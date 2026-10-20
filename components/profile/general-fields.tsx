@@ -66,8 +66,9 @@ export function GeneralFields({
           <Input.Root
             id="phone"
             type="tel"
+            inputMode="tel"
             fullWidth
-            placeholder="e.g. +679 323 1000"
+            placeholder="e.g. +6791234567"
             {...register("phone")}
           />
         </FormField>
