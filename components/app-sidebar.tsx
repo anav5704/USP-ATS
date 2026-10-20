@@ -75,7 +75,7 @@ export function AppSidebar() {
   const user = session?.user;
   const role = user?.role;
   const nav = role === "admin" ? adminNav : studentNav;
-  const isLabelVisible = useMediaQuery("(min-width: 1024px)");
+  const isLabelVisible = useMediaQuery("(min-width: 1280px)");
 
   const handleSignOut = async () => {
     await authClient.signOut();
@@ -89,7 +89,7 @@ export function AppSidebar() {
   ) => {
     const active = isActive?.(pathname) ?? false;
     const itemClass = `group relative flex w-full cursor-pointer items-center gap-3 py-2 text-sm font-medium text-sidebar-foreground transition-opacity ${
-      expanded ? "min-h-11 justify-start px-5" : "justify-center lg:justify-start lg:pl-5 lg:pr-3"
+      expanded ? "min-h-11 justify-start px-5" : "justify-center xl:justify-start xl:pl-5 xl:pr-3"
     } ${
       active ? "opacity-100" : "opacity-[var(--sidebar-inactive-opacity)] hover:opacity-100"
     }`;
@@ -98,13 +98,13 @@ export function AppSidebar() {
       <span className="contents">
         <span
           className={`absolute -left-1 h-6 w-2 rounded-full bg-sidebar-foreground transition-transform ${
-            expanded ? "block" : "hidden lg:block"
+            expanded ? "block" : "hidden xl:block"
           } ${
             active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
           }`}
         />
         <Icon className="size-5 shrink-0" />
-        <span className={expanded ? "block" : "hidden lg:block"}>{label}</span>
+        <span className={expanded ? "block" : "hidden xl:block"}>{label}</span>
       </span>
     );
 
@@ -186,18 +186,18 @@ export function AppSidebar() {
         </Button.Root>
       </header>
 
-      <aside className="hidden h-full w-16 shrink-0 flex-col items-center overflow-y-auto sm:flex lg:w-56 2xl:w-64">
+      <aside className="hidden h-full w-16 shrink-0 flex-col items-center overflow-y-auto sm:flex xl:w-56 2xl:w-64">
         <Image
           src="/usp-logo.svg"
           alt="USP Logo"
           width={110}
           height={110}
-          className="mb-7 mt-7 h-8 w-8 md:h-8 md:w-8 lg:h-12 lg:w-12 2xl:h-16 2xl:w-16"
+          className="mb-7 mt-7 h-8 w-8 xl:h-12 xl:w-12 2xl:h-16 2xl:w-16"
         />
-        <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
+        <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 xl:items-stretch xl:px-0">
           {nav.map((item) => renderItem(item))}
         </nav>
-        <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
+        <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 xl:items-stretch xl:px-0">
           <DisplayControl />
           {secondaryNav.map((item) => renderItem(item))}
         </div>

@@ -40,9 +40,9 @@ function Fact({
   title?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-start gap-2">
       <Icon className="size-4 shrink-0 text-muted" />
-      <span className="text-sm text-muted" title={title}>
+      <span className="min-w-0 break-words text-sm text-muted" title={title}>
         {label}
       </span>
     </div>
@@ -81,13 +81,15 @@ export function JobDetailModal({
       <Modal.Body>
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+            <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
               {job.jobType}
             </span>
-            <span className="text-sm text-muted">{job.department}</span>
+            <span className="min-w-0 break-words text-sm text-muted">
+              {job.department}
+            </span>
           </div>
 
-          <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
+          <p className="whitespace-pre-line break-words text-sm leading-relaxed text-muted">
             {job.description}
           </p>
 

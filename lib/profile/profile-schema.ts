@@ -5,7 +5,9 @@ import {
   isSafeStoredName,
 } from "@/lib/profile/upload";
 
-const PHONE_PATTERN = /^\+?[0-9][0-9\s()-]{5,19}$/;
+const PHONE_PATTERN = /^\+?\d{7,11}$/;
+const PHONE_MESSAGE =
+  "Phone number must contain 7 to 11 digits and may start with +.";
 
 export const fileRefSchema = z.object({
   name: z
@@ -96,10 +98,9 @@ export const profileInputSchema = z
     phone: z
       .string()
       .trim()
-      .max(30, "Phone number is too long")
       .refine(
         (value) => value === "" || PHONE_PATTERN.test(value),
-        "Enter a valid phone number (e.g. +679 323 1000)"
+        PHONE_MESSAGE
       ),
     bio: z.string().trim().max(500, "Bio is too long"),
     campuses: z

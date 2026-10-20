@@ -118,12 +118,12 @@ export function FileUploadField({
         {value ? "Replace file" : "Choose file"}
       </Button.Root>
       {value ? (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-field p-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border bg-field p-3 sm:flex-nowrap sm:gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-muted">
             <FileTextIcon className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
+            <p className="break-all text-sm font-medium text-foreground sm:truncate">
               {value.name}
             </p>
             <p className="text-xs text-muted">

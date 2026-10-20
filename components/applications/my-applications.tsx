@@ -71,33 +71,35 @@ export function MyApplications() {
   return (
     <div className="p-2 sm:p-3">
       <div className="mx-auto max-w-none">
-        <div className="sticky top-3 z-10 mb-3 flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
-          <div className="min-w-0 flex-1">
-            <SearchField
-              fullWidth
-              value={search}
-              onChange={setSearch}
-              aria-label="Search applications"
+        <div className="sticky top-0 z-10 -mt-2 mb-1 bg-app-canvas py-2 sm:-mt-3 sm:mb-0 sm:py-3">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1">
+              <SearchField
+                fullWidth
+                value={search}
+                onChange={setSearch}
+                aria-label="Search applications"
+              >
+                <SearchField.Group className="border-border">
+                  <SearchField.SearchIcon />
+                  <SearchField.Input placeholder="Search by job title or department" />
+                  <SearchField.ClearButton />
+                </SearchField.Group>
+              </SearchField>
+            </div>
+            <Button.Root
+              onPress={() => setFiltersOpen(true)}
+              className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
             >
-              <SearchField.Group className="border-border">
-                <SearchField.SearchIcon />
-                <SearchField.Input placeholder="Search by job title or department" />
-                <SearchField.ClearButton />
-              </SearchField.Group>
-            </SearchField>
+              <SlidersHorizontalIcon className="size-4" />
+              Filters
+              {activeFilterCount > 0 ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </Button.Root>
           </div>
-          <Button.Root
-            onPress={() => setFiltersOpen(true)}
-            className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
-          >
-            <SlidersHorizontalIcon className="size-4" />
-            Filters
-            {activeFilterCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button.Root>
         </div>
 
         {isPending ? (

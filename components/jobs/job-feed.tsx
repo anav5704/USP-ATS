@@ -134,51 +134,53 @@ export function JobFeed() {
             onSelectionChange={(key) => setTab(String(key) as FeedGroup)}
             className="gap-3"
           >
-            <div className="sticky top-3 z-10 space-y-3 rounded-2xl border border-border bg-surface p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <SearchField
-                    fullWidth
-                    value={search}
-                    onChange={setSearch}
-                    aria-label="Search jobs"
+            <div className="sticky top-0 z-10 -my-2 bg-app-canvas py-2 sm:-my-3 sm:py-3">
+              <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <SearchField
+                      fullWidth
+                      value={search}
+                      onChange={setSearch}
+                      aria-label="Search jobs"
+                    >
+                      <SearchField.Group className="border-border">
+                        <SearchField.SearchIcon />
+                        <SearchField.Input placeholder="Search by title or description" />
+                        <SearchField.ClearButton />
+                      </SearchField.Group>
+                    </SearchField>
+                  </div>
+                  <IconTooltip
+                    label="Filter by campus, job type, GPA, degree or skills"
+                    className="w-full sm:w-auto"
                   >
-                    <SearchField.Group className="border-border">
-                      <SearchField.SearchIcon />
-                      <SearchField.Input placeholder="Search by title or description" />
-                      <SearchField.ClearButton />
-                    </SearchField.Group>
-                  </SearchField>
+                    <Button.Root
+                      onPress={() => setFiltersOpen(true)}
+                      className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
+                    >
+                      <SlidersHorizontalIcon className="size-4" />
+                      Filters
+                      {activeFilterCount > 0 ? (
+                        <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                          {activeFilterCount}
+                        </span>
+                      ) : null}
+                    </Button.Root>
+                  </IconTooltip>
                 </div>
-                <IconTooltip
-                  label="Filter by campus, job type, GPA, degree or skills"
-                  className="w-full sm:w-auto"
-                >
-                  <Button.Root
-                    onPress={() => setFiltersOpen(true)}
-                    className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
-                  >
-                    <SlidersHorizontalIcon className="size-4" />
-                    Filters
-                    {activeFilterCount > 0 ? (
-                      <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                        {activeFilterCount}
-                      </span>
-                    ) : null}
-                  </Button.Root>
-                </IconTooltip>
+                <Tabs.List aria-label="Job groups" className="w-full overflow-x-auto">
+                  {TABS.map((entry) => (
+                    <Tabs.Tab
+                      key={entry.id}
+                      id={entry.id}
+                      className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"
+                    >
+                      {entry.label} ({totals[entry.id]})
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
               </div>
-              <Tabs.List aria-label="Job groups" className="w-full overflow-x-auto">
-                {TABS.map((entry) => (
-                  <Tabs.Tab
-                    key={entry.id}
-                    id={entry.id}
-                    className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"
-                  >
-                    {entry.label} ({totals[entry.id]})
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
             </div>
             {TABS.map((entry) => (
               <Tabs.Panel key={entry.id} id={entry.id} className="mt-0 p-0">

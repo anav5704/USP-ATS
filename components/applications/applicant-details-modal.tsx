@@ -74,7 +74,7 @@ export function ApplicantDetailsModal({
                       {application.applicant.name}
                     </h3>
                   </div>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 break-words text-sm text-muted">
                     Application for {job.title}
                   </p>
                 </div>
@@ -125,7 +125,7 @@ export function ApplicantDetailsModal({
                     <h4 className="flex items-center gap-2 font-semibold text-foreground">
                       <UserRoundIcon className="size-4" /> General
                     </h4>
-                    <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">
+                    <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-muted">
                       {profile.bio}
                     </p>
                   </section>
@@ -295,7 +295,7 @@ export function ApplicantDetailsModal({
                 <FileTextIcon className="size-4" /> Cover Letter
               </h4>
               <div className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-4">
-                <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                   {application.coverLetter}
                 </p>
               </div>
@@ -325,7 +325,7 @@ export function ApplicantDetailsModal({
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                         Qualification fit
                       </p>
-                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">
+                      <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                         {application.score.qualificationFit}
                       </p>
                     </div>
@@ -336,7 +336,7 @@ export function ApplicantDetailsModal({
                       <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                         Motivation fit
                       </p>
-                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-foreground">
+                      <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                         {application.score.motivationFit}
                       </p>
                     </div>

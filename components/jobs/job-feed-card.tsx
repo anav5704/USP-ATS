@@ -35,15 +35,15 @@ type MetaItem = {
 
 export function MetaRow({ items }: { items: MetaItem[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
       {items.map(({ icon: Icon, label, title }, index) => (
         <span
           key={index}
           title={title}
-          className="flex items-center gap-2 text-sm text-muted"
+          className="flex min-w-0 items-start gap-2 text-sm text-muted"
         >
           <Icon className="size-4 shrink-0 text-muted" />
-          {label}
+          <span className="min-w-0 break-words">{label}</span>
         </span>
       ))}
     </div>
@@ -58,7 +58,7 @@ export function RequirementChips({ items }: { items: string[] }) {
       {items.map((item, index) => (
         <span
           key={`${item}-${index}`}
-          className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground"
+          className="max-w-full break-words rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground"
         >
           {item}
         </span>
@@ -132,8 +132,8 @@ export function JobFeedCard({
     >
       <div className="flex h-full flex-col gap-3">
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+            <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
               {job.jobType}
             </span>
             {hasApplied ? (
@@ -146,7 +146,7 @@ export function JobFeedCard({
           <h2 className="mt-2 break-words text-lg font-semibold text-foreground sm:text-xl">
             {job.title}
           </h2>
-          <p className="mt-0.5 text-sm text-muted">{job.department}</p>
+          <p className="mt-0.5 break-words text-sm text-muted">{job.department}</p>
         </div>
 
         <p className="line-clamp-2 text-sm leading-relaxed text-muted">

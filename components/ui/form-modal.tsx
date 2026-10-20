@@ -25,7 +25,7 @@ export function FormModal({
     <Modal.Root isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container size={size ?? "lg"} scroll="inside" className="p-2 sm:p-4">
-          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-2xl sm:max-h-[calc(100dvh-2rem)]">
+          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] min-w-0 w-[calc(100vw-1rem)] max-w-2xl break-words sm:max-h-[calc(100dvh-2rem)]">
             <Modal.Header className="gap-2 px-4 pt-4 sm:px-6 sm:pt-6">
               <div className="flex min-w-0 items-center">
                 <Modal.Heading className="min-w-0 break-words text-xl font-semibold sm:text-2xl">

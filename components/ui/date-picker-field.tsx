@@ -49,7 +49,7 @@ export function DatePickerField({
             </DatePicker.Trigger>
           </DateField.Suffix>
         </DateField.Group>
-        <DatePicker.Popover>
+        <DatePicker.Popover className="max-w-[calc(100vw-1rem)] overflow-x-auto">
           <Calendar aria-label={`Choose ${label.toLowerCase()}`} minValue={minValue}>
             <Calendar.Header>
               <Calendar.NavButton slot="previous" />

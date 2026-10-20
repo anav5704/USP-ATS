@@ -253,8 +253,8 @@ export function AdminJobList() {
             </Button.Root>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="space-y-3 md:hidden">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="space-y-3 xl:hidden">
               {visibleJobs?.map((job) => (
                 <AdminJobCard
                   key={job.id}
@@ -279,39 +279,42 @@ export function AdminJobList() {
               </div>
             </div>
 
-            <Table.Root className="hidden min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface md:flex">
-            <Table.ScrollContainer className="min-h-0 flex-1 overflow-auto">
-              <Table.Content aria-label="Job postings" className="min-w-[72rem]">
+            <Table.Root className="hidden min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border bg-surface xl:flex">
+            <Table.ScrollContainer className="min-h-0 min-w-0 flex-1 overflow-auto">
+              <Table.Content
+                aria-label="Job postings"
+                className="w-full min-w-[60rem] table-fixed"
+              >
                 <Table.Header className="sticky top-0 z-10">
-                  <Table.Column isRowHeader>Job Posting</Table.Column>
-                  <Table.Column>Campus/Centre</Table.Column>
-                  <Table.Column>Pay</Table.Column>
-                  <Table.Column>Deadline</Table.Column>
-                  <Table.Column>Applicants</Table.Column>
-                  <Table.Column>Status</Table.Column>
-                  <Table.Column>Manage</Table.Column>
+                  <Table.Column isRowHeader className="w-[22%]">Job Posting</Table.Column>
+                  <Table.Column className="w-[18%]">Campus/Centre</Table.Column>
+                  <Table.Column className="w-[11%]">Pay</Table.Column>
+                  <Table.Column className="w-[12%]">Deadline</Table.Column>
+                  <Table.Column className="w-[11%]">Applicants</Table.Column>
+                  <Table.Column className="w-[14%]">Status</Table.Column>
+                  <Table.Column className="w-[12%]">Manage</Table.Column>
                 </Table.Header>
                   <Table.Body items={visibleJobs}>
                   {(job) => (
                     <Table.Row id={job.id}>
                       <Table.Cell>
-                        <div className="min-w-52">
+                        <div className="min-w-0">
                           <Button.Root
                             variant="ghost"
                             onPress={() => setViewingJob(job)}
                             aria-label={`View job posting details for ${job.title}`}
                             className="h-auto min-w-0 justify-start p-0 text-left font-semibold text-foreground hover:underline focus-visible:underline"
                           >
-                            {job.title}
+                            <span className="break-words">{job.title}</span>
                           </Button.Root>
-                          <p className="mt-0.5 text-xs text-muted">
+                          <p className="mt-0.5 break-words text-xs text-muted">
                             {job.department} · {job.jobType}
                           </p>
                         </div>
                       </Table.Cell>
                       <Table.Cell>
                         <span
-                          className="block min-w-40 max-w-64 whitespace-normal break-words"
+                          className="block whitespace-normal break-words"
                           title={job.campus.join(", ")}
                         >
                           {job.campus.join(", ")}
@@ -354,7 +357,9 @@ export function AdminJobList() {
                           onUnarchive={() => setUnarchiveJob(job)}
                         />
                         {job.status === "REJECTED" && job.rejectionReason ? (
-                          <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
+                          <p className="mt-1 whitespace-pre-wrap break-words text-xs text-muted">
+                            {job.rejectionReason}
+                          </p>
                         ) : null}
                       </Table.Cell>
                       <Table.Cell>

@@ -82,10 +82,12 @@ export function ApplyModal({
         <Modal.Body>
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+              <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
                 {job.jobType}
               </span>
-              <span className="text-sm text-muted">{job.department}</span>
+              <span className="min-w-0 break-words text-sm text-muted">
+                {job.department}
+              </span>
             </div>
 
             <MetaRow

@@ -58,8 +58,10 @@ export function UnarchiveJobModal({
         <Modal.Body>
           <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface-secondary p-4">
             <RotateCcwIcon className="mt-0.5 size-5 shrink-0 text-muted" />
-            <div>
-              <p className="text-sm font-medium text-foreground">{job.title}</p>
+            <div className="min-w-0">
+              <p className="break-words text-sm font-medium text-foreground">
+                {job.title}
+              </p>
               <p className="mt-1 text-sm text-muted">
                 This job posting&apos;s application deadline has passed. Select a new deadline to submit the unarchive request for approval.
               </p>
