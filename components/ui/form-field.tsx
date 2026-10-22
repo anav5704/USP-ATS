@@ -29,7 +29,7 @@ export function FormField({
         <p className="break-words text-xs text-muted">{hint}</p>
       ) : null}
       {error ? (
-        <p className="field-error break-words" data-visible aria-live="polite">
+        <p id={id ? `${id}-error` : undefined} className="field-error break-words" data-visible aria-live="polite">
           {error}
         </p>
       ) : null}

@@ -48,7 +48,7 @@ const certificate = (over: Record<string, unknown> = {}) => ({
 });
 
 const baseProfile = {
-  phone: "",
+  phone: "+6791234567",
   bio: "",
   campuses: ["Laucala Campus"],
   skills: ["Python"],
@@ -81,7 +81,7 @@ describe("Profile Management", () => {
     );
 
     const atMax: [string, unknown[], unknown, string][] = [
-      ["campuses", Array.from({ length: 20 }, (_, i) => `Campus ${i}`), "Campus 20", "Too many campuses"],
+      ["campuses", Array.from({ length: 20 }, () => "Laucala Campus"), "Lautoka Campus", "Too many campuses"],
       ["skills", Array.from({ length: 10 }, (_, i) => `Skill ${i}`), "Skill 10", "You can select up to 10 skills"],
       ["degrees", Array.from({ length: 20 }, () => degree()), degree(), "Too many degrees"],
     ];
@@ -123,16 +123,13 @@ describe("Profile Management", () => {
 
   test("TC-11", () => {
     expect(profileInputSchema.safeParse({ ...baseProfile, phone: "" }).success).toBe(true);
+    expect(profileInputSchema.parse({ ...baseProfile, phone: "+679" }).phone).toBe("");
+    expect(profileInputSchema.safeParse({ ...baseProfile, phone: "+6791" }).success).toBe(false);
+    expect(profileInputSchema.safeParse({ ...baseProfile, phone: "", campuses: [] }).success).toBe(false);
 
     const validPhones = [
-      "1234567",
-      "12345678901",
-      "+1234567",
-      "+12345678901",
-      "6791234",
-      "6791234567",
-      "+6791234",
       "+6791234567",
+      "+6790123456",
     ];
     for (const phone of validPhones) {
       expect(profileInputSchema.safeParse({ ...baseProfile, phone }).success, phone).toBe(true);
@@ -160,7 +157,7 @@ describe("Profile Management", () => {
       expect(profileInputSchema.safeParse({ ...baseProfile, phone }).success, phone).toBe(false);
     }
     expect(firstIssue(profileInputSchema.safeParse({ ...baseProfile, phone: "abc12345" }))).toBe(
-      "Phone number must contain 7 to 11 digits and may start with +."
+      "Your Fiji Campus/Centre requires a phone number starting with +679."
     );
 
     expect(profileInputSchema.safeParse({ ...baseProfile, bio: "" }).success).toBe(true);
