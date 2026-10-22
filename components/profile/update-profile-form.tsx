@@ -92,9 +92,8 @@ export function UpdateProfileForm({
               }
             }}
           >
-            <div className="sticky top-0 z-10 bg-background">
-              <Tabs.ListContainer className="rounded-field bg-background">
-                <Tabs.List className="w-full overflow-x-auto">
+            <Tabs.ListContainer className="sticky top-0 z-10 rounded-field bg-background">
+              <Tabs.List className="w-full overflow-x-auto">
                   {PROFILE_SECTIONS.map((section) => (
                     <Tabs.Tab
                       key={section.id}
@@ -106,8 +105,7 @@ export function UpdateProfileForm({
                     </Tabs.Tab>
                   ))}
                 </Tabs.List>
-              </Tabs.ListContainer>
-            </div>
+            </Tabs.ListContainer>
             {PROFILE_SECTIONS.map((section) => {
               const Fields = SECTION_COMPONENTS[section.id];
               return (

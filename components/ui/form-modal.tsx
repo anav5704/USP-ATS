@@ -25,15 +25,15 @@ export function FormModal({
     <Modal.Root isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container size={size ?? "lg"} scroll="inside" className="p-2 sm:p-4">
-          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] min-w-0 w-[calc(100vw-1rem)] max-w-2xl break-words sm:max-h-[calc(100dvh-2rem)]">
-            <Modal.Header className="gap-2 px-4 pt-4 sm:px-6 sm:pt-6">
+          <Modal.Dialog className="max-h-[calc(100dvh-1rem)] min-w-0 w-[calc(100vw-1rem)] max-w-2xl break-words pt-0 sm:max-h-[calc(100dvh-2rem)]">
+            <Modal.Header className="flex-row items-center justify-between gap-2 pt-4">
               <div className="flex min-w-0 items-center">
                 <Modal.Heading className="min-w-0 break-words text-xl font-semibold sm:text-2xl">
                   {title}
                 </Modal.Heading>
                 {info ? <InfoPopover {...info} /> : null}
               </div>
-              <Modal.CloseTrigger isDisabled={closeDisabled} />
+              <Modal.CloseTrigger isDisabled={closeDisabled} className="static" />
             </Modal.Header>
             {children}
           </Modal.Dialog>
