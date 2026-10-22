@@ -43,8 +43,8 @@ function SignInForm() {
 
   if (error) {
     return (
-      <div className="bg-primary-gradient flex flex-1 items-center justify-center p-6">
-        <main className="w-full max-w-sm rounded-2xl bg-surface p-8 text-center shadow-overlay">
+      <div className="bg-primary-gradient flex flex-1 items-center justify-center p-3 sm:p-6">
+        <main className="w-full max-w-sm rounded-2xl bg-surface p-5 text-center shadow-overlay sm:p-8">
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             Sign in failed
           </h1>

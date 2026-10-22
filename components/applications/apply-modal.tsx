@@ -68,6 +68,10 @@ export function ApplyModal({
         if (!open && !isPending) onOpenChange(open);
       }}
       title={job.title}
+      info={{
+        title: "How applying works",
+        body: "Submitting sends your profile snapshot and cover letter to the admins of this posting. The submitted snapshot is not updated when you later edit your profile.",
+      }}
       closeDisabled={isPending}
     >
       <form
@@ -78,10 +82,12 @@ export function ApplyModal({
         <Modal.Body>
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+              <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
                 {job.jobType}
               </span>
-              <span className="text-sm text-muted">{job.department}</span>
+              <span className="min-w-0 break-words text-sm text-muted">
+                {job.department}
+              </span>
             </div>
 
             <MetaRow
@@ -113,20 +119,20 @@ export function ApplyModal({
           </div>
         </Modal.Body>
         <Modal.Footer>
-          <div className="flex w-full justify-end gap-3">
+          <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button.Root
               type="button"
               variant="ghost"
               isDisabled={isPending}
               onPress={() => onOpenChange(false)}
-              className="rounded-field text-muted"
+              className="w-full rounded-field text-muted sm:w-auto"
             >
               Cancel
             </Button.Root>
             <Button.Root
               type="submit"
               isDisabled={isPending}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />

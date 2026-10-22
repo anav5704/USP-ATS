@@ -40,6 +40,10 @@ export function EditJobModal({
         if (!open && !isSaving) onOpenChange(open);
       }}
       title="Modify job posting"
+      info={{
+        title: "Approval required",
+        body: "Saving sends your changes to the approvals queue; the posting stays visible as-is until a second admin approves them.",
+      }}
       size="lg"
       closeDisabled={isSaving}
     >

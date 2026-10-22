@@ -5,6 +5,7 @@ import {
   AwardIcon,
   CalendarDaysIcon,
   CircleAlertIcon,
+  CircleCheckIcon,
   ExternalLinkIcon,
   FileTextIcon,
   GraduationCapIcon,
@@ -12,6 +13,8 @@ import {
   MailIcon,
   MapPinIcon,
   PhoneIcon,
+  SparklesIcon,
+  TriangleAlertIcon,
   UserRoundIcon,
   WrenchIcon,
 } from "lucide-react";
@@ -54,6 +57,10 @@ export function ApplicantDetailsModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="Applicant Details"
+      info={{
+        title: "Point-in-time snapshot",
+        body: "Profile, application and AI assessment are exactly as captured when the student applied. The AI verdict is never recalculated after later profile edits.",
+      }}
       size="lg"
     >
       <Modal.Body>
@@ -67,7 +74,7 @@ export function ApplicantDetailsModal({
                       {application.applicant.name}
                     </h3>
                   </div>
-                  <p className="mt-1 text-sm text-muted">
+                  <p className="mt-1 break-words text-sm text-muted">
                     Application for {job.title}
                   </p>
                 </div>
@@ -86,11 +93,13 @@ export function ApplicantDetailsModal({
                     Applied {dateFormatter.format(new Date(application.createdAt))}
                   </span>
                 </span>
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-start gap-2">
                   <MapPinIcon className="size-4 shrink-0" />
-                  {profile?.campuses.length
-                    ? profile.campuses.join(", ")
-                    : "Campus/Centre not provided"}
+                  <span className="min-w-0 break-words">
+                    {profile?.campuses.length
+                      ? profile.campuses.join(", ")
+                      : "Campus/Centre not provided"}
+                  </span>
                 </span>
                 <span className="flex items-center gap-2">
                   <PhoneIcon className="size-4 shrink-0" />
@@ -116,7 +125,7 @@ export function ApplicantDetailsModal({
                     <h4 className="flex items-center gap-2 font-semibold text-foreground">
                       <UserRoundIcon className="size-4" /> General
                     </h4>
-                    <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">
+                    <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-muted">
                       {profile.bio}
                     </p>
                   </section>
@@ -134,8 +143,8 @@ export function ApplicantDetailsModal({
                           className="rounded-2xl border border-border p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium text-foreground">
+                            <div className="min-w-0">
+                              <p className="break-words font-medium text-foreground">
                                 {degree.name}
                               </p>
                               <p className="text-sm text-muted">
@@ -155,7 +164,7 @@ export function ApplicantDetailsModal({
                               <ExternalLinkIcon className="size-3" />
                             </a>
                           </div>
-                          <p className="mt-2 text-xs text-muted">
+                          <p className="mt-2 break-all text-xs text-muted">
                             {degree.document.name} ({fileSizeLabel(degree.document.size)})
                           </p>
                         </div>
@@ -198,8 +207,8 @@ export function ApplicantDetailsModal({
                           className="rounded-2xl border border-border p-4"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium text-foreground">
+                            <div className="min-w-0">
+                              <p className="break-words font-medium text-foreground">
                                 {certificate.label}
                               </p>
                               <p className="text-sm text-muted">
@@ -217,7 +226,7 @@ export function ApplicantDetailsModal({
                             </a>
                           </div>
                           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                            <span>{certificate.file.name}</span>
+                            <span className="break-all">{certificate.file.name}</span>
                             <span>
                               Uploaded {dateFormatter.format(new Date(certificate.uploadedAt))}
                             </span>
@@ -255,10 +264,10 @@ export function ApplicantDetailsModal({
                           href={link.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                          className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
                         >
-                          {link.platform}
-                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                          <span className="min-w-0 break-words">{link.platform}</span>
+                          <ExternalLinkIcon className="size-3.5 shrink-0 text-muted" />
                         </a>
                       ))}
                       {profile.profileLinks.map((link, index) => (
@@ -267,10 +276,10 @@ export function ApplicantDetailsModal({
                           href={link.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
+                          className="flex min-w-0 items-center justify-between gap-2 rounded-2xl border border-border px-4 py-3 text-sm text-foreground transition-colors hover:bg-surface-secondary"
                         >
-                          {link.title}
-                          <ExternalLinkIcon className="size-3.5 text-muted" />
+                          <span className="min-w-0 break-words">{link.title}</span>
+                          <ExternalLinkIcon className="size-3.5 shrink-0 text-muted" />
                         </a>
                       ))}
                     </div>
@@ -286,15 +295,72 @@ export function ApplicantDetailsModal({
                 <FileTextIcon className="size-4" /> Cover Letter
               </h4>
               <div className="mt-3 rounded-2xl border border-dashed border-border bg-surface px-4 py-4">
-                <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                   {application.coverLetter}
                 </p>
               </div>
             </section>
+
+            {application.score?.status === "COMPLETE" ? (
+              <section>
+                <h4 className="flex items-center gap-2 font-semibold text-foreground">
+                  <SparklesIcon className="size-4" /> AI Assessment
+                </h4>
+                <div className="mt-3 space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    {application.score.eligible ? (
+                      <CircleCheckIcon className="size-4 text-success" />
+                    ) : (
+                      <TriangleAlertIcon className="size-4 text-danger" />
+                    )}
+                    <span className="font-medium text-foreground">
+                      {application.score.eligible
+                        ? "Meets the stated requirements"
+                        : "Does not meet the stated requirements"}
+                    </span>
+                  </div>
+
+                  {application.score.qualificationFit ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Qualification fit
+                      </p>
+                      <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
+                        {application.score.qualificationFit}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {application.score.motivationFit ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Motivation fit
+                      </p>
+                      <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
+                        {application.score.motivationFit}
+                      </p>
+                    </div>
+                  ) : null}
+
+                  {application.score.missingRequirements.length > 0 ? (
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                        Missing requirements
+                      </p>
+                      <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-foreground">
+                        {application.score.missingRequirements.map((requirement) => (
+                          <li key={requirement}>{requirement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <Button.Root variant="ghost" onPress={() => onOpenChange(false)}>
+        <Button.Root variant="ghost" onPress={() => onOpenChange(false)} className="w-full sm:w-auto">
           Close
         </Button.Root>
       </Modal.Footer>

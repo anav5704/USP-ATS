@@ -42,6 +42,7 @@ export function UpdateProfileForm({
 }) {
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileInputSchema),
+    mode: "onChange",
     defaultValues: initialData,
   });
   const { isPending, saveAsync } = useProfileSave("update");
@@ -91,20 +92,22 @@ export function UpdateProfileForm({
               }
             }}
           >
-            <Tabs.ListContainer className="sticky top-0 z-10 rounded-field bg-background">
-              <Tabs.List className="w-full">
-                {PROFILE_SECTIONS.map((section) => (
-                  <Tabs.Tab
-                    key={section.id}
-                    id={section.id}
-                    className="gap-2 rounded-field data-selected:bg-surface data-selected:text-foreground"
-                  >
-                    <section.icon className="size-4 shrink-0" />
-                    {section.shortLabel}
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
-            </Tabs.ListContainer>
+            <div className="sticky top-0 z-10 bg-background">
+              <Tabs.ListContainer className="rounded-field bg-background">
+                <Tabs.List className="w-full overflow-x-auto">
+                  {PROFILE_SECTIONS.map((section) => (
+                    <Tabs.Tab
+                      key={section.id}
+                      id={section.id}
+                      className="gap-2 rounded-field data-selected:bg-surface data-selected:text-foreground"
+                    >
+                      <section.icon className="size-4 shrink-0" />
+                      {section.shortLabel}
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
+              </Tabs.ListContainer>
+            </div>
             {PROFILE_SECTIONS.map((section) => {
               const Fields = SECTION_COMPONENTS[section.id];
               return (
@@ -125,7 +128,7 @@ export function UpdateProfileForm({
               type="button"
               isDisabled={isPending}
               onPress={() => void handleSaveClick()}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background transition-colors hover:opacity-90 sm:w-auto"
             >
               {isPending ? (
                 <LoaderCircleIcon className="size-4 animate-spin" />

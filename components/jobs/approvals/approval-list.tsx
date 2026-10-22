@@ -14,6 +14,7 @@ import {
   EMPTY_APPROVAL_FILTERS,
   type ApprovalFilters,
 } from "@/components/jobs/approvals/approval-filter-popover";
+import { ApprovalCard } from "@/components/jobs/approvals/approval-card";
 import { ApprovalReviewModal } from "@/components/jobs/approvals/approval-review-modal";
 import { ApprovalStatusBadge } from "@/components/jobs/approvals/approval-status-badge";
 import { useApprovals } from "@/components/jobs/approvals/use-approvals";
@@ -90,43 +91,75 @@ function ApprovalTable({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-        <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-          <Table.Content aria-label={title}>
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="space-y-3 xl:hidden">
+        {jobs.map((job) => (
+          <ApprovalCard
+            key={job.approvalId}
+            job={job}
+            mine={mine}
+            payLabel={payFormatter.format(job.hourlyPay)}
+            requestedOn={requestDateFormatter.format(new Date(job.requestedAt))}
+            onReview={() => onReview(job)}
+          />
+        ))}
+        <div className="rounded-2xl border border-border bg-surface p-3">
+          <TablePagination
+            page={page}
+            total={total}
+            pageSize={pageSize}
+            onChange={onPageChange}
+          />
+        </div>
+      </div>
+
+      <Table.Root className="hidden min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border bg-surface xl:flex">
+        <Table.ScrollContainer className="min-h-0 min-w-0 flex-1 overflow-auto">
+          <Table.Content
+            aria-label={title}
+            className="w-full min-w-[60rem] table-fixed"
+          >
             <Table.Header className="sticky top-0 z-10">
-              <Table.Column isRowHeader>Job Title</Table.Column>
-              <Table.Column>Job Type</Table.Column>
-              <Table.Column>Campus/Centre</Table.Column>
-              <Table.Column>Hourly Pay</Table.Column>
-              <Table.Column>Requested By</Table.Column>
-              <Table.Column>Date Requested</Table.Column>
-              <Table.Column>Actions</Table.Column>
-              <Table.Column>Status / Review</Table.Column>
+              <Table.Column isRowHeader className="w-[18%]">Job Title</Table.Column>
+              <Table.Column className="w-[10%]">Job Type</Table.Column>
+              <Table.Column className="w-[16%]">Campus/Centre</Table.Column>
+              <Table.Column className="w-[9%]">Hourly Pay</Table.Column>
+              <Table.Column className="w-[13%]">Requested By</Table.Column>
+              <Table.Column className="w-[11%]">Date Requested</Table.Column>
+              <Table.Column className="w-[10%]">Actions</Table.Column>
+              <Table.Column className="w-[13%]">Status / Review</Table.Column>
             </Table.Header>
             <Table.Body items={jobs}>
               {(job) => (
                 <Table.Row id={job.approvalId}>
                   <Table.Cell>
-                    <p className="font-medium text-foreground">
+                    <p className="break-words font-medium text-foreground">
                       {job.title}
                     </p>
-                    <p className="text-xs text-muted">
+                    <p className="break-words text-xs text-muted">
                       {job.department}
                     </p>
                     <p className="mt-1 text-xs font-medium text-muted">
                       {job.requestType === "MODIFICATION"
                         ? "Modification"
-                        : "New posting"}
+                        : job.requestType === "UNARCHIVE"
+                          ? "Unarchive"
+                          : "New posting"}
                     </p>
                   </Table.Cell>
-                  <Table.Cell>{job.jobType}</Table.Cell>
-                  <Table.Cell>{job.campus.join(", ")}</Table.Cell>
+                  <Table.Cell>
+                    <span className="break-words">{job.jobType}</span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="break-words">{job.campus.join(", ")}</span>
+                  </Table.Cell>
                   <Table.Cell>
                     {payFormatter.format(job.hourlyPay)}
                   </Table.Cell>
                   <Table.Cell>
-                    {(job.requestedBy ?? job.createdBy).name}
+                    <span className="break-words">
+                      {(job.requestedBy ?? job.createdBy).name}
+                    </span>
                   </Table.Cell>
                   <Table.Cell>
                     {requestDateFormatter.format(
@@ -149,11 +182,11 @@ function ApprovalTable({
                   </Table.Cell>
                   <Table.Cell>
                     <ApprovalStatusBadge job={job} />
-                    <p className="mt-1 text-xs text-muted">
+                    <p className="mt-1 break-words text-xs text-muted">
                       {(job.approvedBy ?? job.rejectedBy)?.name}
                     </p>
                     {job.rejectionReason ? (
-                      <p className="mt-1 whitespace-pre-wrap text-xs text-muted">
+                      <p className="mt-1 whitespace-pre-wrap break-words text-xs text-muted">
                         {job.rejectionReason}
                       </p>
                     ) : null}
@@ -228,7 +261,9 @@ export function ApprovalList() {
           label:
             filters.requestType === "MODIFICATION"
               ? "Modification"
-              : "New Posting",
+              : filters.requestType === "UNARCHIVE"
+                ? "Unarchive"
+                : "New Posting",
           remove: () => removeFilter("requestType"),
         }
       : null,
@@ -256,7 +291,7 @@ export function ApprovalList() {
   ].filter((filter): filter is NonNullable<typeof filter> => filter !== null);
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       {isPending ? (
         <div className="flex min-h-72 flex-1 items-center justify-center rounded-2xl border border-border bg-surface">
           <Spinner.Root size="lg" className="text-foreground" />
@@ -278,7 +313,7 @@ export function ApprovalList() {
             setTab(String(key) as ApprovalTab);
             setPage(1);
           }}
-          className="flex min-h-0 flex-1 flex-col gap-3"
+          className="flex min-h-0 min-w-0 flex-1 flex-col gap-3"
         >
           <div className="shrink-0 space-y-3 rounded-2xl border border-border bg-surface p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -333,7 +368,7 @@ export function ApprovalList() {
               </div>
             ) : null}
 
-            <Tabs.List aria-label="Approval request groups">
+            <Tabs.List aria-label="Approval request groups" className="w-full overflow-x-auto">
               <Tabs.Tab
                 id="mine"
                 className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"

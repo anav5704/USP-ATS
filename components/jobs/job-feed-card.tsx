@@ -5,6 +5,7 @@ import { Card } from "@heroui/react";
 import {
   BanknoteIcon,
   CalendarDaysIcon,
+  CheckIcon,
   ClockIcon,
   MapPinIcon,
 } from "lucide-react";
@@ -34,15 +35,15 @@ type MetaItem = {
 
 export function MetaRow({ items }: { items: MetaItem[] }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
       {items.map(({ icon: Icon, label, title }, index) => (
         <span
           key={index}
           title={title}
-          className="flex items-center gap-2 text-sm text-muted"
+          className="flex min-w-0 items-start gap-2 text-sm text-muted"
         >
           <Icon className="size-4 shrink-0 text-muted" />
-          {label}
+          <span className="min-w-0 break-words">{label}</span>
         </span>
       ))}
     </div>
@@ -57,7 +58,7 @@ export function RequirementChips({ items }: { items: string[] }) {
       {items.map((item, index) => (
         <span
           key={`${item}-${index}`}
-          className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground"
+          className="max-w-full break-words rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground"
         >
           {item}
         </span>
@@ -68,9 +69,11 @@ export function RequirementChips({ items }: { items: string[] }) {
 
 export function JobFeedCard({
   job,
+  hasApplied,
   onPress,
 }: {
   job: StudentJobListItem;
+  hasApplied: boolean;
   onPress?: () => void;
 }) {
   const deadline = dateFormatter.format(new Date(job.deadline));
@@ -125,17 +128,25 @@ export function JobFeedCard({
           onPress();
         }
       }}
-      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:p-5"
     >
       <div className="flex h-full flex-col gap-3">
         <div>
-          <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
-            {job.jobType}
-          </span>
-          <h2 className="mt-2 text-xl font-semibold text-foreground">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+            <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+              {job.jobType}
+            </span>
+            {hasApplied ? (
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-success-soft px-2.5 py-1 text-xs font-medium text-success-soft-foreground">
+                <CheckIcon className="size-3.5" />
+                Applied
+              </span>
+            ) : null}
+          </div>
+          <h2 className="mt-2 break-words text-lg font-semibold text-foreground sm:text-xl">
             {job.title}
           </h2>
-          <p className="mt-0.5 text-sm text-muted">{job.department}</p>
+          <p className="mt-0.5 break-words text-sm text-muted">{job.department}</p>
         </div>
 
         <p className="line-clamp-2 text-sm leading-relaxed text-muted">

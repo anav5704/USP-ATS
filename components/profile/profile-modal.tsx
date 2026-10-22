@@ -56,6 +56,14 @@ export function ProfileModal({
       isOpen={isOpen}
       onOpenChange={onOpenChange}
       title="My Profile"
+      info={
+        isAdmin
+          ? undefined
+          : {
+              title: "Who sees this?",
+              body: "Profile changes only affect future applications. Applications already submitted keep the snapshot they were evaluated with.",
+            }
+      }
       closeDisabled={savePending}
     >
       {isAdmin ? (

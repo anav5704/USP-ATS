@@ -327,7 +327,7 @@ export function JobForm({
           <Button.Root
             type="submit"
             isDisabled={isPending}
-            className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
           >
             {isPending ? (
               <LoaderCircleIcon className="size-4 animate-spin" />

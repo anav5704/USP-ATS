@@ -20,6 +20,7 @@ export function DatePickerField({
   onChange,
   error,
   minValue,
+  fieldClassName,
 }: {
   label: string;
   id?: string;
@@ -27,9 +28,10 @@ export function DatePickerField({
   onChange: (value: string) => void;
   error?: string;
   minValue?: CalendarDate;
+  fieldClassName?: string;
 }) {
   return (
-    <FormField label={label} id={id} error={error}>
+    <FormField label={label} id={id} error={error} className={fieldClassName}>
       <DatePicker
         aria-label={label}
         className="w-full"
@@ -47,7 +49,7 @@ export function DatePickerField({
             </DatePicker.Trigger>
           </DateField.Suffix>
         </DateField.Group>
-        <DatePicker.Popover>
+        <DatePicker.Popover className="max-w-[calc(100vw-1rem)] overflow-x-auto">
           <Calendar aria-label={`Choose ${label.toLowerCase()}`} minValue={minValue}>
             <Calendar.Header>
               <Calendar.NavButton slot="previous" />

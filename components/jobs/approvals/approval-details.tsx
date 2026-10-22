@@ -66,19 +66,25 @@ export function ApprovalDetails({ job }: { job: ApprovalJob }) {
         <span className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs font-medium text-foreground">
           {job.requestType === "MODIFICATION"
             ? "Modification request"
-            : "New job request"}
+            : job.requestType === "UNARCHIVE"
+              ? "Unarchive request"
+              : "New job request"}
         </span>
       </div>
 
-      {job.requestType === "MODIFICATION" ? (
+      {job.requestType !== "NEW_JOB" ? (
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface-secondary p-4">
           <RefreshCwIcon className="mt-0.5 size-4 shrink-0 text-muted" />
           <div>
             <p className="text-sm font-medium text-foreground">
-              Proposed changes to an existing posting
+              {job.requestType === "UNARCHIVE"
+                ? "Reopen this archived posting"
+                : "Proposed changes to an existing posting"}
             </p>
             <p className="mt-1 text-sm text-muted">
-              Changed fields show the currently approved value for comparison.
+              {job.requestType === "UNARCHIVE"
+                ? "Approval applies the proposed deadline and reactivates the same posting."
+                : "Changed fields show the currently approved value for comparison."}
             </p>
           </div>
         </div>
@@ -110,12 +116,12 @@ export function ApprovalDetails({ job }: { job: ApprovalJob }) {
       })}
 
       <FormField label="Created by">
-        <p className="text-sm text-muted">
+        <p className="break-words text-sm text-muted">
           {job.createdBy.name} ({job.createdBy.email})
         </p>
       </FormField>
       <FormField label="Requested by">
-        <p className="text-sm text-muted">
+        <p className="break-words text-sm text-muted">
           {(job.requestedBy ?? job.createdBy).name} ({
             (job.requestedBy ?? job.createdBy).email
           })
@@ -139,7 +145,7 @@ export function ApprovalDetails({ job }: { job: ApprovalJob }) {
         </p>
       </FormField>
       <FormField label="Rejection reason">
-        <p className="whitespace-pre-wrap text-sm text-muted">
+        <p className="whitespace-pre-wrap break-words text-sm text-muted">
           {job.rejectionReason || "None"}
         </p>
       </FormField>

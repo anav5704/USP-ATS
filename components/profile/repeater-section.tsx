@@ -22,11 +22,11 @@ export function RepeaterSection({
 }) {
   return (
     <section
-      className={`flex flex-col rounded-2xl border border-border bg-surface p-5 ${
+      className={`flex flex-col rounded-2xl border border-border bg-surface p-4 sm:p-5 ${
         fill ? "min-h-0 flex-1" : fixed ? "h-[60vh]" : "max-h-[60vh]"
       }`}
     >
-      <div className="mb-4 flex shrink-0 items-start justify-between gap-4">
+      <div className="mb-4 flex shrink-0 flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="flex items-center gap-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-secondary text-foreground">
             <Icon className="size-5" />
@@ -40,7 +40,7 @@ export function RepeaterSection({
           size="sm"
           variant="ghost"
           onPress={onAdd}
-          className="shrink-0 text-muted"
+          className="w-full shrink-0 text-muted sm:w-auto"
         >
           <PlusIcon className="size-4" />
           {addLabel}

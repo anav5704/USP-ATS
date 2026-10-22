@@ -1,3 +1,4 @@
+import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
 import type {
   ProfileInput,
   FileRef,
@@ -106,7 +107,7 @@ export function toProfileInput(profile: ProfileModel): ProfileInput {
   return {
     phone: profile.phone ?? "",
     bio: profile.bio ?? "",
-    campuses: profile.campuses,
+    campuses: profile.campuses.map(normalizeCampusCentre),
     skills: profile.skills ?? [],
     degrees: profile.degrees.map((degree) => ({
       name: degree.name,

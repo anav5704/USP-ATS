@@ -12,6 +12,7 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { ApplicantDetailsModal } from "@/components/applications/applicant-details-modal";
+import { AdminApplicantCard } from "@/components/applications/admin-applicant-card";
 import { AdminApplicantsSkeleton } from "@/components/applications/admin-applicants-skeleton";
 import { ApplicationScoreCell } from "@/components/applications/application-score-cell";
 import {
@@ -93,7 +94,7 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
   if (isPending) return <AdminApplicantsSkeleton />;
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
         <div className="shrink-0 rounded-2xl border border-border bg-surface p-4">
           <Link
@@ -104,15 +105,15 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             Return to Job Postings
           </Link>
           <div className="mt-4">
-            <h1 className="text-2xl font-semibold text-foreground">
+            <h1 className="text-xl font-semibold text-foreground sm:text-2xl">
               Applicants
             </h1>
             {job ? (
               <>
-                <h2 className="mt-2 text-lg font-semibold text-foreground">
+                <h2 className="mt-2 break-words text-lg font-semibold text-foreground">
                   {job.title}
                 </h2>
-                <p className="mt-1 text-sm text-muted">
+                <p className="mt-1 break-words text-sm text-muted">
                   {job.department} · {job.campus.join(", ")}
                 </p>
               </>
@@ -142,16 +143,47 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
             </p>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-              <Table.Content aria-label={`Applicants for ${job?.title ?? "job"}`}>
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="space-y-3 xl:hidden">
+              {applications.map((application) => (
+                <AdminApplicantCard
+                  key={application.id}
+                  application={application}
+                  appliedOn={dateFormatter.format(new Date(application.createdAt))}
+                  isUpdating={updateStatus.isPending}
+                  isRescoring={
+                    rescore.isPending && rescore.variables === application.id
+                  }
+                  onOpen={() => openApplicant(application.id)}
+                  onPrefetch={() => prefetchApplicant(application.id)}
+                  onRescore={() => rescore.mutate(application.id)}
+                  onStatusChange={(target) =>
+                    setPendingChange({ application, target })
+                  }
+                />
+              ))}
+              <div className="rounded-2xl border border-border bg-surface p-3">
+                <TablePagination
+                  page={data.page}
+                  total={data.total}
+                  pageSize={data.pageSize}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+
+            <Table.Root className="hidden min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border bg-surface xl:flex">
+            <Table.ScrollContainer className="min-h-0 min-w-0 flex-1 overflow-auto">
+              <Table.Content
+                aria-label={`Applicants for ${job?.title ?? "job"}`}
+                className="w-full min-w-[52rem] table-fixed"
+              >
                 <Table.Header className="sticky top-0 z-10">
-                  <Table.Column isRowHeader>Applicant</Table.Column>
-                  <Table.Column>Campus/Centre</Table.Column>
-                  <Table.Column>Applied On</Table.Column>
-                  <Table.Column>AI Score</Table.Column>
-                  <Table.Column>Status</Table.Column>
+                  <Table.Column isRowHeader className="w-[24%]">Applicant</Table.Column>
+                  <Table.Column className="w-[28%]">Campus/Centre</Table.Column>
+                  <Table.Column className="w-[16%]">Applied On</Table.Column>
+                  <Table.Column className="w-[14%]">AI Score</Table.Column>
+                  <Table.Column className="w-[18%]">Status</Table.Column>
                 </Table.Header>
                 <Table.Body items={applications}>
                   {(application) => (
@@ -163,14 +195,16 @@ export function AdminApplicantsPage({ jobId }: { jobId: string }) {
                       onHoverStart={() => prefetchApplicant(application.id)}
                     >
                       <Table.Cell>
-                        <span className="font-medium text-foreground">
+                        <span className="break-words font-medium text-foreground">
                           {application.applicant.name}
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        {application.applicant.campuses.length
-                          ? application.applicant.campuses.join(", ")
-                          : "Not provided"}
+                        <span className="break-words">
+                          {application.applicant.campuses.length
+                            ? application.applicant.campuses.join(", ")
+                            : "Not provided"}
+                        </span>
                       </Table.Cell>
                       <Table.Cell>
                         {dateFormatter.format(new Date(application.createdAt))}

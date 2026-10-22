@@ -34,15 +34,15 @@ export function ApplicationCard({
           onPress();
         }
       }}
-      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+      className="h-full cursor-pointer rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 sm:p-5"
     >
       <div className="flex h-full flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="break-words text-lg font-semibold text-foreground">
               {application.job.title}
             </h2>
-            <p className="mt-0.5 text-sm text-muted">{application.job.department}</p>
+            <p className="mt-0.5 break-words text-sm text-muted">{application.job.department}</p>
           </div>
           <ApplicationStatusBadge status={application.status} />
         </div>

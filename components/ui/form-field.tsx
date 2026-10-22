@@ -6,28 +6,30 @@ export function FormField({
   id,
   error,
   hint,
+  className = "space-y-1.5",
   children,
 }: {
   label: string;
   id?: string;
   error?: string;
   hint?: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className={`${className} min-w-0`}>
       <Label
         htmlFor={id}
-        className="text-sm font-medium text-foreground"
+        className="break-words text-sm font-medium text-foreground"
       >
         {label}
       </Label>
       {children}
       {hint && !error ? (
-        <p className="text-xs text-muted">{hint}</p>
+        <p className="break-words text-xs text-muted">{hint}</p>
       ) : null}
       {error ? (
-        <p className="field-error" data-visible aria-live="polite">
+        <p id={id ? `${id}-error` : undefined} className="field-error break-words" data-visible aria-live="polite">
           {error}
         </p>
       ) : null}

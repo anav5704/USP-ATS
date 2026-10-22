@@ -40,9 +40,9 @@ function Fact({
   title?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-start gap-2">
       <Icon className="size-4 shrink-0 text-muted" />
-      <span className="text-sm text-muted" title={title}>
+      <span className="min-w-0 break-words text-sm text-muted" title={title}>
         {label}
       </span>
     </div>
@@ -73,17 +73,23 @@ export function JobDetailModal({
       onOpenChange={onOpenChange}
       title={job.title}
       size="lg"
+      info={{
+        title: "About requirements",
+        body: "Requirements listed here are matched against applicant profiles by AI scoring. Applications are accepted until the deadline passes.",
+      }}
     >
       <Modal.Body>
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+            <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
               {job.jobType}
             </span>
-            <span className="text-sm text-muted">{job.department}</span>
+            <span className="min-w-0 break-words text-sm text-muted">
+              {job.department}
+            </span>
           </div>
 
-          <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
+          <p className="whitespace-pre-line break-words text-sm leading-relaxed text-muted">
             {job.description}
           </p>
 
@@ -144,18 +150,18 @@ export function JobDetailModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full justify-end gap-3">
+        <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button.Root
             variant="ghost"
             onPress={() => onOpenChange(false)}
-            className="rounded-field text-muted"
+            className="w-full rounded-field text-muted sm:w-auto"
           >
             Close
           </Button.Root>
           {readOnly ? null : hasApplied ? (
             <Button.Root
               isDisabled
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background sm:w-auto"
             >
               <CheckIcon className="size-4" />
               Applied
@@ -163,7 +169,7 @@ export function JobDetailModal({
           ) : (
             <Button.Root
               onPress={onApply}
-              className="rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+              className="w-full rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
             >
               <SendIcon className="size-4" />
               Apply Now

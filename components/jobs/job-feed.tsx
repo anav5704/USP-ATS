@@ -15,6 +15,7 @@ import { JobDetailModal } from "@/components/jobs/job-detail-modal";
 import { ApplyModal } from "@/components/applications/apply-modal";
 import { useInfiniteScroll } from "@/components/ui/use-infinite-scroll";
 import { InfiniteScrollLoader } from "@/components/ui/infinite-scroll-loader";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import type { FeedGroup } from "@/lib/jobs/job-list-queries";
 import type { StudentJobListItem } from "@/lib/jobs/job-schema";
 import {
@@ -110,7 +111,7 @@ export function JobFeed() {
   };
 
   return (
-    <div className="p-3">
+    <div className="p-2 sm:p-3">
       <div className="mx-auto max-w-none">
         {isPending ? (
           <div className="flex min-h-72 items-center justify-center rounded-2xl border border-border bg-surface">
@@ -133,46 +134,53 @@ export function JobFeed() {
             onSelectionChange={(key) => setTab(String(key) as FeedGroup)}
             className="gap-3"
           >
-            <div className="sticky top-3 z-10 space-y-3 rounded-2xl border border-border bg-surface p-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <SearchField
-                    fullWidth
-                    value={search}
-                    onChange={setSearch}
-                    aria-label="Search jobs"
+            <div className="sticky top-0 z-10 -my-2 bg-app-canvas py-2 sm:-my-3 sm:py-3">
+              <div className="space-y-3 rounded-2xl border border-border bg-surface p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <SearchField
+                      fullWidth
+                      value={search}
+                      onChange={setSearch}
+                      aria-label="Search jobs"
+                    >
+                      <SearchField.Group className="border-border">
+                        <SearchField.SearchIcon />
+                        <SearchField.Input placeholder="Search by title or description" />
+                        <SearchField.ClearButton />
+                      </SearchField.Group>
+                    </SearchField>
+                  </div>
+                  <IconTooltip
+                    label="Filter by campus, job type, GPA, degree or skills"
+                    className="w-full sm:w-auto"
                   >
-                    <SearchField.Group className="border-border">
-                      <SearchField.SearchIcon />
-                      <SearchField.Input placeholder="Search by title or description" />
-                      <SearchField.ClearButton />
-                    </SearchField.Group>
-                  </SearchField>
+                    <Button.Root
+                      onPress={() => setFiltersOpen(true)}
+                      className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
+                    >
+                      <SlidersHorizontalIcon className="size-4" />
+                      Filters
+                      {activeFilterCount > 0 ? (
+                        <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                          {activeFilterCount}
+                        </span>
+                      ) : null}
+                    </Button.Root>
+                  </IconTooltip>
                 </div>
-                <Button.Root
-                  onPress={() => setFiltersOpen(true)}
-                  className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
-                >
-                  <SlidersHorizontalIcon className="size-4" />
-                  Filters
-                  {activeFilterCount > 0 ? (
-                    <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                      {activeFilterCount}
-                    </span>
-                  ) : null}
-                </Button.Root>
+                <Tabs.List aria-label="Job groups" className="w-full overflow-x-auto">
+                  {TABS.map((entry) => (
+                    <Tabs.Tab
+                      key={entry.id}
+                      id={entry.id}
+                      className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"
+                    >
+                      {entry.label} ({totals[entry.id]})
+                    </Tabs.Tab>
+                  ))}
+                </Tabs.List>
               </div>
-              <Tabs.List aria-label="Job groups">
-                {TABS.map((entry) => (
-                  <Tabs.Tab
-                    key={entry.id}
-                    id={entry.id}
-                    className="whitespace-nowrap rounded-field px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground data-[selected=true]:bg-foreground data-[selected=true]:text-background"
-                  >
-                    {entry.label} ({totals[entry.id]})
-                  </Tabs.Tab>
-                ))}
-              </Tabs.List>
             </div>
             {TABS.map((entry) => (
               <Tabs.Panel key={entry.id} id={entry.id} className="mt-0 p-0">
@@ -204,11 +212,12 @@ export function JobFeed() {
                   </div>
                 ) : entry.id === tab ? (
                   <div>
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
                       {jobs.map((job) => (
                         <JobFeedCard
                           key={job.id}
                           job={job}
+                          hasApplied={appliedJobIds.has(job.id)}
                           onPress={() => setSelectedJob(job)}
                         />
                       ))}

@@ -4,20 +4,22 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Button, Drawer } from "@heroui/react";
 import {
-  BellIcon,
-  BookmarkIcon,
   BriefcaseIcon,
+  CircleHelpIcon,
   ClipboardListIcon,
   ClipboardCheckIcon,
-  FileTextIcon,
-  HelpCircleIcon,
   LogOutIcon,
+  MenuIcon,
   UserRoundIcon,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useSessionContext } from "@/lib/use-auth";
 import { ProfileModal } from "@/components/profile/profile-modal";
+import { DisplayControl } from "@/components/theme/display-control";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
+import { useMediaQuery } from "@/components/ui/use-media-query";
 
 type LucideIcon = React.ComponentType<{ className?: string }>;
 
@@ -45,16 +47,6 @@ const studentNav: NavItem[] = [
     icon: ClipboardListIcon,
     isActive: (p) => p.startsWith("/applications"),
   },
-  {
-    key: "saved",
-    label: "Saved Jobs",
-    icon: BookmarkIcon,
-  },
-  {
-    key: "notifications",
-    label: "Notifications",
-    icon: BellIcon,
-  },
 ];
 
 const adminNav: NavItem[] = [
@@ -72,11 +64,6 @@ const adminNav: NavItem[] = [
     icon: ClipboardCheckIcon,
     isActive: (p) => p === "/approvals",
   },
-  {
-    key: "reports",
-    label: "Reports",
-    icon: FileTextIcon,
-  },
 ];
 
 export function AppSidebar() {
@@ -84,97 +71,168 @@ export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const user = session?.user;
   const role = user?.role;
   const nav = role === "admin" ? adminNav : studentNav;
+  const isLabelVisible = useMediaQuery("(min-width: 1280px)");
 
   const handleSignOut = async () => {
     await authClient.signOut();
     router.push("/sign-in");
   };
 
-  const renderItem = ({ href, onClick, label, icon: Icon, isActive }: NavItem) => {
+  const renderItem = (
+    { href, onClick, label, icon: Icon, isActive }: NavItem,
+    expanded = false,
+    onNavigate?: () => void
+  ) => {
     const active = isActive?.(pathname) ?? false;
-    const itemClass = `group relative flex w-full cursor-pointer items-center justify-center gap-3 py-2 text-sm font-medium text-white transition-opacity lg:justify-start lg:pl-5 lg:pr-3 ${
-      active ? "opacity-100" : "opacity-60 hover:opacity-100"
+    const itemClass = `group relative flex w-full cursor-pointer items-center gap-3 py-2 text-sm font-medium text-sidebar-foreground transition-opacity ${
+      expanded ? "min-h-11 justify-start px-5" : "justify-center xl:justify-start xl:pl-5 xl:pr-3"
+    } ${
+      active ? "opacity-100" : "opacity-[var(--sidebar-inactive-opacity)] hover:opacity-100"
     }`;
 
     const content = (
       <span className="contents">
         <span
-          className={`absolute -left-1 hidden h-6 w-2 rounded-full bg-white transition-transform lg:block ${
+          className={`absolute -left-1 h-6 w-2 rounded-full bg-sidebar-foreground transition-transform ${
+            expanded ? "block" : "hidden xl:block"
+          } ${
             active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"
           }`}
         />
         <Icon className="size-5 shrink-0" />
-        <span className="hidden lg:block">{label}</span>
+        <span className={expanded ? "block" : "hidden xl:block"}>{label}</span>
       </span>
     );
 
-    if (href) {
-      return (
-        <Link
-          key={href}
-          href={href}
-          title={label}
-          aria-current={active ? "page" : undefined}
-          className={itemClass}
-        >
-          {content}
-        </Link>
-      );
-    }
-
-    return (
+    const element = href ? (
+      <Link
+        key={href}
+        href={href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        className={itemClass}
+        {...(isLabelVisible ? { title: label } : {})}
+      >
+        {content}
+      </Link>
+    ) : (
       <button
         key={`btn-${label}`}
         type="button"
-        title={label}
-        onClick={onClick}
+        onClick={() => {
+          onClick?.();
+          onNavigate?.();
+        }}
         aria-current={active ? "page" : undefined}
         className={itemClass}
+        {...(isLabelVisible ? { title: label } : {})}
       >
         {content}
       </button>
     );
+
+    if (expanded || isLabelVisible) return element;
+
+    return (
+      <IconTooltip
+        key={element.key}
+        label={label}
+        placement="right"
+        className="w-full"
+      >
+        {element}
+      </IconTooltip>
+    );
   };
 
+  const secondaryNav: NavItem[] = [
+    {
+      key: "faq",
+      href: "/faq",
+      label: "FAQ",
+      icon: CircleHelpIcon,
+      isActive: (p) => p === "/faq",
+    },
+    {
+      key: "profile",
+      label: "Profile",
+      icon: UserRoundIcon,
+      onClick: () => setProfileOpen(true),
+    },
+    {
+      key: "signout",
+      label: "Sign Out",
+      icon: LogOutIcon,
+      onClick: () => void handleSignOut(),
+    },
+  ];
+
   return (
-    <aside className="flex h-full w-16 shrink-0 flex-col items-center lg:w-56 2xl:w-64">
-      <Image
-        src="/usp-logo.svg"
-        alt="USP Logo"
-        width={110}
-        height={110}
-        className="mb-7 mt-7 h-8 w-8 md:h-8 md:w-8 lg:h-12 lg:w-12 2xl:h-16 2xl:w-16"
-      />
-      <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
-        {nav.map((item) => renderItem(item))}
-      </nav>
-      <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 lg:items-stretch lg:px-0">
-        {renderItem({
-          key: "help",
-          label: "Help & Support",
-          icon: HelpCircleIcon,
-        })}
-        {renderItem({
-          key: "profile",
-          label: "Profile",
-          icon: UserRoundIcon,
-          onClick: () => setProfileOpen(true),
-        })}
-        {renderItem({
-          key: "signout",
-          label: "Sign Out",
-          icon: LogOutIcon,
-          onClick: () => void handleSignOut(),
-        })}
-      </div>
+    <>
+      <header className="flex h-16 shrink-0 items-center justify-between px-4 sm:hidden">
+        <Image src="/usp-logo.svg" alt="USP Logo" width={40} height={40} className="size-10" />
+        <Button.Root
+          isIconOnly
+          variant="ghost"
+          aria-label="Open navigation menu"
+          onPress={() => setMobileOpen(true)}
+          className="text-sidebar-foreground"
+        >
+          <MenuIcon className="size-6" />
+        </Button.Root>
+      </header>
+
+      <aside className="hidden h-full w-16 shrink-0 flex-col items-center overflow-y-auto sm:flex xl:w-56 2xl:w-64">
+        <Image
+          src="/usp-logo.svg"
+          alt="USP Logo"
+          width={110}
+          height={110}
+          className="mb-7 mt-7 h-8 w-8 xl:h-12 xl:w-12 2xl:h-16 2xl:w-16"
+        />
+        <nav className="flex w-full flex-1 flex-col items-center gap-1 px-2 xl:items-stretch xl:px-0">
+          {nav.map((item) => renderItem(item))}
+        </nav>
+        <div className="mb-3 flex w-full flex-col items-center gap-1 px-2 xl:items-stretch xl:px-0">
+          <DisplayControl />
+          {secondaryNav.map((item) => renderItem(item))}
+        </div>
+      </aside>
+
+      <Drawer.Root isOpen={mobileOpen} onOpenChange={setMobileOpen}>
+        <Drawer.Backdrop>
+          <Drawer.Content placement="left" className="w-[min(20rem,calc(100vw-2rem))]">
+            <Drawer.Dialog className="bg-primary-gradient text-sidebar-foreground">
+              <Drawer.Header className="flex items-center gap-3">
+                <Image src="/usp-logo.svg" alt="USP Logo" width={48} height={48} className="size-12" />
+                <Drawer.Heading className="text-lg font-semibold">USP ATS</Drawer.Heading>
+                <Drawer.CloseTrigger aria-label="Close navigation menu" />
+              </Drawer.Header>
+              <Drawer.Body className="flex min-h-0 flex-col px-2">
+                <nav className="flex flex-1 flex-col gap-1" aria-label="Primary navigation">
+                  {nav.map((item) => renderItem(item, true, () => setMobileOpen(false)))}
+                </nav>
+                <div className="mt-6 flex flex-col gap-1 border-t border-sidebar-foreground/20 pt-4">
+                  <DisplayControl expanded />
+                  {secondaryNav.map((item) =>
+                    renderItem(item, true, () => setMobileOpen(false))
+                  )}
+                </div>
+              </Drawer.Body>
+            </Drawer.Dialog>
+          </Drawer.Content>
+        </Drawer.Backdrop>
+      </Drawer.Root>
+
       <ProfileModal
         user={user ?? {}}
         isOpen={profileOpen}
         onOpenChange={setProfileOpen}
       />
-    </aside>
+    </>
   );
 }

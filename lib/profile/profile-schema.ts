@@ -1,11 +1,11 @@
 import { z } from "zod";
+import { normalizeCampusCentre } from "@/lib/jobs/job-constants";
+import { campusPhoneCountry, normalizeOptionalPhone, validateProfilePhone } from "@/lib/profile/phone";
 import {
   MAX_UPLOAD_COUNT,
   MAX_UPLOAD_SIZE,
   isSafeStoredName,
 } from "@/lib/profile/upload";
-
-const PHONE_PATTERN = /^\+?[0-9][0-9\s()-]{5,19}$/;
 
 export const fileRefSchema = z.object({
   name: z
@@ -93,17 +93,12 @@ export const projectLinkInputSchema = z.object({
 
 export const profileInputSchema = z
   .object({
-    phone: z
-      .string()
-      .trim()
-      .max(30, "Phone number is too long")
-      .refine(
-        (value) => value === "" || PHONE_PATTERN.test(value),
-        "Enter a valid phone number (e.g. +679 323 1000)"
-      ),
+    phone: z.string(),
     bio: z.string().trim().max(500, "Bio is too long"),
     campuses: z
-      .array(z.string().trim().min(1, "Campus name is required"))
+      .array(z.string().trim().min(1, "Campus name is required")
+        .transform(normalizeCampusCentre)
+        .refine((campus) => !!campusPhoneCountry(campus), "Select a supported USP Campus/Centre."))
       .min(1, "Select your campus or centre")
       .max(20, "Too many campuses"),
     skills: z
@@ -125,6 +120,8 @@ export const profileInputSchema = z
       .max(20, "Too many project links"),
   })
   .superRefine((data, ctx) => {
+    const phoneError = validateProfilePhone(data.phone, data.campuses);
+    if (phoneError) ctx.addIssue({ code: "custom", path: ["phone"], message: phoneError });
     data.degrees.forEach((degree, index) => {
       if (!degree.document) {
         ctx.addIssue({
@@ -143,7 +140,8 @@ export const profileInputSchema = z
         });
       }
     });
-  });
+  })
+  .transform((data) => ({ ...data, phone: normalizeOptionalPhone(data.phone, data.campuses) }));
 
 export type ProfileInput = z.infer<typeof profileInputSchema>;
 export type DegreeInput = z.infer<typeof degreeInputSchema>;

@@ -4,6 +4,7 @@ import {
   LoaderCircleIcon,
   RefreshCwIcon,
 } from "lucide-react";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import type { AdminApplicantListItem } from "@/lib/applications/application-schema";
 
 export function ApplicationScoreCell({
@@ -30,9 +31,11 @@ export function ApplicationScoreCell({
   if (score.status === "FAILED") {
     return (
       <span className="inline-flex items-center gap-2 text-xs text-danger">
-        <span className="inline-flex items-center gap-1.5">
-          <CircleAlertIcon className="size-3.5" /> Failed
-        </span>
+        <IconTooltip label="AI scoring failed for this application. Use Re-score to try again">
+          <span className="inline-flex items-center gap-1.5">
+            <CircleAlertIcon className="size-3.5" /> Failed
+          </span>
+        </IconTooltip>
         {onRescore ? (
           <Button.Root
             size="sm"

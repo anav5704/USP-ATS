@@ -36,7 +36,7 @@ export function AutocompleteContent({
         <Autocomplete.ClearButton />
         <Autocomplete.Indicator />
       </Autocomplete.Trigger>
-      <Autocomplete.Popover>
+      <Autocomplete.Popover className="max-w-[calc(100vw-1rem)]">
         <Autocomplete.Filter filter={contains}>
           <SearchField fullWidth>
             <SearchField.Group>

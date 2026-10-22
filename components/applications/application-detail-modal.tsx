@@ -43,9 +43,9 @@ function Fact({
   title?: string;
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-start gap-2">
       <Icon className="size-4 shrink-0 text-muted" />
-      <span className="text-sm text-muted" title={title}>
+      <span className="min-w-0 break-words text-sm text-muted" title={title}>
         {label}
       </span>
     </div>
@@ -83,14 +83,20 @@ export function ApplicationDetailModal({
       onOpenChange={onOpenChange}
       title={job.title}
       size="lg"
+      info={{
+        title: "Withdrawing and reapplying",
+        body: "Applications you withdraw stay listed with Withdrawn status. While the posting is still open, you can submit a new application for it.",
+      }}
     >
       <Modal.Body>
         <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
+            <span className="max-w-full break-words rounded-full bg-foreground px-2.5 py-1 text-xs font-medium text-background">
               {job.jobType}
             </span>
-            <span className="text-sm text-muted">{job.department}</span>
+            <span className="min-w-0 break-words text-sm text-muted">
+              {job.department}
+            </span>
             <span className="ml-auto">
               <ApplicationStatusBadge status={application.status} />
             </span>
@@ -121,7 +127,7 @@ export function ApplicationDetailModal({
             ]}
           />
 
-          <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
+          <p className="whitespace-pre-line break-words text-sm leading-relaxed text-muted">
             {job.description}
           </p>
 
@@ -162,7 +168,7 @@ export function ApplicationDetailModal({
               Your cover letter
             </p>
             <div className="rounded-2xl border border-dashed border-border bg-surface px-4 py-4">
-              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">
+              <p className="whitespace-pre-line break-words text-sm leading-relaxed text-foreground">
                 {application.coverLetter}
               </p>
             </div>
@@ -173,18 +179,18 @@ export function ApplicationDetailModal({
         </div>
       </Modal.Body>
       <Modal.Footer>
-        <div className="flex w-full justify-end gap-3">
+        <div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button.Root
             variant="ghost"
             onPress={() => onOpenChange(false)}
-            className="rounded-field text-muted"
+            className="w-full rounded-field text-muted sm:w-auto"
           >
             Close
           </Button.Root>
           {canWithdraw(application.status) ? (
             <Button.Root
               onPress={() => setConfirmOpen(true)}
-              className="rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground transition-colors hover:bg-danger-hover"
+              className="w-full rounded-field bg-danger px-5 text-sm font-medium text-danger-foreground transition-colors hover:bg-danger-hover sm:w-auto"
             >
               Withdraw Application
             </Button.Root>
@@ -197,7 +203,7 @@ export function ApplicationDetailModal({
           if (!open && !isPending) setConfirmOpen(false);
         }}
         title="Withdraw application?"
-        message={`You are withdrawing your application for "${job.title}". It will remain in My Applications with a Withdrawn status, and you will not be able to apply for this job again.`}
+        message={`You are withdrawing your application for "${job.title}". It will remain in My Applications with a Withdrawn status, and you can apply for this job again while the posting is still open.`}
         confirmLabel="Withdraw"
         isPending={isPending}
         onConfirm={confirmWithdraw}

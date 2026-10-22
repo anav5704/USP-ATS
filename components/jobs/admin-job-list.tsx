@@ -10,6 +10,7 @@ import {
   CircleAlertIcon,
   PencilIcon,
   PlusIcon,
+  RotateCcwIcon,
   SearchXIcon,
   SlidersHorizontalIcon,
   UsersRoundIcon,
@@ -17,7 +18,10 @@ import {
 import { useAdminJobs } from "@/components/jobs/use-admin-jobs";
 import { useDebouncedValue } from "@/components/jobs/use-debounced-value";
 import { TablePagination } from "@/components/ui/table-pagination";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import { useArchiveJob } from "@/components/jobs/use-archive-job";
+import { useUnarchiveJob } from "@/components/jobs/use-unarchive-job";
+import { UnarchiveJobModal } from "@/components/jobs/unarchive-job-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { CreateJobModal } from "@/components/jobs/create-job-modal";
 import { EditJobModal } from "@/components/jobs/edit-job-modal";
@@ -30,6 +34,7 @@ import {
 import type { AdminJobListItem } from "@/lib/jobs/job-schema";
 import { gpaFilterSchema } from "@/lib/jobs/gpa-filter-schema";
 import { JobStatusMenu } from "@/components/jobs/job-status-menu";
+import { AdminJobCard } from "@/components/jobs/admin-job-card";
 import { adminApplicantsQueryOptions } from "@/components/applications/use-admin-applicants";
 import {
   JOB_DATE_TIME_ZONE,
@@ -98,11 +103,16 @@ export function AdminJobList() {
   const { data, isPending, isError, refetch } = useAdminJobs(serverFilters, page);
   const jobs = data?.items;
   const { isPending: isArchiving, archiveAsync } = useArchiveJob();
+  const unarchive = useUnarchiveJob();
   const [selectedJob, setSelectedJob] = useState<AdminJobListItem | null>(null);
+  const [unarchiveJob, setUnarchiveJob] = useState<AdminJobListItem | null>(null);
   const [viewingJob, setViewingJob] = useState<AdminJobListItem | null>(null);
   const [editingJob, setEditingJob] = useState<AdminJobListItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const unarchiveNeedsDeadline = unarchiveJob
+    ? deadlineRemainingLabel(new Date(unarchiveJob.deadline)).expired
+    : false;
 
   const hasFilters =
     search.trim() !== "" ||
@@ -129,11 +139,25 @@ export function AdminJobList() {
     setPage(1);
   };
 
-  const confirmArchive = () => {
+  const confirmArchive = async () => {
     if (!selectedJob) return;
     const jobId = selectedJob.id;
-    setSelectedJob(null);
-    void archiveAsync(jobId);
+    try {
+      await archiveAsync(jobId);
+      setSelectedJob(null);
+    } catch {
+      // The mutation hook restores the optimistic update and reports the error.
+    }
+  };
+
+  const confirmDirectUnarchive = async () => {
+    if (!unarchiveJob) return;
+    try {
+      await unarchive.mutateAsync({ jobId: unarchiveJob.id });
+      setUnarchiveJob(null);
+    } catch {
+      // The mutation hook reports the error and keeps the modal open.
+    }
   };
 
   const prefetchApplicants = (jobId: string) => {
@@ -141,7 +165,7 @@ export function AdminJobList() {
   };
 
   return (
-    <div className="flex h-full flex-col p-3">
+    <div className="flex h-full flex-col p-2 sm:p-3">
       <div className="mx-auto flex min-h-0 w-full max-w-none flex-1 flex-col gap-3">
         <div className="flex shrink-0 flex-col gap-3 rounded-2xl border border-border bg-surface p-4 sm:flex-row sm:items-center">
           <div className="min-w-0 flex-1">
@@ -161,21 +185,26 @@ export function AdminJobList() {
               </SearchField.Group>
             </SearchField>
           </div>
-          <Button.Root
-            onPress={() => setFiltersOpen(true)}
-            className="shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary"
+          <IconTooltip
+            label="Filter job postings by type, campus, GPA, skills or status"
+            className="w-full sm:w-auto"
           >
-            <SlidersHorizontalIcon className="size-4" />
-            Filters
-            {activeFilterCount > 0 ? (
-              <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </Button.Root>
+            <Button.Root
+              onPress={() => setFiltersOpen(true)}
+              className="w-full shrink-0 rounded-field border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-tertiary sm:w-auto"
+            >
+              <SlidersHorizontalIcon className="size-4" />
+              Filters
+              {activeFilterCount > 0 ? (
+                <span className="flex size-5 items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background">
+                  {activeFilterCount}
+                </span>
+              ) : null}
+            </Button.Root>
+          </IconTooltip>
           <Button.Root
             onPress={() => setCreateOpen(true)}
-            className="shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90"
+            className="w-full shrink-0 rounded-field bg-foreground px-5 text-sm font-medium text-background hover:opacity-90 sm:w-auto"
           >
             <PlusIcon className="size-4" />
             Create New Job
@@ -224,40 +253,68 @@ export function AdminJobList() {
             </Button.Root>
           </div>
         ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <Table.Root className="flex min-h-0 flex-1 flex-col rounded-2xl border border-border bg-surface">
-            <Table.ScrollContainer className="min-h-0 flex-1 overflow-y-auto">
-              <Table.Content aria-label="Job postings">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            <div className="space-y-3 xl:hidden">
+              {visibleJobs?.map((job) => (
+                <AdminJobCard
+                  key={job.id}
+                  job={job}
+                  payLabel={hourlyPayLabel(job.hourlyPay)}
+                  deadlineLabel={adminDeadlineLabel(job.deadline)}
+                  deadlineTitle={dateFormatter.format(new Date(job.deadline))}
+                  onView={() => setViewingJob(job)}
+                  onEdit={() => setEditingJob(job)}
+                  onArchive={() => setSelectedJob(job)}
+                  onUnarchive={() => setUnarchiveJob(job)}
+                  onPrefetchApplicants={() => prefetchApplicants(job.id)}
+                />
+              ))}
+              <div className="empty:hidden rounded-2xl border border-border bg-surface p-3">
+                <TablePagination
+                  page={data?.page ?? 1}
+                  total={data?.total ?? 0}
+                  pageSize={data?.pageSize ?? 15}
+                  onChange={setPage}
+                />
+              </div>
+            </div>
+
+            <Table.Root className="hidden min-h-0 min-w-0 flex-1 flex-col rounded-2xl border border-border bg-surface xl:flex">
+            <Table.ScrollContainer className="min-h-0 min-w-0 flex-1 overflow-auto">
+              <Table.Content
+                aria-label="Job postings"
+                className="w-full min-w-[60rem] table-fixed"
+              >
                 <Table.Header className="sticky top-0 z-10">
-                  <Table.Column isRowHeader>Job Posting</Table.Column>
-                  <Table.Column>Campus/Centre</Table.Column>
-                  <Table.Column>Pay</Table.Column>
-                  <Table.Column>Deadline</Table.Column>
-                  <Table.Column>Applicants</Table.Column>
-                  <Table.Column>Status</Table.Column>
-                  <Table.Column>Manage</Table.Column>
+                  <Table.Column isRowHeader className="w-[22%]">Job Posting</Table.Column>
+                  <Table.Column className="w-[18%]">Campus/Centre</Table.Column>
+                  <Table.Column className="w-[11%]">Pay</Table.Column>
+                  <Table.Column className="w-[12%]">Deadline</Table.Column>
+                  <Table.Column className="w-[11%]">Applicants</Table.Column>
+                  <Table.Column className="w-[14%]">Status</Table.Column>
+                  <Table.Column className="w-[12%]">Manage</Table.Column>
                 </Table.Header>
                   <Table.Body items={visibleJobs}>
                   {(job) => (
                     <Table.Row id={job.id}>
                       <Table.Cell>
-                        <div className="min-w-52">
+                        <div className="min-w-0">
                           <Button.Root
                             variant="ghost"
                             onPress={() => setViewingJob(job)}
                             aria-label={`View job posting details for ${job.title}`}
                             className="h-auto min-w-0 justify-start p-0 text-left font-semibold text-foreground hover:underline focus-visible:underline"
                           >
-                            {job.title}
+                            <span className="break-words">{job.title}</span>
                           </Button.Root>
-                          <p className="mt-0.5 text-xs text-muted">
+                          <p className="mt-0.5 break-words text-xs text-muted">
                             {job.department} · {job.jobType}
                           </p>
                         </div>
                       </Table.Cell>
                       <Table.Cell>
                         <span
-                          className="block min-w-40 max-w-64 whitespace-normal break-words"
+                          className="block whitespace-normal break-words"
                           title={job.campus.join(", ")}
                         >
                           {job.campus.join(", ")}
@@ -277,24 +334,32 @@ export function AdminJobList() {
                         </span>
                       </Table.Cell>
                       <Table.Cell>
-                        <Link
-                          href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
-                          onMouseEnter={() => prefetchApplicants(job.id)}
-                          onFocus={() => prefetchApplicants(job.id)}
-                          aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
-                          className="inline-flex h-auto min-w-0 cursor-pointer items-center gap-1.5 rounded-field px-2 py-1 font-medium text-foreground hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+                        <IconTooltip
+                          className="inline-flex"
+                          label={`View ${job.applicationCount} applicants for ${job.title}`}
                         >
-                          <UsersRoundIcon className="size-4 text-muted" />
-                          {job.applicationCount}
-                        </Link>
+                          <Link
+                            href={`/admin/jobs/${encodeURIComponent(job.id)}/applicants`}
+                            onMouseEnter={() => prefetchApplicants(job.id)}
+                            onFocus={() => prefetchApplicants(job.id)}
+                            aria-label={`View ${job.applicationCount} applicants for ${job.title}`}
+                            className="inline-flex h-auto min-w-0 cursor-pointer items-center gap-1.5 rounded-field px-2 py-1 font-medium text-foreground hover:bg-surface-secondary focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2"
+                          >
+                            <UsersRoundIcon className="size-4 text-muted" />
+                            {job.applicationCount}
+                          </Link>
+                        </IconTooltip>
                       </Table.Cell>
                       <Table.Cell>
                         <JobStatusMenu
                           job={job}
                           onArchive={() => setSelectedJob(job)}
+                          onUnarchive={() => setUnarchiveJob(job)}
                         />
                         {job.status === "REJECTED" && job.rejectionReason ? (
-                          <p className="mt-1 whitespace-pre-wrap text-xs text-muted">{job.rejectionReason}</p>
+                          <p className="mt-1 whitespace-pre-wrap break-words text-xs text-muted">
+                            {job.rejectionReason}
+                          </p>
                         ) : null}
                       </Table.Cell>
                       <Table.Cell>
@@ -336,6 +401,36 @@ export function AdminJobList() {
         isPending={isArchiving}
         onConfirm={confirmArchive}
       />
+      {unarchiveJob && unarchiveNeedsDeadline ? (
+        <UnarchiveJobModal
+          job={unarchiveJob}
+          isPending={unarchive.isPending}
+          error={unarchive.error}
+          onClose={() => setUnarchiveJob(null)}
+          onSubmit={async (input) => {
+            try {
+              await unarchive.mutateAsync({ jobId: unarchiveJob.id, input });
+              setUnarchiveJob(null);
+            } catch {
+              // The modal displays the mutation error and remains open.
+            }
+          }}
+        />
+      ) : (
+        <ConfirmModal
+          isOpen={unarchiveJob !== null}
+          onOpenChange={(open) => {
+            if (!open && !unarchive.isPending) setUnarchiveJob(null);
+          }}
+          title="Unarchive job posting?"
+          message="This posting's current deadline is still valid. It will become active again and accept applications."
+          confirmLabel="Unarchive posting"
+          icon={RotateCcwIcon}
+          danger={false}
+          isPending={unarchive.isPending}
+          onConfirm={confirmDirectUnarchive}
+        />
+      )}
       {createOpen ? (
         <CreateJobModal isOpen onOpenChange={setCreateOpen} />
       ) : null}

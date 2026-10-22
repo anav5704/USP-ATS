@@ -108,25 +108,24 @@ const adminApplicantDataSchema = z.object({
   }),
 });
 
+const adminScoreSchema = z.object({
+  matchScore: z.number().int().nullable(),
+  status: z.enum(["PENDING", "COMPLETE", "FAILED"]),
+  eligible: z.boolean().nullable(),
+  qualificationFit: z.string().nullable(),
+  motivationFit: z.string().nullable(),
+  missingRequirements: z.array(z.string()),
+});
+
 const adminApplicantListItemSchema = adminApplicantDataSchema.extend({
-  score: z
-    .object({
-      matchScore: z.number().int().nullable(),
-      status: z.enum(["PENDING", "COMPLETE", "FAILED"]),
-    })
-    .nullable(),
+  score: adminScoreSchema.nullable(),
 });
 
 const adminApplicantTableItemSchema = z.object({
   id: z.string(),
   status: z.enum(APPLICATION_STATUSES),
   createdAt: z.string(),
-  score: z
-    .object({
-      matchScore: z.number().int().nullable(),
-      status: z.enum(["PENDING", "COMPLETE", "FAILED"]),
-    })
-    .nullable(),
+  score: adminScoreSchema.nullable(),
   applicant: z.object({
     name: z.string(),
     campuses: z.array(z.string()),

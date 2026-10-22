@@ -5,6 +5,7 @@ import { Button, toast } from "@heroui/react";
 import { DownloadIcon, EyeIcon, FileTextIcon, LoaderCircleIcon, UploadIcon, XIcon } from "lucide-react";
 import type { FileRef } from "@/lib/profile/profile-schema";
 import { FormField } from "@/components/ui/form-field";
+import { IconTooltip } from "@/components/ui/icon-tooltip";
 import { useUploadProfileFiles } from "@/components/profile/use-upload";
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp";
@@ -117,52 +118,58 @@ export function FileUploadField({
         {value ? "Replace file" : "Choose file"}
       </Button.Root>
       {value ? (
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-field p-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl border border-border bg-field p-3 sm:flex-nowrap sm:gap-3">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary text-muted">
             <FileTextIcon className="size-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
+            <p className="break-all text-sm font-medium text-foreground sm:truncate">
               {value.name}
             </p>
             <p className="text-xs text-muted">
               {formatFileSize(value.size)} (PDF or image)
             </p>
           </div>
-          <button
-            type="button"
-            aria-label={`Preview ${value.name}`}
-            disabled={isPreviewing}
-            onClick={() => void handlePreview(value.stored, value.type)}
-            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
-          >
-            {isPreviewing ? (
-              <LoaderCircleIcon className="size-4 animate-spin" />
-            ) : (
-              <EyeIcon className="size-4" />
-            )}
-          </button>
-          <button
-            type="button"
-            aria-label={`Download ${value.name}`}
-            disabled={isDownloading}
-            onClick={() => void handleDownload(value.stored, value.name)}
-            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
-          >
-            {isDownloading ? (
-              <LoaderCircleIcon className="size-4 animate-spin" />
-            ) : (
-              <DownloadIcon className="size-4" />
-            )}
-          </button>
-          <button
-            type="button"
-            aria-label={`Remove ${value.name}`}
-            onClick={() => onChange(null)}
-            className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-danger"
-          >
-            <XIcon className="size-4" />
-          </button>
+          <IconTooltip label="Preview file">
+            <button
+              type="button"
+              aria-label={`Preview ${value.name}`}
+              disabled={isPreviewing}
+              onClick={() => void handlePreview(value.stored, value.type)}
+              className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
+            >
+              {isPreviewing ? (
+                <LoaderCircleIcon className="size-4 animate-spin" />
+              ) : (
+                <EyeIcon className="size-4" />
+              )}
+            </button>
+          </IconTooltip>
+          <IconTooltip label="Download file">
+            <button
+              type="button"
+              aria-label={`Download ${value.name}`}
+              disabled={isDownloading}
+              onClick={() => void handleDownload(value.stored, value.name)}
+              className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:cursor-default"
+            >
+              {isDownloading ? (
+                <LoaderCircleIcon className="size-4 animate-spin" />
+              ) : (
+                <DownloadIcon className="size-4" />
+              )}
+            </button>
+          </IconTooltip>
+          <IconTooltip label="Remove file">
+            <button
+              type="button"
+              aria-label={`Remove ${value.name}`}
+              onClick={() => onChange(null)}
+              className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-secondary hover:text-danger"
+            >
+              <XIcon className="size-4" />
+            </button>
+          </IconTooltip>
         </div>
       ) : null}
     </FormField>

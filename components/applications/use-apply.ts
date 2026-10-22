@@ -5,6 +5,7 @@ import { toast } from "@heroui/react";
 import { api, ApiError } from "@/lib/api";
 import type { CreateApplicationInput } from "@/lib/applications/application-schema";
 import { applicationQueryKeys } from "@/lib/applications/query-keys";
+import { jobQueryKeys } from "@/lib/jobs/query-keys";
 
 export function useApply() {
   const queryClient = useQueryClient();
@@ -14,9 +15,14 @@ export function useApply() {
       api.post<{ success: true }>("/api/applications", values),
     retry: 0,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: applicationQueryKeys.all,
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: applicationQueryKeys.all,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: jobQueryKeys.feed(),
+        }),
+      ]);
       toast.success("Application submitted successfully.");
     },
     onError: (error) => {

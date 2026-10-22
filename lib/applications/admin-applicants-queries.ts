@@ -50,7 +50,16 @@ export async function getAdminApplicants(
           id: true,
           status: true,
           createdAt: true,
-          score: { select: { matchScore: true, status: true } },
+          score: {
+            select: {
+              matchScore: true,
+              status: true,
+              eligible: true,
+              qualificationFit: true,
+              motivationFit: true,
+              missingRequirements: true,
+            },
+          },
           student: {
             select: {
               name: true,
@@ -108,7 +117,16 @@ export async function getAdminApplicantDetail(
       status: true,
       createdAt: true,
       coverLetter: true,
-      score: { select: { matchScore: true, status: true } },
+      score: {
+            select: {
+              matchScore: true,
+              status: true,
+              eligible: true,
+              qualificationFit: true,
+              motivationFit: true,
+              missingRequirements: true,
+            },
+          },
       student: {
         select: {
           name: true,
