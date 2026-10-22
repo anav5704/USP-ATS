@@ -54,6 +54,7 @@ export function OnboardingForm({
 }) {
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileInputSchema),
+    mode: "onChange",
     defaultValues: EMPTY_PROFILE,
   });
   const { isPending, save } = useProfileSave("create");

@@ -42,6 +42,7 @@ export function UpdateProfileForm({
 }) {
   const form = useForm<ProfileInput>({
     resolver: zodResolver(profileInputSchema),
+    mode: "onChange",
     defaultValues: initialData,
   });
   const { isPending, saveAsync } = useProfileSave("update");

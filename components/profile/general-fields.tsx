@@ -10,6 +10,8 @@ import { SKILL_GROUPS } from "@/lib/profile/skill-groups";
 import { JobSingleAutocomplete } from "@/components/jobs/job-single-autocomplete";
 import { USP_CAMPUSES_CENTRES } from "@/lib/jobs/job-constants";
 import { splitName } from "@/lib/user-name";
+import { PhoneField } from "@/components/profile/phone-field";
+import { phoneForCampusChange } from "@/lib/profile/phone";
 
 export type GeneralUser = {
   name?: string | null;
@@ -26,6 +28,9 @@ export function GeneralFields({
   const {
     register,
     control,
+    getValues,
+    setValue,
+    trigger,
     formState: { errors },
   } = useFormContext<ProfileInput>();
 
@@ -59,20 +64,6 @@ export function GeneralFields({
       </div>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <FormField
-          id="phone"
-          label="Phone number (optional)"
-          error={errors.phone?.message}
-        >
-          <Input.Root
-            id="phone"
-            type="tel"
-            inputMode="tel"
-            fullWidth
-            placeholder="e.g. +6791234567"
-            {...register("phone")}
-          />
-        </FormField>
-        <FormField
           label="Campus/Centre"
           error={errors.campuses?.message}
         >
@@ -85,13 +76,18 @@ export function GeneralFields({
                 options={USP_CAMPUSES_CENTRES}
                 placeholder="Select your campus or centre"
                 searchPlaceholder="Search campuses and centres"
-                onChange={(campus) =>
-                  field.onChange(campus ? [campus] : [])
-                }
+                onChange={(campus) => {
+                  const next = campus ? [campus] : [];
+                  const phone = phoneForCampusChange(getValues("phone"), field.value, next);
+                  field.onChange(next);
+                  setValue("phone", phone, { shouldDirty: true });
+                  void trigger(["campuses", "phone"]);
+                }}
               />
             )}
           />
         </FormField>
+        <PhoneField />
       </div>
       <div className="mt-4">
         <FormField
