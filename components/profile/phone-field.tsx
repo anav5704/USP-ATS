@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { Input } from "@heroui/react";
+import { InputGroup } from "@heroui/react";
 import { FormField } from "@/components/ui/form-field";
+import { InfoPopover } from "@/components/ui/info-popover";
 import type { ProfileInput } from "@/lib/profile/profile-schema";
 import { acceptsNationalInput, canonicalPhone, phoneEditorState, phoneLengthMessage } from "@/lib/profile/phone";
 
@@ -22,18 +23,20 @@ export function PhoneField() {
 
   return (
     <FormField id="phone" label="Phone number (optional)" error={error}>
-      <div className="flex min-w-0 items-center gap-2">
+      <InputGroup.Root fullWidth>
         {state.plan && (
-          <span id="phone-prefix" className="shrink-0 rounded-field border border-border bg-surface-secondary px-3 py-2 text-sm text-foreground">
-            <span className="sr-only">{state.plan.country} country calling code (locked): </span>
+          <InputGroup.Prefix className="me-3 text-sm text-foreground">
+            <span id="phone-prefix" className="sr-only">
+              {state.plan.country} country calling code (locked):
+            </span>
             {state.plan.callingCode}
-          </span>
+          </InputGroup.Prefix>
         )}
         <Controller
           name="phone"
           control={control}
           render={({ field }) => (
-            <Input.Root
+            <InputGroup.Input
               id="phone"
               name={field.name}
               ref={field.ref}
@@ -44,8 +47,6 @@ export function PhoneField() {
               pattern="[0-9]*"
               disabled={state.disabled}
               maxLength={state.maxLength}
-              fullWidth
-              className="min-w-0 flex-1"
               aria-describedby={`phone-help${state.plan ? " phone-prefix" : ""}${error ? " phone-error" : ""}${state.legacyValue ? " phone-legacy" : ""}`}
               aria-invalid={!!error}
               value={state.national}
@@ -64,8 +65,14 @@ export function PhoneField() {
             />
           )}
         />
-      </div>
-      <p id="phone-help" className="break-words text-xs text-muted">{hint}</p>
+        <InputGroup.Suffix className="pr-1.5">
+          <InfoPopover
+            title={state.plan ? `Phone number format: ${state.plan.country}` : "Phone number"}
+            body={hint}
+          />
+        </InputGroup.Suffix>
+      </InputGroup.Root>
+      <p id="phone-help" className="sr-only">{hint}</p>
       {state.legacyValue && (
         <p id="phone-legacy" className="break-all text-xs text-muted">
           Stored phone: {state.legacyValue}. Enter a valid number for your Campus/Centre to replace it before saving.

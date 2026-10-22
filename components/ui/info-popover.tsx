@@ -4,9 +4,10 @@ import { InfoIcon } from "lucide-react";
 export type Info = {
   title: string;
   body: string;
+  bodyId?: string;
 };
 
-export function InfoPopover({ title, body }: Info) {
+export function InfoPopover({ title, body, bodyId }: Info) {
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -20,7 +21,7 @@ export function InfoPopover({ title, body }: Info) {
           <Popover.Heading className="text-sm font-semibold text-foreground">
             {title}
           </Popover.Heading>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
+          <p id={bodyId} className="mt-1 text-sm leading-relaxed text-muted">{body}</p>
         </Popover.Dialog>
       </Popover.Content>
     </Popover.Root>
